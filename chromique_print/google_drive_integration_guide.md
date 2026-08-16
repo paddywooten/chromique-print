@@ -1,4 +1,4 @@
-# 📁 Secure Google Drive Automation Guide: Venture Print Hub
+# 📁 Secure Google Drive Automation Guide: Chromique Print
 *A 100% free, automated, and secure way to transfer customer uploads directly into your Google Drive!*
 
 To let your clients upload high-resolution files and have them transfer **automatically** into your Google Drive (linked with their order details) without exposing your private Google password or API keys to the public, we utilize a **Google Apps Script Web App**.
@@ -10,7 +10,7 @@ This service is **100% free**, hosted directly by Google inside your Google acco
 ## How It Works Behind the Scenes:
 1. When a client adds their print job, the website converts their uploaded file into a secure digital string (Base64).
 2. On checkout, the site sends this file along with the order details (Name, Email, Size, Reference) to your private Google Apps Script.
-3. Google Apps Script securely creates a folder named **"Venture Print Hub Orders"** in your Google Drive, saves the file inside, and names it (e.g., `Kofi_Boateng_labels_artwork.pdf`).
+3. Google Apps Script securely creates a folder named **"Chromique Print Orders"** in your Google Drive, saves the file inside, and names it (e.g., `Kofi_Boateng_labels_artwork.pdf`).
 4. Google returns a secure **Google Drive View/Download Link** of that file back to your website.
 5. This link is saved so when you log into your **Admin Dashboard (`print_admin_dashboard.html`)**, the order row automatically displays an active, clickable link to open and download the file directly from your Google Drive!
 
@@ -25,7 +25,7 @@ This service is **100% free**, hosted directly by Google inside your Google acco
 
 ```javascript
 /**
- * VENTURE PRINT HUB - AUTOMATED GOOGLE DRIVE FILE INGESTION
+ * CHROMIQUE PRINT - AUTOMATED GOOGLE DRIVE FILE INGESTION
  * Securely receives artwork files and metadata, saves them to Drive, and returns download links.
  */
 function doPost(e) {
@@ -34,7 +34,7 @@ function doPost(e) {
     var data = JSON.parse(e.postData.contents);
     
     // Find or create a designated master folder in your Google Drive
-    var folderName = "Venture Print Hub Orders";
+    var folderName = "Chromique Print Orders";
     var folders = DriveApp.getFoldersByName(folderName);
     var targetFolder;
     
@@ -83,7 +83,7 @@ For your website to communicate with your Google script, you must publish it:
 1. In the top right corner of the Google Apps Script screen, click the blue **Deploy** button and select **New deployment**.
 2. Click the gear icon next to "Select type" and choose **Web app**.
 3. Configure these exact settings:
-   * **Description**: `Venture Print Hub Ingestion API`
+   * **Description**: `Chromique Print Ingestion API`
    * **Execute as**: **`Me (your_email@gmail.com)`** *(This gives the script permission to write to your Drive)*
    * **Who has access**: **`Anyone`** *(This allows the website to securely send client files)*
 4. Click **Deploy**.

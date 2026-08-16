@@ -25,7 +25,7 @@ If you want to change your passcode from **`2026`** to any other custom password
 If you ever want to change the default prices that load when a customer first visits the website (before you adjust them in the Admin Console):
 
 ### Step-by-Step:
-1. Open the file **`print_app.js`** inside the `venture_print_hub/` folder.
+1. Open the file **`print_app.js`** inside the `chromique_print/` folder.
 2. Locate the **`appSettings`** block at the very top of the file:
    ```javascript
    let appSettings = {

@@ -1,7 +1,7 @@
 /**
- * VENTURE PRINT & CUT HUB - GLOBAL E-COMMERCE & CALCULATOR ENGINE
+ * CHROMIQUE - GLOBAL E-COMMERCE & CALCULATOR ENGINE
  * Handles custom print math, dimension unit conversions, full-matrix developer pricing,
- * Base64 file reading, Google Drive automated uploads, unique order token generation,
+ * Base64 file reading, Google Drive automated uploads, unique CHQ order token generation,
  * local order synchronization, and Paystack popup APIs.
  */
 
@@ -44,79 +44,86 @@ function initPrintStore() {
     const savedKey = localStorage.getItem('paystack_pub_key_print');
     if (savedKey) {
         appSettings.paystackKey = savedKey;
+        const keyInput = document.getElementById('paystack-pub-key-input');
+        if (keyInput) keyInput.value = savedKey;
     }
-    const keyInput = document.getElementById('paystack-pub-key-input');
-    if (keyInput) keyInput.value = appSettings.paystackKey;
     
     // Load Google Drive Script Webhook URL
     const savedScriptUrl = localStorage.getItem('google_drive_script_url_print');
     if (savedScriptUrl) {
         appSettings.googleDriveScriptUrl = savedScriptUrl;
+        const urlInput = document.getElementById('google-script-url-input');
+        if (urlInput) urlInput.value = savedScriptUrl;
     }
-    const urlInput = document.getElementById('google-script-url-input');
-    if (urlInput) urlInput.value = appSettings.googleDriveScriptUrl;
     
     // Load Store Currency
     const savedCurrency = localStorage.getItem('store_currency_print');
     if (savedCurrency) {
         appSettings.currency = savedCurrency;
+        const currencySelect = document.getElementById('currency-select');
+        if (currencySelect) currencySelect.value = savedCurrency;
     }
-    const currencySelect = document.getElementById('currency-select');
-    if (currencySelect) currencySelect.value = appSettings.currency;
     
     // Load Custom Cost per Sq Ft for Banners
     const savedBannerCost = localStorage.getItem('banner_cost_print');
     if (savedBannerCost) {
         appSettings.bannerCostPerSqFt = parseFloat(savedBannerCost);
+        document.getElementById('banner-cost-input').value = savedBannerCost;
+    } else {
+        document.getElementById('banner-cost-input').value = "15.00";
     }
-    const bannerInput = document.getElementById('banner-cost-input');
-    if (bannerInput) bannerInput.value = savedBannerCost || "15.00";
 
     // Load Custom Cost per Sq Ft for Stickers
     const savedStickerCost = localStorage.getItem('sticker_cost_print');
     if (savedStickerCost) {
         appSettings.stickerCostPerSqFt = parseFloat(savedStickerCost);
+        document.getElementById('sticker-cost-input').value = savedStickerCost;
+    } else {
+        document.getElementById('sticker-cost-input').value = "2.50";
     }
-    const stickerInput = document.getElementById('sticker-cost-input');
-    if (stickerInput) stickerInput.value = savedStickerCost || "2.50";
 
     // Load Labels Sheet Pricing
     const savedLabelsCost = localStorage.getItem('labels_cost_print');
     if (savedLabelsCost) {
         appSettings.labelsCostPerSheet = parseFloat(savedLabelsCost);
+        document.getElementById('labels-cost-input').value = savedLabelsCost;
+    } else {
+        document.getElementById('labels-cost-input').value = "15.00";
     }
-    const labelsInput = document.getElementById('labels-cost-input');
-    if (labelsInput) labelsInput.value = savedLabelsCost || "15.00";
 
     // Load DTF Sizing Matrix
     const savedDtfA4 = localStorage.getItem('dtf_a4_cost_print');
     if (savedDtfA4) {
         appSettings.dtfA4Cost = parseFloat(savedDtfA4);
+        document.getElementById('dtf-a4-cost-input').value = savedDtfA4;
+    } else {
+        document.getElementById('dtf-a4-cost-input').value = "15.00";
     }
-    const dtfA4Input = document.getElementById('dtf-a4-cost-input');
-    if (dtfA4Input) dtfA4Input.value = savedDtfA4 || "15.00";
 
     const savedDtfA3 = localStorage.getItem('dtf_a3_cost_print');
     if (savedDtfA3) {
         appSettings.dtfA3Cost = parseFloat(savedDtfA3);
+        document.getElementById('dtf-a3-cost-input').value = savedDtfA3;
+    } else {
+        document.getElementById('dtf-a3-cost-input').value = "25.00";
     }
-    const dtfA3Input = document.getElementById('dtf-a3-cost-input');
-    if (dtfA3Input) dtfA3Input.value = savedDtfA3 || "25.00";
 
     // Load Sublimation Sizing Matrix
     const savedSubA4 = localStorage.getItem('sub_a4_cost_print');
     if (savedSubA4) {
         appSettings.sublimationA4Cost = parseFloat(savedSubA4);
+        document.getElementById('sub-a4-cost-input').value = savedSubA4;
+    } else {
+        document.getElementById('sub-a4-cost-input').value = "15.00";
     }
-    const subA4Input = document.getElementById('sub-a4-cost-input');
-    if (subA4Input) subA4Input.value = savedSubA4 || "15.00";
 
     const savedSubA3 = localStorage.getItem('sub_a3_cost_print');
     if (savedSubA3) {
         appSettings.sublimationA3Cost = parseFloat(savedSubA3);
+        document.getElementById('sub-a3-cost-input').value = savedSubA3;
+    } else {
+        document.getElementById('sub-a3-cost-input').value = "25.00";
     }
-    const subA3Input = document.getElementById('sub-a3-cost-input');
-    if (subA3Input) subA3Input.value = savedSubA3 || "25.00";
     
     updateCurrency();
     
@@ -138,31 +145,18 @@ function toggleDevPanel(show) {
 }
 
 function saveDevSettings() {
-    // Locate elements safely
-    const keyInput = document.getElementById('paystack-pub-key-input');
-    const currSelect = document.getElementById('currency-select');
-    const scriptInput = document.getElementById('google-script-url-input');
+    const keyVal = document.getElementById('paystack-pub-key-input').value.trim();
+    const currVal = document.getElementById('currency-select').value;
+    const scriptUrlVal = document.getElementById('google-script-url-input').value.trim();
     
-    const bannerInput = document.getElementById('banner-cost-input');
-    const stickerInput = document.getElementById('sticker-cost-input');
-    const labelsInput = document.getElementById('labels-cost-input');
-    const dtfA4Input = document.getElementById('dtf-a4-cost-input');
-    const dtfA3Input = document.getElementById('dtf-a3-cost-input');
-    const subA4Input = document.getElementById('sub-a4-cost-input');
-    const subA3Input = document.getElementById('sub-a3-cost-input');
-
-    // Read values safely to prevent any null pointer crashes!
-    const keyVal = keyInput ? keyInput.value.trim() : "";
-    const currVal = currSelect ? currSelect.value : appSettings.currency;
-    const scriptUrlVal = scriptInput ? scriptInput.value.trim() : "";
-    
-    const bannerVal = bannerInput ? bannerInput.value.trim() : "";
-    const stickerVal = stickerInput ? stickerInput.value.trim() : "";
-    const labelsVal = labelsInput ? labelsInput.value.trim() : "";
-    const dtfA4Val = dtfA4Input ? dtfA4Input.value.trim() : "";
-    const dtfA3Val = dtfA3Input ? dtfA3Input.value.trim() : "";
-    const subA4Val = subA4Input ? subA4Input.value.trim() : "";
-    const subA3Val = subA3Input ? subA3Input.value.trim() : "";
+    // Grabbing pricing values
+    const bannerVal = document.getElementById('banner-cost-input').value.trim();
+    const stickerVal = document.getElementById('sticker-cost-input').value.trim();
+    const labelsVal = document.getElementById('labels-cost-input').value.trim();
+    const dtfA4Val = document.getElementById('dtf-a4-cost-input').value.trim();
+    const dtfA3Val = document.getElementById('dtf-a3-cost-input').value.trim();
+    const subA4Val = document.getElementById('sub-a4-cost-input').value.trim();
+    const subA3Val = document.getElementById('sub-a3-cost-input').value.trim();
     
     if (keyVal) {
         localStorage.setItem('paystack_pub_key_print', keyVal);
@@ -171,7 +165,7 @@ function saveDevSettings() {
     if (scriptUrlVal) {
         localStorage.setItem('google_drive_script_url_print', scriptUrlVal);
         appSettings.googleDriveScriptUrl = scriptUrlVal;
-    } else if (scriptInput) {
+    } else {
         localStorage.removeItem('google_drive_script_url_print');
         appSettings.googleDriveScriptUrl = '';
     }
@@ -196,13 +190,8 @@ function saveDevSettings() {
     appSettings.currency = currVal;
     
     updateCurrency();
-    
-    // Only toggle drawer if the drawer element exists on the page
-    if (document.getElementById('dev-drawer')) {
-        toggleDevPanel(false);
-    }
-    
-    alert("Configurations saved and synchronized successfully! Your print rates and parameters have been updated.");
+    if (document.getElementById('dev-drawer')) toggleDevPanel(false);
+    alert("Configurations saved successfully! Your print rates and security parameters have been updated.");
 }
 
 function updateCurrency() {
@@ -561,7 +550,7 @@ function renderCart() {
 }
 
 // ----------------------------------------------------
-// 5. Paystack Payments Processor
+// 5. Paystack Payments Processor & UNIQUE CHQ TOKEN CODE GENERATION
 // ----------------------------------------------------
 function proceedToForm() {
     if (cart.length === 0) {
@@ -581,13 +570,14 @@ function proceedToForm() {
     }
 }
 
+// Generate an ultra-professional, unique alphanumeric token receipt code (e.g., CHQ-STK-4F2A)
 function generateOrderToken(serviceCode) {
     const chars = '0123456789ABCDEF';
     let randCode = '';
     for (let i = 0; i < 4; i++) {
         randCode += chars[Math.floor(Math.random() * chars.length)];
     }
-    return `VPH-${serviceCode}-${randCode}`;
+    return `CHQ-${serviceCode}-${randCode}`; // Swapped VPH with CHQ!
 }
 
 function payWithPaystack() {
@@ -625,7 +615,7 @@ function payWithPaystack() {
             ]
         },
         callback: function(response){
-            let localOrders = JSON.parse(localStorage.getItem('venture_print_orders')) || [];
+            let localOrders = JSON.parse(localStorage.getItem('chromique_print_orders')) || [];
             
             let newOrder = {
                 token: uniqueReceiptToken,
@@ -642,7 +632,7 @@ function payWithPaystack() {
             };
             
             localOrders.unshift(newOrder);
-            localStorage.setItem('venture_print_orders', JSON.stringify(localOrders));
+            localStorage.setItem('chromique_print_orders', JSON.stringify(localOrders));
             
             const recToken = document.getElementById('rec-token');
             const recEmail = document.getElementById('rec-email');
@@ -676,7 +666,7 @@ function payWithPaystack() {
 function copyReceiptToken() {
     const token = document.getElementById('rec-token').innerText;
     navigator.clipboard.writeText(token).then(() => {
-        alert(`Order Token Code Copied: ${token}\nUse this token to track your print or confirm with Patrick!`);
+        alert(`Order Token Code Copied: ${token}\nUse this token to track your print or confirm with CHROMIQUE!`);
     });
 }
 

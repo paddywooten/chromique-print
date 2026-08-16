@@ -296,7 +296,7 @@
             const tbody = document.getElementById('orders-tbody');
             if (!tbody) return;
 
-            const localOrders = JSON.parse(localStorage.getItem('venture_print_orders')) || [];
+            const localOrders = JSON.parse(localStorage.getItem('chromique_print_orders')) || [];
             
             if (localOrders.length === 0) {
                 // Fallback to high-quality mock database rows if no live checkouts exist yet!
@@ -374,10 +374,10 @@
         }
 
         function updateLiveOrderStatus(orderIndex, selectElement) {
-            let localOrders = JSON.parse(localStorage.getItem('venture_print_orders')) || [];
+            let localOrders = JSON.parse(localStorage.getItem('chromique_print_orders')) || [];
             if (localOrders[orderIndex]) {
                 localOrders[orderIndex].status = selectElement.value;
-                localStorage.setItem('venture_print_orders', JSON.stringify(localOrders));
+                localStorage.setItem('chromique_print_orders', JSON.stringify(localOrders));
                 console.log(`Updated Order Index ${orderIndex} status to: ${selectElement.value}`);
             }
             

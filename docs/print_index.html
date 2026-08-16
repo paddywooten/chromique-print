@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRINT HUB | High-Speed Commercial Printing</title>
+    <title>CHROMIQUE | High-Speed Commercial Printing</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -29,7 +29,8 @@
                     },
                     colors: {
                         brand: {
-                            500: '#f97316', /* Safety Orange */
+                            505: '#f97316', /* Safety Orange */
+                            500: '#f97316',
                             600: '#ea580c',
                             950: '#0f172a'
                         }
@@ -44,14 +45,14 @@
     <!-- Navigation Header -->
     <nav class="sticky top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-900 z-40">
         <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-            <!-- Brand Logo -->
+            <!-- Brand Logo (Renamed to CHROMIQUE) -->
             <a href="print_index.html" class="flex items-center gap-3 group">
                 <div class="w-9 h-9 bg-brand-500 rounded-xl flex items-center justify-center text-slate-950 font-black text-lg shadow-md shadow-brand-500/10">
-                    P
+                    C
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-sm tracking-widest text-white group-hover:text-brand-500 transition uppercase">PRINT HUB</h1>
-                    <p class="text-[9px] text-brand-500 font-mono tracking-wider font-bold">COMMERCIAL PRINTING &amp; CUTTING</p>
+                    <h1 class="font-extrabold text-sm tracking-widest text-white group-hover:text-brand-500 transition uppercase">CHROMIQUE</h1>
+                    <p class="text-[9px] text-brand-500 font-mono tracking-wider font-bold">PREMIUM PRINT &amp; PRECISION CUT</p>
                 </div>
             </a>
 
@@ -243,10 +244,38 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-slate-950 text-slate-500 py-12 text-center text-xs border-t border-slate-900">
-        <p class="uppercase tracking-widest text-brand-500 mb-2">© PRINT HUB 2026</p>
-        <p>Commercial Cricut Venture Production Hub &bull; Accra, Ghana</p>
+    <!-- Comprehensive Brand Footer (Fully Connected with Private Admin link!) -->
+    <footer class="bg-slate-900 text-slate-400 py-16 border-t border-slate-900">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
+            <!-- Brand Info -->
+            <div class="space-y-4 col-span-1">
+                <a href="print_index.html" class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-slate-950 font-black text-sm">C</div>
+                    <span class="font-bold text-white tracking-widest text-xs uppercase font-serif">CHROMIQUE</span>
+                </a>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Sleek horizontal large-format printing and automated cricut vector cutting for clients across Accra, Tema, and beyond.
+                </p>
+            </div>
+            <!-- Quick Links -->
+            <div class="space-y-3 col-span-1">
+                <h4 class="text-[10px] font-bold text-white uppercase tracking-widest">Navigation</h4>
+                <div class="flex flex-col gap-2 text-xs">
+                    <a href="#services" class="hover:text-brand-500 transition">What We Do</a>
+                    <a href="#calculator" class="hover:text-brand-500 transition">Book Your Order</a>
+                </div>
+            </div>
+            <!-- Private Staff Login -->
+            <div class="space-y-3 col-span-1">
+                <h4 class="text-[10px] font-bold text-white uppercase tracking-widest">Internal Operations</h4>
+                <div class="flex flex-col gap-2 text-xs">
+                    <a href="print_admin_dashboard.html" class="bg-slate-950 hover:bg-slate-850 text-slate-200 border border-slate-800 px-4 py-2.5 rounded-xl transition inline-block text-center font-bold font-mono text-[10px] tracking-wider uppercase"><i class="fa-solid fa-lock text-brand-500 mr-1.5"></i> Staff Console &amp; Playbook</a>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 border-t border-slate-800 mt-12 pt-6 text-center text-xs text-slate-600">
+            <span>© 2026 CHROMIQUE. All Rights Reserved. Accra, Ghana.</span>
+        </div>
     </footer>
 
     <!-- Shopping Cart Sidebar Drawer -->
@@ -308,7 +337,7 @@
                 <!-- Integrated unique order token placeholder -->
                 <div class="my-4 bg-slate-950 p-4 rounded-2xl border border-slate-850 flex flex-col items-center justify-center space-y-1 animate-pulse">
                     <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest block">Your Confirmation Token</span>
-                    <span id="rec-token" class="text-lg font-black text-brand-500 tracking-wider font-mono">VPH-PRT-XXXX</span>
+                    <span id="rec-token" class="text-lg font-black text-brand-500 tracking-wider font-mono">CHQ-PRT-XXXX</span>
                     <button onclick="copyReceiptToken()" class="text-slate-400 hover:text-brand-500 text-[10px] font-bold mt-1.5 flex items-center gap-1.5 transition">
                         <i class="fa-regular fa-copy"></i> Copy Token Code
                     </button>

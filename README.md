@@ -1,4 +1,4 @@
-# Chromique — Venture Print Hub Website
+# Chromique Print — Commercial Printing Website
 
 High-speed commercial printing website built with HTML, CSS, and JavaScript.
 
@@ -13,17 +13,19 @@ High-speed commercial printing website built with HTML, CSS, and JavaScript.
 ## 📁 Project Structure
 
 ```
-venture_print_hub_website/
-├── venture_print_hub/          # Core website files
-│   ├── print_index.html        # Main landing page
+chromique-print/
+├── chromique_print/              # Core website files
+│   ├── print_index.html          # Main landing page
 │   ├── print_admin_dashboard.html  # Admin dashboard
-│   ├── print_style.css         # Custom styles
-│   ├── print_app.js            # JavaScript application logic
-│   ├── developer_edit_guide.md # Developer documentation
+│   ├── print_style.css           # Custom styles
+│   ├── print_app.js              # JavaScript application logic
+│   ├── developer_edit_guide.md   # Developer documentation
 │   ├── google_drive_integration_guide.md
 │   ├── large_format_printer.jpg
 │   └── large_format_printer_landscape.jpg
-├── brand_designs/              # Branding & mockup assets
+├── docs/                         # GitHub Pages deployment
+│   └── (mirror of chromique_print/)
+├── brand_designs/                # Branding & mockup assets
 │   ├── chromique_hoodie_print.svg
 │   ├── mockup_chromique_hoodie_slate_duo.jpg
 │   └── mockup_chromique_hoodie_cream_duo.jpg
@@ -41,7 +43,7 @@ venture_print_hub_website/
 ## 🚀 Getting Started
 
 1. Clone this repository
-2. Open `venture_print_hub/print_index.html` in your browser
+2. Open `chromique_print/print_index.html` in your browser
 3. For local development, use any static file server (e.g. `python -m http.server`)
 
 ## 📝 License
