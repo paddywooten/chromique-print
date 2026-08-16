@@ -11,7 +11,8 @@ let appSettings = {
     exchangeRate: 1.0,
     bannerCostPerSqFt: 15.0,     // Default GHS cost per square foot for Banners / Custom
     stickerCostPerSqFt: 2.5,     // Default GHS cost per square foot for Stickers
-    labelsCostPerSheet: 15.0,    // Default GHS cost per sheet for Labels
+    labelsA4Cost: 15.0,          // Default GHS cost for Labels A4
+    labelsA3Cost: 25.0,          // Default GHS cost for Labels A3
     dtfA4Cost: 15.0,             // Default GHS cost for DTF A4
     dtfA3Cost: 25.0,             // Default GHS cost for DTF A3
     sublimationA4Cost: 15.0,     // Default GHS cost for Sublimation A4
@@ -85,13 +86,22 @@ function initPrintStore() {
     }
 
     // Load Labels Sheet Pricing
-    const savedLabelsCost = localStorage.getItem('labels_cost_print');
-    const labelsCostInput = document.getElementById('labels-cost-input');
-    if (savedLabelsCost) {
-        appSettings.labelsCostPerSheet = parseFloat(savedLabelsCost);
-        if (labelsCostInput) labelsCostInput.value = savedLabelsCost;
+    const savedLabelsA4 = localStorage.getItem('labels_a4_cost_print');
+    const labelsA4Input = document.getElementById('labels-a4-cost-input');
+    if (savedLabelsA4) {
+        appSettings.labelsA4Cost = parseFloat(savedLabelsA4);
+        if (labelsA4Input) labelsA4Input.value = savedLabelsA4;
     } else {
-        if (labelsCostInput) labelsCostInput.value = "15.00";
+        if (labelsA4Input) labelsA4Input.value = "15.00";
+    }
+
+    const savedLabelsA3 = localStorage.getItem('labels_a3_cost_print');
+    const labelsA3Input = document.getElementById('labels-a3-cost-input');
+    if (savedLabelsA3) {
+        appSettings.labelsA3Cost = parseFloat(savedLabelsA3);
+        if (labelsA3Input) labelsA3Input.value = savedLabelsA3;
+    } else {
+        if (labelsA3Input) labelsA3Input.value = "25.00";
     }
 
     // Load DTF Sizing Matrix
@@ -160,7 +170,8 @@ function saveDevSettings() {
     // Grabbing pricing values
     const bannerVal = document.getElementById('banner-cost-input').value.trim();
     const stickerVal = document.getElementById('sticker-cost-input').value.trim();
-    const labelsVal = document.getElementById('labels-cost-input').value.trim();
+    const labelsA4Val = document.getElementById('labels-a4-cost-input').value.trim();
+    const labelsA3Val = document.getElementById('labels-a3-cost-input').value.trim();
     const dtfA4Val = document.getElementById('dtf-a4-cost-input').value.trim();
     const dtfA3Val = document.getElementById('dtf-a3-cost-input').value.trim();
     const subA4Val = document.getElementById('sub-a4-cost-input').value.trim();
@@ -188,7 +199,8 @@ function saveDevSettings() {
 
     saveValue('banner_cost_print', bannerVal, 'bannerCostPerSqFt');
     saveValue('sticker_cost_print', stickerVal, 'stickerCostPerSqFt');
-    saveValue('labels_cost_print', labelsVal, 'labelsCostPerSheet');
+    saveValue('labels_a4_cost_print', labelsA4Val, 'labelsA4Cost');
+    saveValue('labels_a3_cost_print', labelsA3Val, 'labelsA3Cost');
     saveValue('dtf_a4_cost_print', dtfA4Val, 'dtfA4Cost');
     saveValue('dtf_a3_cost_print', dtfA3Val, 'dtfA3Cost');
     saveValue('sub_a4_cost_print', subA4Val, 'sublimationA4Cost');
@@ -219,7 +231,7 @@ function updateCurrency() {
     
     if (ps1) ps1.innerText = formatPrice(appSettings.bannerCostPerSqFt) + " / sq ft";
     if (ps2) ps2.innerText = formatPrice(appSettings.stickerCostPerSqFt) + " / sq ft";
-    if (ps3) ps3.innerText = formatPrice(appSettings.labelsCostPerSheet) + " / sheet";
+    if (ps3) ps3.innerText = formatPrice(appSettings.labelsA4Cost) + " / A4 sheet";
     if (ps4) ps4.innerText = formatPrice(appSettings.dtfA4Cost) + " / A4 sheet";
     
     // Update cost per sq ft indicator on screen if exists
@@ -262,10 +274,14 @@ function calculatePrice() {
     let totalGHS = 0;
     let areaSqFt = 0;
     
-    // A. For Sheet-Based Labels (Uses dynamically saved developer labels cost!)
+    // A. For Sheet-Based Labels (Uses A4/A3 sheet pricing)
     if (service === 'labels') {
-        totalGHS = appSettings.labelsCostPerSheet * qty;
-        if (areaSummaryEl) areaSummaryEl.innerText = "Calculated per standard sheet";
+        let baseSheetPrice = appSettings.labelsA4Cost;
+        if (sheetSizeSelect.value === 'a3') {
+            baseSheetPrice = appSettings.labelsA3Cost;
+        }
+        totalGHS = baseSheetPrice * qty;
+        if (areaSummaryEl) areaSummaryEl.innerText = `Standard Labels ${sheetSizeSelect.value.toUpperCase()} Sheet Sizing`;
         
     } else if (service === 'dtf') {
         // B. For DTF (A4 vs A3 pricing from developer dashboard)
@@ -702,8 +718,23 @@ function toggleDimensionFields() {
         dimensionBox.classList.remove('hidden');
     }
     
-    if (service === 'dtf' || service === 'sublimation') {
+    if (service === 'dtf' || service === 'sublimation' || service === 'labels') {
         sheetSizeBox.classList.remove('hidden');
+        
+        // Update option text based on service type
+        const optA4 = document.getElementById('opt-dtf-a4');
+        const optA3 = document.getElementById('opt-dtf-a3');
+        
+        if (service === 'dtf') {
+            if (optA4) optA4.innerText = `A4 Sheet Sizing (${formatPrice(appSettings.dtfA4Cost)})`;
+            if (optA3) optA3.innerText = `A3 Sheet Sizing (${formatPrice(appSettings.dtfA3Cost)})`;
+        } else if (service === 'sublimation') {
+            if (optA4) optA4.innerText = `A4 Sheet Sizing (${formatPrice(appSettings.sublimationA4Cost)})`;
+            if (optA3) optA3.innerText = `A3 Sheet Sizing (${formatPrice(appSettings.sublimationA3Cost)})`;
+        } else if (service === 'labels') {
+            if (optA4) optA4.innerText = `A4 Sheet Sizing (${formatPrice(appSettings.labelsA4Cost)})`;
+            if (optA3) optA3.innerText = `A3 Sheet Sizing (${formatPrice(appSettings.labelsA3Cost)})`;
+        }
     }
     
     if (service === 'custom') {
