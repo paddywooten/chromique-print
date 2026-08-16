@@ -1,0 +1,49 @@
+/* VENTURE PRINT & CUT HUB - GLOBAL STYLESHEET */
+/* Focuses on high-contrast dark theme, crisp borders, and smooth UI transitions */
+
+/* Elegant Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a; /* Slate Dark */
+}
+::-webkit-scrollbar-thumb {
+    background: #f97316; /* High-Contrast Safety Orange */
+    border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #ea580c;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Glassmorphism details */
+.glass-panel {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Floating Drawer transition */
+.sidebar-panel {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Satisfying glow under high-contrast elements */
+.orange-glow {
+    box-shadow: 0 4px 20px rgba(249, 115, 22, 0.15);
+}
+
+/* Fade in elements smoothly */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
