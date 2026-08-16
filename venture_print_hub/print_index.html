@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHROMIQUE | High-Speed Commercial Printing</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Paystack Inline JS SDK -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+
+    <!-- Link to external modular assets -->
+    <link rel="stylesheet" href="print_style.css">
+    <script src="print_app.js" defer></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            505: '#f97316', /* Safety Orange */
+                            500: '#f97316',
+                            600: '#ea580c',
+                            950: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen overflow-x-hidden selection:bg-brand-500 selection:text-slate-950">
+
+    <!-- Navigation Header -->
+    <nav class="sticky top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-900 z-40">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <!-- Brand Logo (Renamed to CHROMIQUE) -->
+            <a href="print_index.html" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 bg-brand-500 rounded-xl flex items-center justify-center text-slate-950 font-black text-lg shadow-md shadow-brand-500/10">
+                    C
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-sm tracking-widest text-white group-hover:text-brand-500 transition uppercase">CHROMIQUE</h1>
+                    <p class="text-[9px] text-brand-500 font-mono tracking-wider font-bold">PREMIUM PRINT &amp; PRECISION CUT</p>
+                </div>
+            </a>
+
+            <!-- Menu links -->
+            <div class="hidden md:flex items-center gap-8 text-xs font-bold tracking-widest text-slate-400 uppercase">
+                <a href="#services" class="hover:text-brand-500 transition">What We Do</a>
+                <a href="#calculator" class="hover:text-brand-500 transition">Book Your Order</a>
+            </div>
+
+            <!-- Cart Trigger Button -->
+            <button onclick="toggleCart(true)" class="relative w-11 h-11 bg-slate-900 hover:bg-slate-850 rounded-full flex items-center justify-center transition border border-slate-800">
+                <i class="fa-solid fa-cart-shopping text-brand-500"></i>
+                <span id="cart-badge" class="absolute -top-1 -right-1 bg-brand-500 text-slate-950 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow shadow-brand-500/20 hidden">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative bg-slate-950 text-white py-16 lg:py-24 overflow-hidden flex items-center border-b border-slate-900">
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b22_1px,transparent_1px),linear-gradient(to_bottom,#1e293b22_1px,transparent_1px)] bg-[size:40px_40px] opacity-25"></div>
+        <div class="absolute w-[500px] h-[500px] bg-brand-500/5 rounded-full blur-[110px] -top-20 -left-20 pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div class="space-y-6 lg:col-span-7">
+                <span class="inline-block bg-brand-500/10 text-brand-500 border border-brand-500/20 text-xs font-bold px-4 py-1.5 rounded-full tracking-wider uppercase"><i class="fa-solid fa-circle text-[8px] mr-1.5 animate-pulse"></i> HIGH-SPEED PRODUCTION ACTIVE</span>
+                <h2 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-none uppercase font-sans">
+                    Commercial Scale.<br><span class="bg-gradient-to-r from-brand-500 to-amber-500 bg-clip-text text-transparent">Micron Precision</span>.
+                </h2>
+                
+                <!-- Rewritten Hero Copy Paragraph -->
+                <p class="text-slate-400 text-sm md:text-base leading-relaxed max-w-xl">
+                    <strong class="text-white text-base md:text-lg block mb-2">Turning bold ideas into tangible, high-impact reality.</strong>
+                    <em class="text-brand-500 font-medium">Crafted with precision, Printed to perfection.</em>
+                </p>
+                
+                <div class="flex gap-4 pt-2">
+                    <a href="#calculator" class="bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs px-8 py-4 rounded-xl tracking-wider uppercase transition shadow-lg shadow-brand-500/10">Configure Custom Print</a>
+                    <a href="#services" class="border border-slate-800 hover:border-slate-700 text-white font-bold text-xs px-8 py-4 rounded-xl tracking-wider uppercase transition">Our Catalog</a>
+                </div>
+            </div>
+            
+            <!-- Beautiful Landscape Frame displaying the entire 6-foot wide printer and operator! -->
+            <div class="lg:col-span-5 relative hidden lg:block animate-fade-in">
+                <div class="w-full aspect-[4/3] border border-slate-800 rounded-3xl p-3 relative bg-slate-900 overflow-hidden shadow-2xl">
+                    <img src="large_format_printer_landscape.jpg" alt="Commercial 6-Foot Large-Format Printer" class="w-full h-full object-cover rounded-2xl">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Services Grid Section -->
+    <section id="services" class="py-20 max-w-7xl mx-auto px-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4 border-b border-slate-900 pb-8">
+            <div>
+                <span class="text-xs font-bold text-brand-500 uppercase tracking-widest">PRODUCTION CATALOG</span>
+                <h3 class="text-2xl font-black tracking-tight uppercase text-white mt-1">Industrial-Grade Print &amp; Cut Services</h3>
+            </div>
+            <p class="text-xs text-slate-500 max-w-xs leading-relaxed">
+                We handle design scaling, printing, and automated cutting of vinyl and canvas up to 24 inches wide.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Service 1 -->
+            <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-850 space-y-4">
+                <div class="w-10 h-10 bg-brand-500/10 text-brand-500 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-scroll"></i></div>
+                <h4 class="font-bold text-sm uppercase text-white">Banners</h4>
+                <p class="text-[11px] text-slate-500 leading-relaxed">Heavy-duty event banners and backdrops. Calculated dynamically by square footage based on your specific width and height.</p>
+                <div class="text-xs font-bold text-brand-500 uppercase">From <span id="price-s1">GH¢15.00 / sq ft</span></div>
+            </div>
+            <!-- Service 2 -->
+            <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-850 space-y-4">
+                <div class="w-10 h-10 bg-blue-500/10 text-blue-400 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-tags"></i></div>
+                <h4 class="font-bold text-sm uppercase text-white">Stickers</h4>
+                <p class="text-[11px] text-slate-500 leading-relaxed">Waterproof glossy, matte, or holographic stickers. Calculated by precise square footage for custom sizing.</p>
+                <div class="text-xs font-bold text-brand-500 uppercase">From <span id="price-s2">GH¢12.00 / sq ft</span></div>
+            </div>
+            <!-- Service 3 -->
+            <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-850 space-y-4">
+                <div class="w-10 h-10 bg-amber-500/10 text-amber-400 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-border-none"></i></div>
+                <h4 class="font-bold text-sm uppercase text-white">Branding Labels</h4>
+                <p class="text-[11px] text-slate-500 leading-relaxed">Pre-cut sheet-labels designed for packaging jars, boxes, and product bottles. Flat rate per sheet.</p>
+                <div class="text-xs font-bold text-brand-500 uppercase">From <span id="price-s3">GH¢15.00 / sheet</span></div>
+            </div>
+            <!-- Service 4 -->
+            <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-850 space-y-4">
+                <div class="w-10 h-10 bg-purple-500/10 text-purple-400 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-print"></i></div>
+                <h4 class="font-bold text-sm uppercase text-white">DTF &amp; Sublimation</h4>
+                <p class="text-[11px] text-slate-500 leading-relaxed">High-definition full-color DTF apparel sheets and ink-infused polyester sublimation transfers.</p>
+                <div class="text-xs font-bold text-brand-500 uppercase">From <span id="price-s4">GH¢15.00 / A4 sheet</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: INTERACTIVE PRICING CALCULATOR -->
+    <section id="calculator" class="py-20 bg-slate-900 border-y border-slate-850">
+        <div class="max-w-4xl mx-auto px-6 space-y-8">
+            <div class="text-center space-y-1.5">
+                <span class="text-xs font-bold text-brand-500 uppercase tracking-widest">ON-DEMAND PRICING</span>
+                <h3 class="text-2xl font-black uppercase text-white">Instant Dimensional Calculator</h3>
+                <p class="text-xs text-slate-400">Custom dimensional and sheet-based pricing. Exact calculations, no rounding-up!</p>
+            </div>
+
+            <div class="bg-slate-950 p-8 rounded-3xl border border-slate-850 grid grid-cols-1 md:grid-cols-12 gap-8 items-center shadow-2xl">
+                <!-- Inputs (Left) -->
+                <div class="md:col-span-7 space-y-4 text-xs font-bold text-slate-400">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5 col-span-2">
+                            <label class="uppercase text-[10px] tracking-widest text-slate-500">Service Type</label>
+                            <select id="print-type" onchange="calculatePrice()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:ring-1 focus:ring-brand-500">
+                                <option value="banner" selected>Banner</option>
+                                <option value="stickers">Sticker</option>
+                                <option value="labels">Labels</option>
+                                <option value="dtf">DTF</option>
+                                <option value="sublimation">Sublimation</option>
+                                <option value="custom">Other Custom Prints</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Custom Description Input -->
+                    <div id="custom-description-box" class="space-y-1.5 border-t border-slate-900 pt-4 hidden">
+                        <label class="uppercase text-[10px] tracking-widest text-slate-500">Describe What You Want Printed</label>
+                        <input type="text" id="custom-print-description" placeholder="e.g. 5 custom car stencils, custom adhesive vinyl wall words..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:ring-1 focus:ring-brand-500">
+                    </div>
+
+                    <!-- Dimensional Sizing Box (Feet/Inches/Cm) -->
+                    <div id="dimension-fields-box" class="space-y-4 border-t border-slate-900 pt-4">
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="space-y-1.5 col-span-1">
+                                <label class="uppercase text-[10px] tracking-widest text-slate-500">Unit</label>
+                                <select id="print-unit" onchange="calculatePrice()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:ring-1 focus:ring-brand-500">
+                                    <option value="feet" selected>Feet (ft)</option>
+                                    <option value="inches">Inches (in)</option>
+                                    <option value="cm">Centimeters (cm)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5 col-span-1">
+                                <label class="uppercase text-[10px] tracking-widest text-slate-500">Width</label>
+                                <input type="number" step="0.1" id="print-width" value="3" oninput="calculatePrice()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white font-bold outline-none focus:ring-1 focus:ring-brand-500">
+                            </div>
+                            <div class="space-y-1.5 col-span-1">
+                                <label class="uppercase text-[10px] tracking-widest text-slate-500">Height</label>
+                                <input type="number" step="0.1" id="print-height" value="4" oninput="calculatePrice()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white font-bold outline-none focus:ring-1 focus:ring-brand-500">
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-brand-500 italic font-bold tracking-wide" id="area-summary">Size: 3.00ft x 4.00ft (12.00 sq ft total)</div>
+                    </div>
+
+                    <!-- Sheet Size Selector Box (DTF & Sublimation) -->
+                    <div id="sheet-size-box" class="space-y-1.5 border-t border-slate-900 pt-4 hidden">
+                        <label class="uppercase text-[10px] tracking-widest text-slate-500">Select Sheet Size</label>
+                        <select id="print-sheet-size" onchange="calculatePrice()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                            <option value="a4" id="opt-dtf-a4" selected>A4 Sheet Sizing (GH¢15.00)</option>
+                            <option value="a3" id="opt-dtf-a3">A3 Sheet Sizing (GH¢25.00)</option>
+                        </select>
+                    </div>
+
+                    <!-- File Drag and Drop box -->
+                    <div class="space-y-1.5 border-t border-slate-900 pt-4">
+                        <label class="uppercase text-[10px] tracking-widest text-slate-500">Upload Artwork File</label>
+                        <div class="border border-dashed border-slate-800 hover:border-brand-500 rounded-2xl p-4 text-center cursor-pointer transition bg-slate-900/40 relative">
+                            <input type="file" id="print-file-upload" class="absolute inset-0 opacity-0 cursor-pointer">
+                            <i class="fa-solid fa-cloud-arrow-up text-brand-500 text-lg mb-1.5"></i>
+                            <span id="upload-status-label" class="block text-[10px] text-slate-500">Drag &amp; drop or click to upload PNG, SVG, or PDF</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price display & Cart Add Button (Right) -->
+                <div class="md:col-span-5 bg-slate-900 p-6 rounded-2xl border border-slate-850 text-center space-y-6">
+                    <div class="space-y-1">
+                        <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest block">Calculated Total</span>
+                        <div class="text-3xl font-black text-brand-500 tracking-tight" id="calculated-print-price">GH¢180.00</div>
+                        <span class="text-[10px] text-slate-500 block">Instant checkout via Paystack</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-center gap-3">
+                            <span class="text-[10px] uppercase font-bold text-slate-500">Quantity / Prints:</span>
+                            <input type="number" id="print-qty" value="1" min="1" oninput="calculatePrice()" class="w-16 bg-slate-950 border border-slate-800 text-white rounded-lg p-2 text-center font-bold outline-none focus:ring-1 focus:ring-brand-500">
+                        </div>
+                        <button onclick="addToCart()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-brand-500/10">
+                            <i class="fa-solid fa-cart-plus"></i> Add Job to Queue
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comprehensive Brand Footer (Fully Connected with Private Admin link!) -->
+    <footer class="bg-slate-900 text-slate-400 py-16 border-t border-slate-900">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
+            <!-- Brand Info -->
+            <div class="space-y-4 col-span-1">
+                <a href="print_index.html" class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-slate-950 font-black text-sm">C</div>
+                    <span class="font-bold text-white tracking-widest text-xs uppercase font-serif">CHROMIQUE</span>
+                </a>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Sleek horizontal large-format printing and automated cricut vector cutting for clients across Accra, Tema, and beyond.
+                </p>
+            </div>
+            <!-- Quick Links -->
+            <div class="space-y-3 col-span-1">
+                <h4 class="text-[10px] font-bold text-white uppercase tracking-widest">Navigation</h4>
+                <div class="flex flex-col gap-2 text-xs">
+                    <a href="#services" class="hover:text-brand-500 transition">What We Do</a>
+                    <a href="#calculator" class="hover:text-brand-500 transition">Book Your Order</a>
+                </div>
+            </div>
+            <!-- Private Staff Login -->
+            <div class="space-y-3 col-span-1">
+                <h4 class="text-[10px] font-bold text-white uppercase tracking-widest">Internal Operations</h4>
+                <div class="flex flex-col gap-2 text-xs">
+                    <a href="print_admin_dashboard.html" class="bg-slate-950 hover:bg-slate-850 text-slate-200 border border-slate-800 px-4 py-2.5 rounded-xl transition inline-block text-center font-bold font-mono text-[10px] tracking-wider uppercase"><i class="fa-solid fa-lock text-brand-500 mr-1.5"></i> Staff Console &amp; Playbook</a>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 border-t border-slate-800 mt-12 pt-6 text-center text-xs text-slate-600">
+            <span>© 2026 CHROMIQUE. All Rights Reserved. Accra, Ghana.</span>
+        </div>
+    </footer>
+
+    <!-- Shopping Cart Sidebar Drawer -->
+    <div id="cart-drawer-overlay" onclick="toggleCart(false)" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden"></div>
+    
+    <div id="cart-drawer" class="fixed inset-y-0 right-0 w-[420px] max-w-full bg-slate-950 border-l border-slate-900 z-50 shadow-2xl sidebar-panel translate-x-[100%] flex flex-col justify-between">
+        <!-- Cart Header -->
+        <div class="p-6 border-b border-slate-900 flex justify-between items-center bg-slate-900/50">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-cart-shopping text-brand-500 text-lg"></i>
+                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white">Your Shopping Cart</h3>
+            </div>
+            <button onclick="toggleCart(false)" class="w-8 h-8 bg-slate-900 hover:bg-slate-800 rounded-full flex items-center justify-center text-slate-400 transition"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Cart Items Container -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-4" id="cart-items-container">
+            <!-- Dynamic items -->
+        </div>
+
+        <!-- Calculations & Forms -->
+        <div class="p-6 border-t border-slate-900 bg-slate-900/50 space-y-4">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <span>Subtotal</span>
+                <span class="text-lg font-black text-brand-500" id="cart-subtotal">GH¢0.00</span>
+            </div>
+            
+            <div id="checkout-form-container" class="space-y-3 hidden">
+                <div class="border-t border-slate-850 pt-3">
+                    <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Delivery &amp; Contact</h4>
+                    <div class="space-y-2 text-slate-200">
+                        <input type="email" id="customer-email" placeholder="Email Address" required class="w-full text-xs bg-slate-900 border border-slate-800 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                        <input type="text" id="customer-name" placeholder="Full Name" required class="w-full text-xs bg-slate-900 border border-slate-800 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                        <input type="text" id="customer-phone" placeholder="Phone Number (Mobile Money)" required class="w-full text-xs bg-slate-900 border border-slate-800 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                        <input type="text" id="customer-location" placeholder="Shipping Address / Accra Central" required class="w-full text-xs bg-slate-900 border border-slate-800 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button id="main-cart-btn" onclick="proceedToForm()" class="flex-1 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-white font-bold text-xs py-4 rounded-xl tracking-wider uppercase transition">
+                    Proceed To Delivery
+                </button>
+                <button id="paystack-btn" onclick="payWithPaystack()" class="flex-1 bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-4 rounded-xl tracking-wider uppercase transition hidden">
+                    <i class="fa-solid fa-bolt mr-1"></i> Pay with Paystack
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Confirmation Modal -->
+    <div id="success-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center hidden p-6">
+        <div class="bg-slate-900 rounded-3xl max-w-md w-full p-8 text-center space-y-6 shadow-2xl relative overflow-hidden border border-slate-800">
+            <div class="w-16 h-16 bg-brand-500/10 text-brand-500 rounded-full flex items-center justify-center text-3xl mx-auto shadow-md shadow-brand-500/10">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="space-y-2">
+                <h3 class="font-extrabold text-lg text-white uppercase tracking-wide">Print Job Confirmed!</h3>
+                <!-- Integrated unique order token placeholder -->
+                <div class="my-4 bg-slate-950 p-4 rounded-2xl border border-slate-850 flex flex-col items-center justify-center space-y-1 animate-pulse">
+                    <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest block">Your Confirmation Token</span>
+                    <span id="rec-token" class="text-lg font-black text-brand-500 tracking-wider font-mono">CHQ-PRT-XXXX</span>
+                    <button onclick="copyReceiptToken()" class="text-slate-400 hover:text-brand-500 text-[10px] font-bold mt-1.5 flex items-center gap-1.5 transition">
+                        <i class="fa-regular fa-copy"></i> Copy Token Code
+                    </button>
+                </div>
+                <div class="border-t border-slate-800 pt-3 text-left space-y-1">
+                    <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest block mb-1">Ordered Items Summary</span>
+                    <div id="rec-summary" class="text-xs text-slate-300 space-y-1"></div>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed pt-2">
+                    Thank you! Your custom printing order was verified securely by Paystack. Please save this token code. You will need it to track your print status, confirm your artwork, or collect your physical orders.
+                </p>
+            </div>
+            <div class="border-t border-slate-800 pt-4 text-left space-y-1 text-xs">
+                <div class="flex justify-between font-bold text-slate-500"><span>Email:</span> <span id="rec-email" class="text-slate-300"></span></div>
+                <div class="flex justify-between font-bold text-slate-500"><span>Address:</span> <span id="rec-location" class="text-slate-300"></span></div>
+                <div class="flex justify-between font-bold text-slate-500"><span>Reference:</span> <span id="rec-ref" class="text-brand-500 font-mono font-bold"></span></div>
+            </div>
+            <button onclick="closeSuccessModal()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs py-3.5 rounded-xl transition uppercase tracking-wider">
+                Close Queue
+            </button>
+        </div>
+    </div>
+
+</body>
+</html>
