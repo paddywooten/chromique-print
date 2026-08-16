@@ -154,7 +154,8 @@ function toggleDevPanel(show) {
 function saveDevSettings() {
     const keyVal = document.getElementById('paystack-pub-key-input').value.trim();
     const currVal = document.getElementById('currency-select').value;
-    const scriptUrlVal = document.getElementById('google-script-url-input').value.trim();
+    const scriptUrlInput = document.getElementById('google-script-url-input');
+    const scriptUrlVal = scriptUrlInput ? scriptUrlInput.value.trim() : '';
     
     // Grabbing pricing values
     const bannerVal = document.getElementById('banner-cost-input').value.trim();
