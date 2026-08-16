@@ -66,63 +66,70 @@ function initPrintStore() {
     
     // Load Custom Cost per Sq Ft for Banners
     const savedBannerCost = localStorage.getItem('banner_cost_print');
+    const bannerCostInput = document.getElementById('banner-cost-input');
     if (savedBannerCost) {
         appSettings.bannerCostPerSqFt = parseFloat(savedBannerCost);
-        document.getElementById('banner-cost-input').value = savedBannerCost;
+        if (bannerCostInput) bannerCostInput.value = savedBannerCost;
     } else {
-        document.getElementById('banner-cost-input').value = "15.00";
+        if (bannerCostInput) bannerCostInput.value = "15.00";
     }
 
     // Load Custom Cost per Sq Ft for Stickers
     const savedStickerCost = localStorage.getItem('sticker_cost_print');
+    const stickerCostInput = document.getElementById('sticker-cost-input');
     if (savedStickerCost) {
         appSettings.stickerCostPerSqFt = parseFloat(savedStickerCost);
-        document.getElementById('sticker-cost-input').value = savedStickerCost;
+        if (stickerCostInput) stickerCostInput.value = savedStickerCost;
     } else {
-        document.getElementById('sticker-cost-input').value = "2.50";
+        if (stickerCostInput) stickerCostInput.value = "2.50";
     }
 
     // Load Labels Sheet Pricing
     const savedLabelsCost = localStorage.getItem('labels_cost_print');
+    const labelsCostInput = document.getElementById('labels-cost-input');
     if (savedLabelsCost) {
         appSettings.labelsCostPerSheet = parseFloat(savedLabelsCost);
-        document.getElementById('labels-cost-input').value = savedLabelsCost;
+        if (labelsCostInput) labelsCostInput.value = savedLabelsCost;
     } else {
-        document.getElementById('labels-cost-input').value = "15.00";
+        if (labelsCostInput) labelsCostInput.value = "15.00";
     }
 
     // Load DTF Sizing Matrix
     const savedDtfA4 = localStorage.getItem('dtf_a4_cost_print');
+    const dtfA4Input = document.getElementById('dtf-a4-cost-input');
     if (savedDtfA4) {
         appSettings.dtfA4Cost = parseFloat(savedDtfA4);
-        document.getElementById('dtf-a4-cost-input').value = savedDtfA4;
+        if (dtfA4Input) dtfA4Input.value = savedDtfA4;
     } else {
-        document.getElementById('dtf-a4-cost-input').value = "15.00";
+        if (dtfA4Input) dtfA4Input.value = "15.00";
     }
 
     const savedDtfA3 = localStorage.getItem('dtf_a3_cost_print');
+    const dtfA3Input = document.getElementById('dtf-a3-cost-input');
     if (savedDtfA3) {
         appSettings.dtfA3Cost = parseFloat(savedDtfA3);
-        document.getElementById('dtf-a3-cost-input').value = savedDtfA3;
+        if (dtfA3Input) dtfA3Input.value = savedDtfA3;
     } else {
-        document.getElementById('dtf-a3-cost-input').value = "25.00";
+        if (dtfA3Input) dtfA3Input.value = "25.00";
     }
 
     // Load Sublimation Sizing Matrix
     const savedSubA4 = localStorage.getItem('sub_a4_cost_print');
+    const subA4Input = document.getElementById('sub-a4-cost-input');
     if (savedSubA4) {
         appSettings.sublimationA4Cost = parseFloat(savedSubA4);
-        document.getElementById('sub-a4-cost-input').value = savedSubA4;
+        if (subA4Input) subA4Input.value = savedSubA4;
     } else {
-        document.getElementById('sub-a4-cost-input').value = "15.00";
+        if (subA4Input) subA4Input.value = "15.00";
     }
 
     const savedSubA3 = localStorage.getItem('sub_a3_cost_print');
+    const subA3Input = document.getElementById('sub-a3-cost-input');
     if (savedSubA3) {
         appSettings.sublimationA3Cost = parseFloat(savedSubA3);
-        document.getElementById('sub-a3-cost-input').value = savedSubA3;
+        if (subA3Input) subA3Input.value = savedSubA3;
     } else {
-        document.getElementById('sub-a3-cost-input').value = "25.00";
+        if (subA3Input) subA3Input.value = "25.00";
     }
     
     updateCurrency();
