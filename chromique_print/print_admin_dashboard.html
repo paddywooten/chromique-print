@@ -16,7 +16,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
@@ -37,6 +37,7 @@
         window.firebaseOnSnapshot = onSnapshot;
         window.firebaseDoc = doc;
         window.firebaseUpdateDoc = updateDoc;
+        window.firebaseAddDoc = addDoc;
     </script>
     
     <!-- Link to external modular assets for synchronized state -->
@@ -119,6 +120,115 @@
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-6 py-10 space-y-10">
         
+        <!-- Manual Order Entry Section -->
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-plus-circle text-green-400 mr-2"></i> Manual Order Entry</h3>
+                <span class="text-[10px] bg-green-500/10 text-green-400 px-3 py-1 rounded-full font-bold">Walk-in / Phone Orders</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Record jobs that were not placed online and generate receipts for them</p>
+            
+            <form id="manual-order-form" class="space-y-4">
+                <!-- Customer Details -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Customer Name *</label>
+                        <input type="text" id="manual-name" required placeholder="e.g. Kofi Boateng" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number *</label>
+                        <input type="tel" id="manual-phone" required placeholder="e.g. 024 123 4567" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email (Optional)</label>
+                        <input type="email" id="manual-email" placeholder="e.g. kofi@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Service Type *</label>
+                        <select id="manual-service" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                            <option value="">Select service...</option>
+                            <option value="Banner">Banner</option>
+                            <option value="Sticker">Sticker</option>
+                            <option value="Print & Cut">Print & Cut</option>
+                            <option value="Labels">Labels</option>
+                            <option value="DTF">DTF</option>
+                            <option value="Sublimation">Sublimation</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dimensions (for dimensional services) -->
+                <div id="manual-dimensions-section" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Width</label>
+                        <input type="number" id="manual-width" step="0.1" placeholder="e.g. 3" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Height</label>
+                        <input type="number" id="manual-height" step="0.1" placeholder="e.g. 4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unit</label>
+                        <select id="manual-unit" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                            <option value="ft">Feet (ft)</option>
+                            <option value="in">Inches (in)</option>
+                            <option value="cm">Centimeters (cm)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quantity *</label>
+                        <input type="number" id="manual-qty" required min="1" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                </div>
+
+                <!-- Delivery & Payment -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Delivery Method *</label>
+                        <select id="manual-delivery" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                            <option value="pickup">🏪 Pickup at Office</option>
+                            <option value="delivery">📦 Delivery</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5" id="manual-address-section">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Delivery Address</label>
+                        <input type="text" id="manual-address" placeholder="e.g. East Legon, Accra" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Artwork Method *</label>
+                        <select id="manual-artwork" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                            <option value="whatsapp">📱 WhatsApp</option>
+                            <option value="email">📧 Email</option>
+                            <option value="usb">💾 USB/Physical</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Amount & Notes -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Amount (GH¢) *</label>
+                        <input type="number" id="manual-amount" required step="0.01" placeholder="e.g. 180.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Order Notes (Optional)</label>
+                        <input type="text" id="manual-notes" placeholder="Special instructions..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-slate-950 font-black text-xs py-4 rounded-xl transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-green-500/10">
+                        <i class="fa-solid fa-check-circle"></i> Create Order & Generate Receipt
+                    </button>
+                    <button type="reset" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs px-6 py-4 rounded-xl transition uppercase tracking-wider">
+                        Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- Stats Row -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
@@ -744,6 +854,114 @@
                 loadActivityLog();
             }
         }
+
+        // Manual Order Form Handler
+        document.getElementById('manual-order-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+            
+            // Collect form data
+            const name = document.getElementById('manual-name').value.trim();
+            const phone = document.getElementById('manual-phone').value.trim();
+            const email = document.getElementById('manual-email').value.trim();
+            const service = document.getElementById('manual-service').value;
+            const width = parseFloat(document.getElementById('manual-width').value) || 0;
+            const height = parseFloat(document.getElementById('manual-height').value) || 0;
+            const unit = document.getElementById('manual-unit').value;
+            const qty = parseInt(document.getElementById('manual-qty').value) || 1;
+            const deliveryMethod = document.getElementById('manual-delivery').value;
+            const address = document.getElementById('manual-address').value.trim();
+            const artworkMethod = document.getElementById('manual-artwork').value;
+            const amount = parseFloat(document.getElementById('manual-amount').value) || 0;
+            const notes = document.getElementById('manual-notes').value.trim();
+            
+            // Validate required fields
+            if (!name || !phone || !service || !amount) {
+                alert('Please fill in all required fields (Name, Phone, Service, Amount)');
+                return;
+            }
+            
+            // Calculate dimensions summary
+            let areaSummary = 'N/A';
+            if (width > 0 && height > 0) {
+                let widthFt = width;
+                let heightFt = height;
+                
+                if (unit === 'in') {
+                    widthFt = width / 12;
+                    heightFt = height / 12;
+                } else if (unit === 'cm') {
+                    widthFt = width / 30.48;
+                    heightFt = height / 30.48;
+                }
+                
+                const areaSqFt = widthFt * heightFt;
+                const ratePerSqFt = amount / (areaSqFt * qty);
+                areaSummary = `Size: ${widthFt.toFixed(2)}ft x ${heightFt.toFixed(2)}ft (${areaSqFt.toFixed(4)} sq ft total) @ GH¢${ratePerSqFt.toFixed(2)}/sq ft`;
+            }
+            
+            // Generate unique reference
+            const ref = 'CHQ-' + Date.now().toString(36).toUpperCase().slice(-6);
+            
+            // Create order object
+            const orderData = {
+                ref: ref,
+                name: name,
+                phone: phone,
+                email: email,
+                deliveryMethod: deliveryMethod,
+                address: deliveryMethod === 'delivery' ? address : 'Pickup at office',
+                notes: notes,
+                quote: {
+                    service: service,
+                    areaSummary: areaSummary,
+                    qty: qty,
+                    totalPrice: `GH¢${amount.toFixed(2)}`
+                },
+                paymentMethod: 'Manual Entry',
+                artworkMethod: artworkMethod,
+                status: 'MoMo Verified',
+                verifiedBy: manager,
+                verifiedAt: new Date().toISOString(),
+                timestamp: new Date().toISOString(),
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                // Save to Firebase
+                await window.firebaseAddDoc(
+                    window.firebaseCollection(window.firebaseDB, 'momo_orders'),
+                    orderData
+                );
+                
+                // Log activity
+                logActivity('MANUAL_ORDER', `Created manual order ${ref} for ${name} (${service}, GH¢${amount.toFixed(2)})`);
+                loadActivityLog();
+                
+                // Generate receipt
+                generateReceipt(orderData);
+                
+                // Reset form
+                document.getElementById('manual-order-form').reset();
+                
+                alert(`Manual order ${ref} created successfully!\n\nCustomer: ${name}\nService: ${service}\nAmount: GH¢${amount.toFixed(2)}\n\nReceipt has been generated.`);
+                
+            } catch (error) {
+                console.error('Error creating manual order:', error);
+                alert('Error creating order. Please try again.');
+            }
+        });
+        
+        // Show/hide address field based on delivery method
+        document.getElementById('manual-delivery').addEventListener('change', function() {
+            const addressSection = document.getElementById('manual-address-section');
+            if (this.value === 'delivery') {
+                addressSection.style.display = 'block';
+            } else {
+                addressSection.style.display = 'none';
+            }
+        });
 
         window.addEventListener('DOMContentLoaded', checkSessionAuth);
     </script>
