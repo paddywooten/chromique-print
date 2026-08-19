@@ -89,55 +89,25 @@
         <!-- Stats Row -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Print Sales</p>
-                <p class="text-3xl font-black text-brand-500 break-all overflow-hidden" id="sales-stat-display">GH¢14,210.00</p>
-                <p class="text-[10px] text-slate-500 font-semibold"><i class="fa-solid fa-arrow-up text-brand-500"></i> Active dynamic sales</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total MoMo Sales</p>
+                <p class="text-3xl font-black text-brand-500 break-all overflow-hidden" id="momo-sales-display">GH¢0.00</p>
+                <p class="text-[10px] text-slate-500 font-semibold"><i class="fa-solid fa-mobile-screen-button text-brand-500"></i> Verified payments</p>
             </div>
             <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sheets Printed &amp; Cut</p>
-                <p class="text-3xl font-black text-white" id="sheets-stat-display">412 Sheets</p>
-                <p class="text-[10px] text-slate-500 font-semibold">Production metrics</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Orders</p>
+                <p class="text-3xl font-black text-white" id="momo-total-display">0 Orders</p>
+                <p class="text-[10px] text-slate-500 font-semibold">All MoMo orders</p>
             </div>
             <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Jobs</p>
-                <p class="text-3xl font-black text-amber-400" id="queue-count">4 Jobs</p>
-                <p class="text-[10px] text-slate-500 font-semibold">Pending cut-queue</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pending</p>
+                <p class="text-3xl font-black text-amber-400" id="momo-pending-display">0 Orders</p>
+                <p class="text-[10px] text-slate-500 font-semibold">Awaiting verification</p>
             </div>
             <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Corporate Accounts</p>
-                <p class="text-3xl font-black text-blue-400">8 Clients</p>
-                <p class="text-[10px] text-brand-500 font-bold">Accra &amp; Tema regions</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified</p>
+                <p class="text-3xl font-black text-green-400" id="momo-verified-display">0 Orders</p>
+                <p class="text-[10px] text-brand-500 font-bold">Ready for production</p>
             </div>
-        </div>
-
-        <!-- Orders Table & Job Queue -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            <!-- Incoming orders table (Full Width - Dynamically populating real user orders!) -->
-            <div class="lg:col-span-12 bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-list-check text-brand-500 mr-2"></i> Paystack Printing Transactions</h3>
-                    <span class="text-[10px] bg-slate-800 text-slate-400 px-3 py-1 rounded-full font-bold">Live Stream Active</span>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-300">
-                        <thead class="bg-slate-950 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                            <tr>
-                                <th class="p-3 rounded-l-xl">Job Token Code</th>
-                                <th class="p-3">Customer</th>
-                                <th class="p-3">Product / Qty</th>
-                                <th class="p-3">Artwork File</th>
-                                <th class="p-3 rounded-r-xl">Cricut Cut Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800" id="orders-tbody">
-                            <!-- Populated dynamically by JS or falls back to mock rows -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
         </div>
 
         <!-- MoMo Payment Orders -->
@@ -261,7 +231,6 @@
             // ALWAYS REQUIRE ACCESS ON EACH INDIVIDUAL PAGE ENTRY OR PAGE REFRESH!
             // We bypass the sessionStorage cache, forcing the lockscreen to be visible by default on load.
             document.getElementById('auth-lockscreen').classList.remove('hidden');
-            loadRealTimeOrders();
             loadMomoOrders();
         }
 
@@ -281,88 +250,6 @@
                     window.location.href = "print_index.html";
                 }, 1800);
             }
-        }
-
-        // Dynamically load real Paystack orders completed on the home page!
-        function loadRealTimeOrders() {
-            const tbody = document.getElementById('orders-tbody');
-            if (!tbody) return;
-
-            const localOrders = JSON.parse(localStorage.getItem('chromique_print_orders')) || [];
-            
-            if (localOrders.length === 0) {
-                // Fallback to high-quality mock database rows if no live checkouts exist yet!
-                tbody.innerHTML = `
-                    <tr class="hover:bg-slate-850 transition">
-                        <td class="p-3 font-mono text-brand-500 font-bold">VPH-STK-4D2A</td>
-                        <td class="p-3 font-bold">Kofi Boateng</td>
-                        <td class="p-3">PRINT: Sticker - Glossy (2x2 ft) x3</td>
-                        <td class="p-3 font-mono text-blue-400 hover:underline cursor-pointer"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> logo_draft.pdf</td>
-                        <td class="p-3">
-                            <span class="bg-amber-400/10 text-amber-400 rounded-full px-3 py-1 font-bold text-[10px]">Cricut Cutting</span>
-                        </td>
-                    </tr>
-                    <tr class="hover:bg-slate-850 transition">
-                        <td class="p-3 font-mono text-brand-500 font-bold">VPH-BNR-A9F8</td>
-                        <td class="p-3 font-bold">Naa Lamiley</td>
-                        <td class="p-3">PRINT: Banner - Heavy Canvas (10x3 ft) x1</td>
-                        <td class="p-3 font-mono text-blue-400 hover:underline cursor-pointer"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> banner_v1.pdf</td>
-                        <td class="p-3">
-                            <span class="bg-amber-400/10 text-amber-400 rounded-full px-3 py-1 font-bold text-[10px]">Cricut Cutting</span>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            // Clean table and populate with REAL, LIVE client orders!
-            tbody.innerHTML = '';
-            
-            // Calculate real transacted totals
-            let totalRevenue = 0;
-            localOrders.forEach(order => {
-                let numericAmount = parseFloat(order.amount.replace(/GH¢|\$|,/g, '')) || 0;
-                totalRevenue += numericAmount;
-            });
-
-            // Update Sales stat dashboard cards live!
-            document.getElementById('sales-stat-display').innerText = `GH¢${totalRevenue.toFixed(2)}`;
-            document.getElementById('sheets-stat-display').innerText = `${localOrders.length + 12} Sheets`;
-            document.getElementById('queue-count').innerText = `${localOrders.filter(o => o.status === 'cutting').length} Jobs`;
-
-            localOrders.forEach((order, index) => {
-                let selectStyle = "bg-slate-800 border border-slate-700 text-slate-400";
-                if (order.status === 'cutting') selectStyle = "bg-amber-400/10 border border-amber-400/20 text-amber-400";
-                else if (order.status === 'shipped') selectStyle = "bg-brand-500/10 border border-brand-500/20 text-brand-500";
-
-                let rowHTML = `
-                    <tr class="hover:bg-slate-850 transition animate-fade-in">
-                        <td class="p-3 font-mono text-brand-500 font-black tracking-wider">${order.token}</td>
-                        <td class="p-3">
-                            <div class="font-bold text-white">${order.name}</div>
-                            <div class="text-[10px] text-slate-500">${order.address}</div>
-                        </td>
-                        <td class="p-3">
-                            <div class="font-bold text-slate-300 leading-tight">${order.itemSummary}</div>
-                            <div class="text-[10px] text-slate-500 mt-0.5">Date: ${order.date} // Ref: ${order.reference.substring(0, 10)}</div>
-                        </td>
-                        <td class="p-3 font-mono text-blue-400 hover:underline">
-                            <a href="${order.driveLink}" target="_blank" class="flex items-center gap-1">
-                                <i class="fa-solid fa-cloud-arrow-down"></i> ${order.driveLink.startsWith('http') ? 'Download Artwork' : 'Local File'}
-                            </a>
-                        </td>
-                        <td class="p-3">
-                            <select onchange="updateLiveOrderStatus(${index}, this)" class="${selectStyle} rounded-full px-3 py-1 font-bold text-[10px] outline-none cursor-pointer">
-                                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
-                                <option value="cutting" ${order.status === 'cutting' ? 'selected' : ''}>Cricut Cutting</option>
-                                <option value="weeded" ${order.status === 'weeded' ? 'selected' : ''}>Weeded</option>
-                                <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
-                            </select>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += rowHTML;
-            });
         }
 
         // Load MoMo Orders from localStorage
@@ -450,6 +337,23 @@
                 `;
                 tbody.innerHTML += rowHTML;
             });
+            
+            // Calculate and display stats
+            const totalSales = momoOrders
+                .filter(o => o.status === 'MoMo Verified')
+                .reduce((sum, o) => {
+                    const price = o.quote?.totalPrice || 'GH¢0.00';
+                    const numericPrice = parseFloat(price.replace(/GH¢|,/g, '')) || 0;
+                    return sum + numericPrice;
+                }, 0);
+            
+            const pendingCount = momoOrders.filter(o => o.status === 'Pending MoMo Verification').length;
+            const verifiedCount = momoOrders.filter(o => o.status === 'MoMo Verified').length;
+            
+            document.getElementById('momo-sales-display').innerText = `GH¢${totalSales.toFixed(2)}`;
+            document.getElementById('momo-total-display').innerText = `${momoOrders.length} Order${momoOrders.length !== 1 ? 's' : ''}`;
+            document.getElementById('momo-pending-display').innerText = `${pendingCount} Order${pendingCount !== 1 ? 's' : ''}`;
+            document.getElementById('momo-verified-display').innerText = `${verifiedCount} Order${verifiedCount !== 1 ? 's' : ''}`;
         }
 
         function verifyMomoOrder(index) {
@@ -488,31 +392,6 @@
                     }
                 }
             }
-        }
-
-        function updateLiveOrderStatus(orderIndex, selectElement) {
-            let localOrders = JSON.parse(localStorage.getItem('chromique_print_orders')) || [];
-            if (localOrders[orderIndex]) {
-                localOrders[orderIndex].status = selectElement.value;
-                localStorage.setItem('chromique_print_orders', JSON.stringify(localOrders));
-                console.log(`Updated Order Index ${orderIndex} status to: ${selectElement.value}`);
-            }
-            
-            const status = selectElement.value;
-            if (status === 'cutting') {
-                selectElement.className = "bg-amber-400/10 border border-amber-400/20 text-amber-400 rounded-full px-3 py-1 font-bold text-[10px] outline-none cursor-pointer";
-            } else if (status === 'shipped') {
-                selectElement.className = "bg-brand-500/10 border border-brand-500/20 text-brand-500 rounded-full px-3 py-1 font-bold text-[10px] outline-none cursor-pointer";
-            } else {
-                selectElement.className = "bg-slate-800 border border-slate-700 text-slate-400 rounded-full px-3 py-1 font-bold text-[10px] outline-none cursor-pointer";
-            }
-            
-            let cuttingCount = localOrders.filter(o => o.status === 'cutting').length;
-            document.getElementById('queue-count').innerText = `${cuttingCount} Jobs`;
-        }
-
-        function updateJobCount(selectElement) {
-            // fallback helper
         }
 
         window.addEventListener('DOMContentLoaded', checkSessionAuth);
