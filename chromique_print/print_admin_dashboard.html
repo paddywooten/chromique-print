@@ -41,20 +41,27 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
 
-    <!-- 🔒 BULLETPROOF ADMIN LOCKSCREEN OVERLAY (ALWAYS ACTIVE ON LOAD!) -->
+    <!-- 🔒 MANAGER LOGIN CONSOLE OVERLAY -->
     <div id="auth-lockscreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-6 transition-all duration-300">
         <div class="bg-slate-900 rounded-3xl p-8 border border-slate-850 max-w-md w-full text-center space-y-6 shadow-2xl animate-fade-in">
             <div class="w-16 h-16 bg-brand-500/10 text-brand-500 rounded-full flex items-center justify-center text-2xl mx-auto shadow-lg shadow-brand-500/10">
                 <i class="fa-solid fa-user-shield animate-pulse"></i>
             </div>
             <div class="space-y-1">
-                <h3 class="font-extrabold text-white text-base uppercase tracking-wider">Access Restricted</h3>
-                <p class="text-xs text-slate-500">PRINT HUB Administrative Console</p>
+                <h3 class="font-extrabold text-white text-base uppercase tracking-wider">Manager Login Console</h3>
+                <p class="text-xs text-slate-500">CHROMIQUE Administrative Access</p>
             </div>
             <div class="space-y-3">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Manager</label>
+                    <select id="manager-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500">
+                        <option value="PATRICK (DIRECTOR)">PATRICK (DIRECTOR)</option>
+                        <option value="JESSICA (GENERAL MANAGER)">JESSICA (GENERAL MANAGER)</option>
+                    </select>
+                </div>
                 <input type="password" id="admin-passcode-input" placeholder="Enter Admin Passcode" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500 tracking-widest text-white font-mono">
                 <button onclick="verifyPasscode()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider shadow-lg shadow-brand-500/10">
-                    Verify Passcode
+                    Verify &amp; Login
                 </button>
             </div>
             <p id="auth-error-msg" class="text-[11px] text-red-500 font-bold hidden"><i class="fa-solid fa-circle-exclamation mr-1.5 animate-bounce"></i> Access Denied. Redirecting back home...</p>
@@ -79,7 +86,7 @@
             <span class="text-slate-800">|</span>
             <span class="bg-brand-500/10 text-brand-500 border border-brand-500/20 px-3 py-1.5 rounded-full font-mono font-bold hidden md:inline-block"><i class="fa-solid fa-circle text-[8px] mr-1.5 animate-pulse"></i> SYSTEM ONLINE</span>
             <span class="text-slate-800 hidden md:inline-block">|</span>
-            <span>Welcome, Patrick</span>
+            <span id="welcome-manager" class="text-brand-500 font-bold">—</span>
         </div>
     </nav>
 
@@ -138,6 +145,32 @@
                 </table>
             </div>
             <p class="text-[10px] text-slate-500 italic" id="momo-empty-msg">No MoMo orders yet. Orders will appear here when customers submit payments.</p>
+        </div>
+
+        <!-- Activity Log Section -->
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-clock-rotate-left text-purple-400 mr-2"></i> Activity Log</h3>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full font-bold" id="activity-count">0 Activities</span>
+                    <button onclick="clearActivityLog()" class="text-[10px] bg-red-500/10 text-red-400 px-3 py-1 rounded-full font-bold hover:bg-red-500/20 transition">Clear Log</button>
+                </div>
+            </div>
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-950 text-[10px] font-bold uppercase text-slate-400 tracking-wider sticky top-0">
+                        <tr>
+                            <th class="p-3 rounded-l-xl">Time</th>
+                            <th class="p-3">Action</th>
+                            <th class="p-3">Manager</th>
+                            <th class="p-3 rounded-r-xl">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800" id="activity-log-tbody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Section 3: SECURE OPERATIONS & PRICING MATRIX CONFIGURATOR -->
@@ -232,15 +265,32 @@
             // We bypass the sessionStorage cache, forcing the lockscreen to be visible by default on load.
             document.getElementById('auth-lockscreen').classList.remove('hidden');
             loadMomoOrders();
+            loadActivityLog();
         }
 
         function verifyPasscode() {
             const val = document.getElementById('admin-passcode-input').value;
+            const managerSelect = document.getElementById('manager-select');
+            const selectedManager = managerSelect.value;
             const errorMsg = document.getElementById('auth-error-msg');
             
             if (val === ADMIN_PASSCODE) {
-                // Hide the lockscreen overlay specifically for this current rendering
+                // Store the logged-in manager
+                sessionStorage.setItem('chromique_logged_in_manager', selectedManager);
+                
+                // Log the login activity
+                logActivity('LOGIN', `${selectedManager} logged into the console`);
+                
+                // Hide the lockscreen overlay
                 document.getElementById('auth-lockscreen').classList.add('hidden');
+                
+                // Update the welcome message in navbar
+                const welcomeEl = document.getElementById('welcome-manager');
+                if (welcomeEl) welcomeEl.innerText = selectedManager;
+                
+                // Reload data
+                loadMomoOrders();
+                loadActivityLog();
             } else {
                 errorMsg.classList.remove('hidden');
                 document.getElementById('admin-passcode-input').value = '';
@@ -366,10 +416,16 @@
                 const orderIndexInAll = allOrders.findIndex(o => o.ref === order.ref);
                 
                 if (orderIndexInAll !== -1) {
+                    const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
                     allOrders[orderIndexInAll].status = 'MoMo Verified';
+                    allOrders[orderIndexInAll].verifiedBy = manager;
+                    allOrders[orderIndexInAll].verifiedAt = new Date().toISOString();
                     localStorage.setItem('chromique_print_orders', JSON.stringify(allOrders));
+                    
+                    logActivity('VERIFY_ORDER', `Verified MoMo order ${order.ref} (${order.name}, ${order.quote.totalPrice})`);
                     loadMomoOrders();
-                    alert(`Order ${order.ref} verified successfully!`);
+                    loadActivityLog();
+                    alert(`Order ${order.ref} verified by ${manager}! Ready for production.`);
                 }
             }
         }
@@ -381,16 +437,105 @@
             if (momoOrders[index]) {
                 const order = momoOrders[index];
                 if (confirm(`Are you sure you want to reject order ${order.ref}?`)) {
+                    const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
                     const allOrders = JSON.parse(localStorage.getItem('chromique_print_orders') || '[]');
                     const orderIndexInAll = allOrders.findIndex(o => o.ref === order.ref);
                     
                     if (orderIndexInAll !== -1) {
                         allOrders[orderIndexInAll].status = 'MoMo Rejected';
+                        allOrders[orderIndexInAll].rejectedBy = manager;
+                        allOrders[orderIndexInAll].rejectedAt = new Date().toISOString();
                         localStorage.setItem('chromique_print_orders', JSON.stringify(allOrders));
+                        
+                        logActivity('REJECT_ORDER', `Rejected MoMo order ${order.ref} (${order.name})`);
                         loadMomoOrders();
+                        loadActivityLog();
                         alert(`Order ${order.ref} rejected.`);
                     }
                 }
+            }
+        }
+
+        // Activity Log Functions
+        function logActivity(action, description) {
+            const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+            const activityLog = JSON.parse(localStorage.getItem('chromique_activity_log') || '[]');
+            
+            activityLog.unshift({
+                timestamp: new Date().toISOString(),
+                manager: manager,
+                action: action,
+                description: description
+            });
+            
+            // Keep only last 100 activities
+            if (activityLog.length > 100) {
+                activityLog.splice(100);
+            }
+            
+            localStorage.setItem('chromique_activity_log', JSON.stringify(activityLog));
+        }
+
+        function loadActivityLog() {
+            const activityLog = JSON.parse(localStorage.getItem('chromique_activity_log') || '[]');
+            const tbody = document.getElementById('activity-log-tbody');
+            const countEl = document.getElementById('activity-count');
+            
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            if (countEl) {
+                countEl.innerText = activityLog.length + ' Activities';
+            }
+            
+            activityLog.forEach(activity => {
+                const date = new Date(activity.timestamp);
+                const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                
+                let actionColor = 'text-slate-400';
+                let actionBg = 'bg-slate-800';
+                
+                if (activity.action === 'LOGIN') {
+                    actionColor = 'text-blue-400';
+                    actionBg = 'bg-blue-500/10';
+                } else if (activity.action === 'SAVE_SETTINGS') {
+                    actionColor = 'text-brand-500';
+                    actionBg = 'bg-brand-500/10';
+                } else if (activity.action === 'VERIFY_ORDER') {
+                    actionColor = 'text-green-400';
+                    actionBg = 'bg-green-500/10';
+                } else if (activity.action === 'REJECT_ORDER') {
+                    actionColor = 'text-red-400';
+                    actionBg = 'bg-red-500/10';
+                } else if (activity.action === 'UPDATE_STATUS') {
+                    actionColor = 'text-amber-400';
+                    actionBg = 'bg-amber-500/10';
+                } else if (activity.action === 'CLEAR_ORDERS') {
+                    actionColor = 'text-red-400';
+                    actionBg = 'bg-red-500/10';
+                } else if (activity.action === 'CLEAR_LOG') {
+                    actionColor = 'text-purple-400';
+                    actionBg = 'bg-purple-500/10';
+                }
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-800/50 transition';
+                row.innerHTML = `
+                    <td class="p-3 text-[10px] text-slate-500 whitespace-nowrap">${dateStr} ${timeStr}</td>
+                    <td class="p-3"><span class="${actionColor} ${actionBg} px-2 py-1 rounded font-bold text-[10px]">${activity.action}</span></td>
+                    <td class="p-3 font-bold text-white text-[11px]">${activity.manager}</td>
+                    <td class="p-3 text-slate-300 text-[11px]">${activity.description}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function clearActivityLog() {
+            if (confirm('Are you sure you want to clear the activity log?')) {
+                localStorage.removeItem('chromique_activity_log');
+                logActivity('CLEAR_LOG', 'Activity log cleared');
+                loadActivityLog();
             }
         }
 

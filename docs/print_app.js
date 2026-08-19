@@ -224,7 +224,18 @@ function saveDevSettings() {
     
     updateCurrency();
     if (document.getElementById('dev-drawer')) toggleDevPanel(false);
-    alert("Configurations saved successfully! Your print rates and security parameters have been updated.");
+    
+    // Log the activity
+    if (typeof logActivity === 'function') {
+        const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+        logActivity('SAVE_SETTINGS', `Updated pricing matrix: Banner GH¢${bannerVal}/sqft, Sticker GH¢${stickerVal}/sqft, Print&Cut GH¢${printAndCutVal}/sqft`);
+        if (typeof loadActivityLog === 'function') {
+            loadActivityLog();
+        }
+        alert(`Configurations saved successfully by ${manager}!`);
+    } else {
+        alert("Configurations saved successfully! Your print rates and security parameters have been updated.");
+    }
 }
 
 function updateCurrency() {
