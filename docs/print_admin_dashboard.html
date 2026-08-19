@@ -140,6 +140,36 @@
 
         </div>
 
+        <!-- MoMo Payment Orders -->
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-mobile-screen-button text-yellow-400 mr-2"></i> MoMo Payment Orders</h3>
+                <span class="text-[10px] bg-yellow-500/10 text-yellow-400 px-3 py-1 rounded-full font-bold" id="momo-order-count">0 Orders</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-950 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                        <tr>
+                            <th class="p-3 rounded-l-xl">Reference</th>
+                            <th class="p-3">Customer</th>
+                            <th class="p-3">Phone</th>
+                            <th class="p-3">Print Job Details</th>
+                            <th class="p-3">Amount</th>
+                            <th class="p-3">Artwork</th>
+                            <th class="p-3">Status</th>
+                            <th class="p-3">Date</th>
+                            <th class="p-3 rounded-r-xl">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800" id="momo-orders-tbody">
+                        <!-- Populated dynamically by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-[10px] text-slate-500 italic" id="momo-empty-msg">No MoMo orders yet. Orders will appear here when customers submit payments.</p>
+        </div>
+
         <!-- Section 3: SECURE OPERATIONS & PRICING MATRIX CONFIGURATOR -->
         <div class="bg-slate-900 rounded-3xl border border-slate-800 p-8 space-y-6">
             <div class="border-b border-slate-800 pb-4">
@@ -232,6 +262,7 @@
             // We bypass the sessionStorage cache, forcing the lockscreen to be visible by default on load.
             document.getElementById('auth-lockscreen').classList.remove('hidden');
             loadRealTimeOrders();
+            loadMomoOrders();
         }
 
         function verifyPasscode() {
@@ -332,6 +363,137 @@
                 `;
                 tbody.innerHTML += rowHTML;
             });
+        }
+
+        // Load MoMo Orders from localStorage
+        function loadMomoOrders() {
+            const momoOrders = JSON.parse(localStorage.getItem('chromique_print_orders') || '[]')
+                .filter(order => order.paymentMethod === 'MoMo');
+            
+            const tbody = document.getElementById('momo-orders-tbody');
+            const countEl = document.getElementById('momo-order-count');
+            const emptyMsg = document.getElementById('momo-empty-msg');
+            
+            tbody.innerHTML = '';
+            
+            if (momoOrders.length === 0) {
+                emptyMsg.style.display = 'block';
+                countEl.innerText = '0 Orders';
+                return;
+            }
+            
+            emptyMsg.style.display = 'none';
+            countEl.innerText = `${momoOrders.length} Order${momoOrders.length > 1 ? 's' : ''}`;
+            
+            momoOrders.forEach((order, index) => {
+                const date = new Date(order.timestamp).toLocaleDateString('en-GB', { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric' 
+                });
+                
+                // Artwork method display
+                let artworkHTML = '';
+                if (order.artworkMethod === 'upload' && order.artworkUrl) {
+                    artworkHTML = `
+                        <a href="${order.artworkUrl}" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold">
+                            <i class="fa-solid fa-download mr-1"></i> Download
+                        </a>
+                    `;
+                } else if (order.artworkMethod === 'whatsapp') {
+                    artworkHTML = '<span class="text-green-400 font-bold">📱 WhatsApp</span>';
+                } else if (order.artworkMethod === 'email') {
+                    artworkHTML = '<span class="text-blue-400 font-bold">📧 Email</span>';
+                } else {
+                    artworkHTML = '<span class="text-slate-500">—</span>';
+                }
+                
+                // Status badge
+                let statusBadge = '';
+                if (order.status === 'Pending MoMo Verification') {
+                    statusBadge = '<span class="bg-yellow-500/10 text-yellow-400 px-2 py-1 rounded-full text-[10px] font-bold">Pending</span>';
+                } else if (order.status === 'MoMo Verified') {
+                    statusBadge = '<span class="bg-green-500/10 text-green-400 px-2 py-1 rounded-full text-[10px] font-bold">Verified</span>';
+                } else if (order.status === 'MoMo Rejected') {
+                    statusBadge = '<span class="bg-red-500/10 text-red-400 px-2 py-1 rounded-full text-[10px] font-bold">Rejected</span>';
+                }
+                
+                // Action buttons
+                let actionsHTML = '';
+                if (order.status === 'Pending MoMo Verification') {
+                    actionsHTML = `
+                        <button onclick="verifyMomoOrder(${index})" class="bg-green-500/10 text-green-400 px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-green-500/20 transition">
+                            <i class="fa-solid fa-check mr-1"></i> Verify
+                        </button>
+                        <button onclick="rejectMomoOrder(${index})" class="bg-red-500/10 text-red-400 px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-red-500/20 transition mt-1">
+                            <i class="fa-solid fa-xmark mr-1"></i> Reject
+                        </button>
+                    `;
+                } else {
+                    actionsHTML = '<span class="text-slate-500 text-[10px]">—</span>';
+                }
+                
+                const quote = order.quote || {};
+                const rowHTML = `
+                    <tr class="hover:bg-slate-850 transition">
+                        <td class="p-3 font-mono text-brand-500 font-bold">${order.ref}</td>
+                        <td class="p-3">
+                            <div class="font-bold text-white">${order.name}</div>
+                            <div class="text-[10px] text-slate-500">${order.email || 'No email'}</div>
+                        </td>
+                        <td class="p-3 font-mono text-slate-300">${order.phone}</td>
+                        <td class="p-3">
+                            <div class="font-bold text-slate-300">${quote.service || 'N/A'}</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">${quote.areaSummary || 'N/A'}</div>
+                            <div class="text-[10px] text-slate-500">Qty: ${quote.qty || 1} | ${order.deliveryMethod === 'delivery' ? '📦 Delivery' : '🏪 Pickup'}</div>
+                        </td>
+                        <td class="p-3 font-bold text-brand-500">${quote.totalPrice || 'N/A'}</td>
+                        <td class="p-3">${artworkHTML}</td>
+                        <td class="p-3">${statusBadge}</td>
+                        <td class="p-3 text-[10px] text-slate-500">${date}</td>
+                        <td class="p-3">${actionsHTML}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += rowHTML;
+            });
+        }
+
+        function verifyMomoOrder(index) {
+            const momoOrders = JSON.parse(localStorage.getItem('chromique_print_orders') || '[]')
+                .filter(order => order.paymentMethod === 'MoMo');
+            
+            if (momoOrders[index]) {
+                const order = momoOrders[index];
+                const allOrders = JSON.parse(localStorage.getItem('chromique_print_orders') || '[]');
+                const orderIndexInAll = allOrders.findIndex(o => o.ref === order.ref);
+                
+                if (orderIndexInAll !== -1) {
+                    allOrders[orderIndexInAll].status = 'MoMo Verified';
+                    localStorage.setItem('chromique_print_orders', JSON.stringify(allOrders));
+                    loadMomoOrders();
+                    alert(`Order ${order.ref} verified successfully!`);
+                }
+            }
+        }
+
+        function rejectMomoOrder(index) {
+            const momoOrders = JSON.parse(localStorage.getItem('chromique_print_orders') || '[]')
+                .filter(order => order.paymentMethod === 'MoMo');
+            
+            if (momoOrders[index]) {
+                const order = momoOrders[index];
+                if (confirm(`Are you sure you want to reject order ${order.ref}?`)) {
+                    const allOrders = JSON.parse(localStorage.getItem('chromique_print_orders') || '[]');
+                    const orderIndexInAll = allOrders.findIndex(o => o.ref === order.ref);
+                    
+                    if (orderIndexInAll !== -1) {
+                        allOrders[orderIndexInAll].status = 'MoMo Rejected';
+                        localStorage.setItem('chromique_print_orders', JSON.stringify(allOrders));
+                        loadMomoOrders();
+                        alert(`Order ${order.ref} rejected.`);
+                    }
+                }
+            }
         }
 
         function updateLiveOrderStatus(orderIndex, selectElement) {

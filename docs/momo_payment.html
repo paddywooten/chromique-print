@@ -5,6 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CHROMIQUE | MoMo Payment</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
+            authDomain: "chromique-print.firebaseapp.com",
+            projectId: "chromique-print",
+            storageBucket: "chromique-print.firebasestorage.app",
+            messagingSenderId: "133831518444",
+            appId: "1:133831518444:web:c41d88c924bd245d5bddc9",
+            measurementId: "G-0MFWEZ9CDV"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        
+        // Expose to global scope
+        window.firebaseDB = db;
+        window.firebaseStorage = storage;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseCollection = collection;
+        window.firebaseTimestamp = serverTimestamp;
+        window.firebaseStorageRef = ref;
+        window.firebaseUploadBytes = uploadBytesResumable;
+        window.firebaseGetDownloadURL = getDownloadURL;
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -138,10 +169,86 @@
                     <textarea id="momo-notes" rows="2" placeholder="Any special instructions for your print job..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold resize-none"></textarea>
                 </div>
             </div>
-            <button onclick="submitMomoOrder()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-black text-xs py-4 rounded-xl transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/10">
-                <i class="fa-solid fa-check-circle"></i> I've Sent the MoMo — Confirm My Order
-            </button>
         </div>
+
+        <!-- Artwork Submission Section -->
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
+            <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-image text-brand-500 mr-2"></i> Submit Your Artwork</h3>
+            <p class="text-[11px] text-slate-500">Choose how you'd like to send your print design file</p>
+            
+            <div class="space-y-3">
+                <!-- Option 1: Upload File -->
+                <label class="block cursor-pointer">
+                    <input type="radio" name="artwork-method" value="upload" class="peer hidden" checked>
+                    <div class="peer-checked:border-brand-500 peer-checked:bg-brand-500/5 border border-slate-800 rounded-xl p-4 transition hover:border-slate-700">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 bg-brand-500/10 text-brand-500 rounded-lg flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-white text-sm">Upload File Now</div>
+                                <div class="text-[11px] text-slate-500 mt-1">Upload your design file directly (PDF, PNG, JPG, AI, PSD - Max 50MB)</div>
+                            </div>
+                        </div>
+                        <div id="upload-section" class="mt-3 space-y-2">
+                            <input type="file" id="artwork-file" accept=".pdf,.png,.jpg,.jpeg,.ai,.psd,.svg" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-500 file:text-slate-950 hover:file:bg-brand-600 file:cursor-pointer file:transition">
+                            <div id="upload-progress" class="hidden">
+                                <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden">
+                                    <div id="upload-progress-bar" class="bg-brand-500 h-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                                <p class="text-[10px] text-slate-500 mt-1" id="upload-status">Uploading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Option 2: WhatsApp -->
+                <label class="block cursor-pointer">
+                    <input type="radio" name="artwork-method" value="whatsapp" class="peer hidden">
+                    <div class="peer-checked:border-brand-500 peer-checked:bg-brand-500/5 border border-slate-800 rounded-xl p-4 transition hover:border-slate-700">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 bg-green-500/10 text-green-400 rounded-lg flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-white text-sm">Send via WhatsApp</div>
+                                <div class="text-[11px] text-slate-500 mt-1">Send your artwork file to our WhatsApp after payment</div>
+                            </div>
+                        </div>
+                        <div id="whatsapp-section" class="hidden mt-3 bg-slate-950 rounded-xl p-3 space-y-2">
+                            <p class="text-[11px] text-slate-400">Send your file to:</p>
+                            <p class="text-sm font-bold text-green-400 font-mono">📱 024 537 7116</p>
+                            <p class="text-[10px] text-slate-500">Include your order reference: <span class="text-brand-500 font-mono font-bold" id="whatsapp-ref">—</span></p>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Option 3: Email -->
+                <label class="block cursor-pointer">
+                    <input type="radio" name="artwork-method" value="email" class="peer hidden">
+                    <div class="peer-checked:border-brand-500 peer-checked:bg-brand-500/5 border border-slate-800 rounded-xl p-4 transition hover:border-slate-700">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 bg-blue-500/10 text-blue-400 rounded-lg flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-white text-sm">Send via Email</div>
+                                <div class="text-[11px] text-slate-500 mt-1">Email your artwork file after payment</div>
+                            </div>
+                        </div>
+                        <div id="email-section" class="hidden mt-3 bg-slate-950 rounded-xl p-3 space-y-2">
+                            <p class="text-[11px] text-slate-400">Email your file to:</p>
+                            <p class="text-sm font-bold text-blue-400 font-mono">📧 orders@chromique.com</p>
+                            <p class="text-[10px] text-slate-500">Subject: <span class="text-brand-500 font-mono font-bold" id="email-ref">—</span></p>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <button onclick="submitMomoOrder()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-black text-xs py-4 rounded-xl transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/10">
+            <i class="fa-solid fa-check-circle"></i> I've Sent the MoMo — Confirm My Order
+        </button>
     </main>
 
     <!-- Success Confirmation Modal -->
@@ -191,20 +298,110 @@
             const ref = 'CHQ-' + Date.now().toString(36).toUpperCase().slice(-6);
             document.getElementById('momo-reference').innerText = ref;
             document.getElementById('momo-reference').dataset.ref = ref;
+            
+            // Update WhatsApp and Email references
+            document.getElementById('whatsapp-ref').innerText = ref;
+            document.getElementById('email-ref').innerText = ref;
         }
 
-        function submitMomoOrder() {
+        // Handle artwork method selection
+        function setupArtworkMethods() {
+            const radios = document.querySelectorAll('input[name="artwork-method"]');
+            const uploadSection = document.getElementById('upload-section');
+            const whatsappSection = document.getElementById('whatsapp-section');
+            const emailSection = document.getElementById('email-section');
+            
+            radios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    // Hide all sections
+                    uploadSection.classList.add('hidden');
+                    whatsappSection.classList.add('hidden');
+                    emailSection.classList.add('hidden');
+                    
+                    // Show selected section
+                    if (e.target.value === 'upload') {
+                        uploadSection.classList.remove('hidden');
+                    } else if (e.target.value === 'whatsapp') {
+                        whatsappSection.classList.remove('hidden');
+                    } else if (e.target.value === 'email') {
+                        emailSection.classList.remove('hidden');
+                    }
+                });
+            });
+        }
+
+        // Upload file to Firebase Storage
+        async function uploadArtwork(file, reference) {
+            return new Promise((resolve, reject) => {
+                const storageRef = window.firebaseStorageRef(window.firebaseStorage, `artwork/${reference}_${file.name}`);
+                const uploadTask = window.firebaseUploadBytes(storageRef, file);
+                
+                const progressDiv = document.getElementById('upload-progress');
+                const progressBar = document.getElementById('upload-progress-bar');
+                const statusText = document.getElementById('upload-status');
+                
+                progressDiv.classList.remove('hidden');
+                
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        progressBar.style.width = progress + '%';
+                        statusText.innerText = `Uploading... ${Math.round(progress)}%`;
+                    },
+                    (error) => {
+                        console.error('Upload error:', error);
+                        statusText.innerText = 'Upload failed!';
+                        reject(error);
+                    },
+                    async () => {
+                        try {
+                            const downloadURL = await window.firebaseGetDownloadURL(uploadTask.snapshot.ref);
+                            statusText.innerText = 'Upload complete!';
+                            resolve(downloadURL);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    }
+                );
+            });
+        }
+
+        async function submitMomoOrder() {
             const name = document.getElementById('momo-name').value.trim();
             const phone = document.getElementById('momo-phone').value.trim();
             const email = document.getElementById('momo-email').value.trim();
             const address = document.getElementById('momo-address').value.trim();
-
+            const notes = document.getElementById('momo-notes').value.trim();
+            const artworkMethod = document.querySelector('input[name="artwork-method"]:checked').value;
+            
             if (!name || !phone) {
                 alert('Please enter your name and phone number to confirm the order.');
                 return;
             }
 
             const ref = document.getElementById('momo-reference').dataset.ref || 'CHQ-XXXXXX';
+            let artworkUrl = null;
+
+            // Handle file upload if selected
+            if (artworkMethod === 'upload') {
+                const fileInput = document.getElementById('artwork-file');
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    
+                    // Check file size (50MB limit)
+                    if (file.size > 50 * 1024 * 1024) {
+                        alert('File size exceeds 50MB limit. Please choose a smaller file or use WhatsApp/Email.');
+                        return;
+                    }
+                    
+                    try {
+                        artworkUrl = await uploadArtwork(file, ref);
+                    } catch (error) {
+                        alert('File upload failed. Please try again or use WhatsApp/Email option.');
+                        return;
+                    }
+                }
+            }
 
             // Save order to localStorage for admin tracking
             const orders = JSON.parse(localStorage.getItem('chromique_print_orders') || '[]');
@@ -214,9 +411,11 @@
                 phone: phone,
                 email: email,
                 address: address,
-                notes: document.getElementById('momo-notes').value.trim(),
+                notes: notes,
                 quote: JSON.parse(sessionStorage.getItem('chromique_momo_quote') || '{}'),
                 paymentMethod: 'MoMo',
+                artworkMethod: artworkMethod,
+                artworkUrl: artworkUrl,
                 status: 'Pending MoMo Verification',
                 timestamp: new Date().toISOString()
             });
@@ -231,7 +430,10 @@
         }
 
         // Load quote on page load
-        window.addEventListener('DOMContentLoaded', loadQuote);
+        window.addEventListener('DOMContentLoaded', () => {
+            loadQuote();
+            setupArtworkMethods();
+        });
     </script>
 </body>
 </html>
