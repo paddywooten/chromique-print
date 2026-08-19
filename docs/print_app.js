@@ -717,6 +717,31 @@ function closeSuccessModal() {
     if (modal) modal.classList.add('hidden');
 }
 
+// Save current calculator quote to sessionStorage for MoMo payment page
+function saveQuoteToSession() {
+    const type = document.getElementById('print-type');
+    const unit = document.getElementById('print-unit');
+    const wInput = document.getElementById('print-width');
+    const hInput = document.getElementById('print-height');
+    const qtyInput = document.getElementById('print-qty');
+    const displayEl = document.getElementById('calculated-print-price');
+    const areaSummaryEl = document.getElementById('area-summary');
+
+    const quote = {
+        service: type ? type.options[type.selectedIndex].text : 'N/A',
+        serviceValue: type ? type.value : '',
+        unit: unit ? unit.value : '',
+        width: wInput ? wInput.value : '',
+        height: hInput ? hInput.value : '',
+        qty: qtyInput ? qtyInput.value : '1',
+        totalPrice: displayEl ? displayEl.innerText : '',
+        areaSummary: areaSummaryEl ? areaSummaryEl.innerText : '',
+        timestamp: new Date().toISOString()
+    };
+
+    sessionStorage.setItem('chromique_momo_quote', JSON.stringify(quote));
+}
+
 // Watch inputs and toggle dimension fields based on selected service type
 function toggleDimensionFields() {
     const type = document.getElementById('print-type');

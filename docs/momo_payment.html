@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHROMIQUE | MoMo Payment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="print_style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            500: '#f97316',
+                            600: '#ea580c',
+                            950: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen overflow-x-hidden selection:bg-brand-500 selection:text-slate-950">
+
+    <!-- Navigation Header -->
+    <nav class="sticky top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-900 z-40">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="print_index.html" class="flex items-center gap-3 group">
+                <img src="chromique-logo.svg" alt="Chromique Logo" class="h-10 w-auto">
+                <div>
+                    <h1 class="font-extrabold text-sm tracking-widest text-white group-hover:text-brand-500 transition uppercase">CHROMIQUE</h1>
+                    <p class="text-[9px] text-brand-500 font-mono tracking-wider font-bold">PREMIUM PRINT &amp; PRECISION CUT</p>
+                </div>
+            </a>
+            <a href="print_index.html" class="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-4 py-2 rounded-xl transition flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+                <i class="fa-solid fa-arrow-left text-brand-500"></i> Back to Calculator
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Payment Section -->
+    <main class="max-w-3xl mx-auto px-6 py-12 space-y-8">
+
+        <!-- Page Header -->
+        <div class="text-center space-y-2">
+            <div class="w-14 h-14 bg-yellow-500/10 text-yellow-400 rounded-2xl flex items-center justify-center text-2xl mx-auto">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+            </div>
+            <h2 class="text-2xl font-black uppercase text-white">Pay via Mobile Money</h2>
+            <p class="text-xs text-slate-500">Complete your payment to confirm your print order</p>
+        </div>
+
+        <!-- Order Summary Card -->
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-receipt text-brand-500 mr-2"></i> Order Summary</h3>
+                <span class="text-[10px] bg-brand-500/10 text-brand-500 px-3 py-1 rounded-full font-bold">QUOTE</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-xs">
+                <div class="space-y-1">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Service</span>
+                    <p class="text-white font-bold" id="momo-service">—</p>
+                </div>
+                <div class="space-y-1">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Quantity</span>
+                    <p class="text-white font-bold" id="momo-qty">—</p>
+                </div>
+                <div class="space-y-1 col-span-2">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dimensions</span>
+                    <p class="text-white font-bold" id="momo-dimensions">—</p>
+                </div>
+            </div>
+            <div class="border-t border-slate-800 pt-4 flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Amount</span>
+                <span class="text-2xl font-black text-brand-500" id="momo-total">GH¢0.00</span>
+            </div>
+        </div>
+
+        <!-- MoMo Payment Instructions -->
+        <div class="bg-yellow-500/5 rounded-3xl border border-yellow-500/20 p-6 space-y-4">
+            <h3 class="font-extrabold text-sm uppercase tracking-wider text-yellow-400"><i class="fa-solid fa-circle-info mr-2"></i> Payment Instructions</h3>
+            <div class="space-y-3 text-xs text-slate-300">
+                <div class="flex items-start gap-3">
+                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">1</span>
+                    <p>Dial <span class="font-black text-yellow-400">*170#</span> on your phone (MTN) or use your MoMo app</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">2</span>
+                    <p>Select <span class="font-bold text-white">Transfer Money</span></p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">3</span>
+                    <p>Send to MoMo number: <span class="font-black text-yellow-400 font-mono text-sm">024 537 7116</span></p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">4</span>
+                    <p>Enter the <span class="font-bold text-white">total amount</span> shown above</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">5</span>
+                    <p>Use reference: <span class="font-black text-brand-500 font-mono" id="momo-reference">—</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Details Form -->
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
+            <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-user text-brand-500 mr-2"></i> Your Details</h3>
+            <div class="space-y-3">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Full Name</label>
+                    <input type="text" id="momo-name" placeholder="e.g. Kofi Boateng" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number (MoMo)</label>
+                    <input type="tel" id="momo-phone" placeholder="e.g. 024 123 4567" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email Address</label>
+                    <input type="email" id="momo-email" placeholder="e.g. kofi@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Delivery Address / Pickup Location</label>
+                    <input type="text" id="momo-address" placeholder="e.g. East Legon, Accra" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Order Notes (Optional)</label>
+                    <textarea id="momo-notes" rows="2" placeholder="Any special instructions for your print job..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold resize-none"></textarea>
+                </div>
+            </div>
+            <button onclick="submitMomoOrder()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-black text-xs py-4 rounded-xl transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/10">
+                <i class="fa-solid fa-check-circle"></i> I've Sent the MoMo — Confirm My Order
+            </button>
+        </div>
+    </main>
+
+    <!-- Success Confirmation Modal -->
+    <div id="momo-success-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center hidden p-6">
+        <div class="bg-slate-900 rounded-3xl max-w-md w-full p-8 text-center space-y-6 shadow-2xl border border-slate-800">
+            <div class="w-16 h-16 bg-green-500/10 text-green-400 rounded-full flex items-center justify-center text-3xl mx-auto">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="space-y-2">
+                <h3 class="font-extrabold text-lg text-white uppercase tracking-wide">Order Submitted!</h3>
+                <div class="my-4 bg-slate-950 p-4 rounded-2xl border border-slate-850 flex flex-col items-center justify-center space-y-1">
+                    <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest block">Your Order Reference</span>
+                    <span id="momo-confirm-ref" class="text-lg font-black text-brand-500 tracking-wider font-mono">—</span>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    Thank you! We'll verify your MoMo payment and begin processing your print job. You'll receive a confirmation call or SMS shortly.
+                </p>
+            </div>
+            <div class="border-t border-slate-800 pt-4 text-left space-y-1 text-xs">
+                <div class="flex justify-between font-bold text-slate-500"><span>Name:</span> <span id="momo-confirm-name" class="text-slate-300"></span></div>
+                <div class="flex justify-between font-bold text-slate-500"><span>Phone:</span> <span id="momo-confirm-phone" class="text-slate-300"></span></div>
+                <div class="flex justify-between font-bold text-slate-500"><span>Total:</span> <span id="momo-confirm-total" class="text-brand-500 font-mono font-bold"></span></div>
+            </div>
+            <a href="print_index.html" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs py-3.5 rounded-xl transition uppercase tracking-wider inline-block">
+                Back to Home
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Load quote from sessionStorage
+        function loadQuote() {
+            const quoteData = sessionStorage.getItem('chromique_momo_quote');
+            if (!quoteData) {
+                document.getElementById('momo-service').innerText = 'No quote found';
+                document.getElementById('momo-total').innerText = 'GH¢0.00';
+                return;
+            }
+
+            const quote = JSON.parse(quoteData);
+            document.getElementById('momo-service').innerText = quote.service || '—';
+            document.getElementById('momo-qty').innerText = (quote.qty || '1') + ' pcs';
+            document.getElementById('momo-dimensions').innerText = quote.areaSummary || '—';
+            document.getElementById('momo-total').innerText = quote.totalPrice || 'GH¢0.00';
+
+            // Generate a unique reference
+            const ref = 'CHQ-' + Date.now().toString(36).toUpperCase().slice(-6);
+            document.getElementById('momo-reference').innerText = ref;
+            document.getElementById('momo-reference').dataset.ref = ref;
+        }
+
+        function submitMomoOrder() {
+            const name = document.getElementById('momo-name').value.trim();
+            const phone = document.getElementById('momo-phone').value.trim();
+            const email = document.getElementById('momo-email').value.trim();
+            const address = document.getElementById('momo-address').value.trim();
+
+            if (!name || !phone) {
+                alert('Please enter your name and phone number to confirm the order.');
+                return;
+            }
+
+            const ref = document.getElementById('momo-reference').dataset.ref || 'CHQ-XXXXXX';
+
+            // Save order to localStorage for admin tracking
+            const orders = JSON.parse(localStorage.getItem('chromique_print_orders') || '[]');
+            orders.push({
+                ref: ref,
+                name: name,
+                phone: phone,
+                email: email,
+                address: address,
+                notes: document.getElementById('momo-notes').value.trim(),
+                quote: JSON.parse(sessionStorage.getItem('chromique_momo_quote') || '{}'),
+                paymentMethod: 'MoMo',
+                status: 'Pending MoMo Verification',
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('chromique_print_orders', JSON.stringify(orders));
+
+            // Show success modal
+            document.getElementById('momo-confirm-ref').innerText = ref;
+            document.getElementById('momo-confirm-name').innerText = name;
+            document.getElementById('momo-confirm-phone').innerText = phone;
+            document.getElementById('momo-confirm-total').innerText = document.getElementById('momo-total').innerText;
+            document.getElementById('momo-success-modal').classList.remove('hidden');
+        }
+
+        // Load quote on page load
+        window.addEventListener('DOMContentLoaded', loadQuote);
+    </script>
+</body>
+</html>

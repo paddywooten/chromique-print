@@ -12,8 +12,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Paystack Inline JS SDK -->
-    <script src="https://js.paystack.co/v1/inline.js"></script>
 
     <!-- Link to external modular assets -->
     <link rel="stylesheet" href="print_style.css">
@@ -59,12 +57,6 @@
                 <a href="#services" class="hover:text-brand-500 transition">What We Do</a>
                 <a href="#calculator" class="hover:text-brand-500 transition">Book Your Order</a>
             </div>
-
-            <!-- Cart Trigger Button -->
-            <button onclick="toggleCart(true)" class="relative w-11 h-11 bg-slate-900 hover:bg-slate-850 rounded-full flex items-center justify-center transition border border-slate-800">
-                <i class="fa-solid fa-cart-shopping text-brand-500"></i>
-                <span id="cart-badge" class="absolute -top-1 -right-1 bg-brand-500 text-slate-950 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow shadow-brand-500/20 hidden">0</span>
-            </button>
         </div>
     </nav>
 
@@ -217,23 +209,14 @@
                         </select>
                     </div>
 
-                    <!-- File Drag and Drop box -->
-                    <div class="space-y-1.5 border-t border-slate-900 pt-4">
-                        <label class="uppercase text-[10px] tracking-widest text-slate-500">Upload Artwork File</label>
-                        <div class="border border-dashed border-slate-800 hover:border-brand-500 rounded-2xl p-4 text-center cursor-pointer transition bg-slate-900/40 relative">
-                            <input type="file" id="print-file-upload" class="absolute inset-0 opacity-0 cursor-pointer">
-                            <i class="fa-solid fa-cloud-arrow-up text-brand-500 text-lg mb-1.5"></i>
-                            <span id="upload-status-label" class="block text-[10px] text-slate-500">Drag &amp; drop or click to upload PNG, SVG, or PDF</span>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Price display & Cart Add Button (Right) -->
+                <!-- Price display (Right) -->
                 <div class="md:col-span-5 bg-slate-900 p-6 rounded-2xl border border-slate-850 text-center space-y-6">
                     <div class="space-y-1">
                         <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest block">Calculated Total</span>
                         <div class="text-3xl font-black text-brand-500 tracking-tight" id="calculated-print-price">GH¢180.00</div>
-                        <span class="text-[10px] text-slate-500 block">Instant checkout via Paystack</span>
+                        <span class="text-[10px] text-slate-500 block">Price estimate based on your dimensions</span>
                     </div>
 
                     <div class="space-y-3">
@@ -241,9 +224,9 @@
                             <span class="text-[10px] uppercase font-bold text-slate-500">Quantity / Prints:</span>
                             <input type="number" id="print-qty" value="1" min="1" oninput="calculatePrice()" class="w-16 bg-slate-950 border border-slate-800 text-white rounded-lg p-2 text-center font-bold outline-none focus:ring-1 focus:ring-brand-500">
                         </div>
-                        <button onclick="addToCart()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-brand-500/10">
-                            <i class="fa-solid fa-cart-plus"></i> Add Job to Queue
-                        </button>
+                        <a href="momo_payment.html" onclick="saveQuoteToSession()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/10">
+                            <i class="fa-solid fa-mobile-screen-button"></i> Pay via MoMo
+                        </a>
                     </div>
                 </div>
             </div>
@@ -271,101 +254,12 @@
                     <a href="#calculator" class="hover:text-brand-500 transition">Book Your Order</a>
                 </div>
             </div>
-            <!-- Private Staff Login -->
-            <div class="space-y-3 col-span-1">
-                <h4 class="text-[10px] font-bold text-white uppercase tracking-widest">Internal Operations</h4>
-                <div class="flex flex-col gap-2 text-xs">
-                    <a href="print_admin_dashboard.html" class="bg-slate-950 hover:bg-slate-850 text-slate-200 border border-slate-800 px-4 py-2.5 rounded-xl transition inline-block text-center font-bold font-mono text-[10px] tracking-wider uppercase"><i class="fa-solid fa-lock text-brand-500 mr-1.5"></i> Staff Console &amp; Playbook</a>
-                </div>
-            </div>
         </div>
         <div class="max-w-7xl mx-auto px-6 border-t border-slate-800 mt-12 pt-6 text-center text-xs text-slate-600">
             <span>© 2026 CHROMIQUE. All Rights Reserved. Accra, Ghana.</span>
         </div>
     </footer>
 
-    <!-- Shopping Cart Sidebar Drawer -->
-    <div id="cart-drawer-overlay" onclick="toggleCart(false)" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden"></div>
-    
-    <div id="cart-drawer" class="fixed inset-y-0 right-0 w-[420px] max-w-full bg-slate-950 border-l border-slate-900 z-50 shadow-2xl sidebar-panel translate-x-[100%] flex flex-col justify-between">
-        <!-- Cart Header -->
-        <div class="p-6 border-b border-slate-900 flex justify-between items-center bg-slate-900/50">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-cart-shopping text-brand-500 text-lg"></i>
-                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white">Your Shopping Cart</h3>
-            </div>
-            <button onclick="toggleCart(false)" class="w-8 h-8 bg-slate-900 hover:bg-slate-800 rounded-full flex items-center justify-center text-slate-400 transition"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        <!-- Cart Items Container -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-4" id="cart-items-container">
-            <!-- Dynamic items -->
-        </div>
-
-        <!-- Calculations & Forms -->
-        <div class="p-6 border-t border-slate-900 bg-slate-900/50 space-y-4">
-            <div class="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
-                <span>Subtotal</span>
-                <span class="text-lg font-black text-brand-500" id="cart-subtotal">GH¢0.00</span>
-            </div>
-            
-            <div id="checkout-form-container" class="space-y-3 hidden">
-                <div class="border-t border-slate-850 pt-3">
-                    <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Delivery &amp; Contact</h4>
-                    <div class="space-y-2 text-slate-200">
-                        <input type="email" id="customer-email" placeholder="Email Address" required class="w-full text-xs bg-slate-900 border border-slate-800 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-brand-500">
-                        <input type="text" id="customer-name" placeholder="Full Name" required class="w-full text-xs bg-slate-900 border border-slate-800 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-brand-500">
-                        <input type="text" id="customer-phone" placeholder="Phone Number (Mobile Money)" required class="w-full text-xs bg-slate-900 border border-slate-800 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-brand-500">
-                        <input type="text" id="customer-location" placeholder="Shipping Address / Accra Central" required class="w-full text-xs bg-slate-900 border border-slate-800 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-brand-500">
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex gap-2">
-                <button id="main-cart-btn" onclick="proceedToForm()" class="flex-1 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-white font-bold text-xs py-4 rounded-xl tracking-wider uppercase transition">
-                    Proceed To Delivery
-                </button>
-                <button id="paystack-btn" onclick="payWithPaystack()" class="flex-1 bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-4 rounded-xl tracking-wider uppercase transition hidden">
-                    <i class="fa-solid fa-bolt mr-1"></i> Pay with Paystack
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Success Confirmation Modal -->
-    <div id="success-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center hidden p-6">
-        <div class="bg-slate-900 rounded-3xl max-w-md w-full p-8 text-center space-y-6 shadow-2xl relative overflow-hidden border border-slate-800">
-            <div class="w-16 h-16 bg-brand-500/10 text-brand-500 rounded-full flex items-center justify-center text-3xl mx-auto shadow-md shadow-brand-500/10">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <div class="space-y-2">
-                <h3 class="font-extrabold text-lg text-white uppercase tracking-wide">Print Job Confirmed!</h3>
-                <!-- Integrated unique order token placeholder -->
-                <div class="my-4 bg-slate-950 p-4 rounded-2xl border border-slate-850 flex flex-col items-center justify-center space-y-1 animate-pulse">
-                    <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest block">Your Confirmation Token</span>
-                    <span id="rec-token" class="text-lg font-black text-brand-500 tracking-wider font-mono">CHQ-PRT-XXXX</span>
-                    <button onclick="copyReceiptToken()" class="text-slate-400 hover:text-brand-500 text-[10px] font-bold mt-1.5 flex items-center gap-1.5 transition">
-                        <i class="fa-regular fa-copy"></i> Copy Token Code
-                    </button>
-                </div>
-                <div class="border-t border-slate-800 pt-3 text-left space-y-1">
-                    <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest block mb-1">Ordered Items Summary</span>
-                    <div id="rec-summary" class="text-xs text-slate-300 space-y-1"></div>
-                </div>
-                <p class="text-[11px] text-slate-400 leading-relaxed pt-2">
-                    Thank you! Your custom printing order was verified securely by Paystack. Please save this token code. You will need it to track your print status, confirm your artwork, or collect your physical orders.
-                </p>
-            </div>
-            <div class="border-t border-slate-800 pt-4 text-left space-y-1 text-xs">
-                <div class="flex justify-between font-bold text-slate-500"><span>Email:</span> <span id="rec-email" class="text-slate-300"></span></div>
-                <div class="flex justify-between font-bold text-slate-500"><span>Address:</span> <span id="rec-location" class="text-slate-300"></span></div>
-                <div class="flex justify-between font-bold text-slate-500"><span>Reference:</span> <span id="rec-ref" class="text-brand-500 font-mono font-bold"></span></div>
-            </div>
-            <button onclick="closeSuccessModal()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs py-3.5 rounded-xl transition uppercase tracking-wider">
-                Close Queue
-            </button>
-        </div>
-    </div>
 
 </body>
 </html>
