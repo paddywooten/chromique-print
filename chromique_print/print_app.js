@@ -11,6 +11,7 @@ let appSettings = {
     exchangeRate: 1.0,
     bannerCostPerSqFt: 15.0,     // Default GHS cost per square foot for Banners / Custom
     stickerCostPerSqFt: 2.5,     // Default GHS cost per square foot for Stickers
+    printAndCutCostPerSqFt: 5.0, // Default GHS cost per square foot for Print & Cut
     labelsA4Cost: 15.0,          // Default GHS cost for Labels A4
     labelsA3Cost: 25.0,          // Default GHS cost for Labels A3
     dtfA4Cost: 15.0,             // Default GHS cost for DTF A4
@@ -83,6 +84,16 @@ function initPrintStore() {
         if (stickerCostInput) stickerCostInput.value = savedStickerCost;
     } else {
         if (stickerCostInput) stickerCostInput.value = "2.50";
+    }
+
+    // Load Custom Cost per Sq Ft for Print & Cut
+    const savedPrintAndCutCost = localStorage.getItem('print_and_cut_cost_print');
+    const printAndCutCostInput = document.getElementById('print-and-cut-cost-input');
+    if (savedPrintAndCutCost) {
+        appSettings.printAndCutCostPerSqFt = parseFloat(savedPrintAndCutCost);
+        if (printAndCutCostInput) printAndCutCostInput.value = savedPrintAndCutCost;
+    } else {
+        if (printAndCutCostInput) printAndCutCostInput.value = "5.00";
     }
 
     // Load Labels Sheet Pricing
@@ -170,6 +181,7 @@ function saveDevSettings() {
     // Grabbing pricing values
     const bannerVal = document.getElementById('banner-cost-input').value.trim();
     const stickerVal = document.getElementById('sticker-cost-input').value.trim();
+    const printAndCutVal = document.getElementById('print-and-cut-cost-input') ? document.getElementById('print-and-cut-cost-input').value.trim() : '';
     const labelsA4Val = document.getElementById('labels-a4-cost-input').value.trim();
     const labelsA3Val = document.getElementById('labels-a3-cost-input').value.trim();
     const dtfA4Val = document.getElementById('dtf-a4-cost-input').value.trim();
@@ -199,6 +211,7 @@ function saveDevSettings() {
 
     saveValue('banner_cost_print', bannerVal, 'bannerCostPerSqFt');
     saveValue('sticker_cost_print', stickerVal, 'stickerCostPerSqFt');
+    saveValue('print_and_cut_cost_print', printAndCutVal, 'printAndCutCostPerSqFt');
     saveValue('labels_a4_cost_print', labelsA4Val, 'labelsA4Cost');
     saveValue('labels_a3_cost_print', labelsA3Val, 'labelsA3Cost');
     saveValue('dtf_a4_cost_print', dtfA4Val, 'dtfA4Cost');
@@ -233,6 +246,9 @@ function updateCurrency() {
     if (ps2) ps2.innerText = formatPrice(appSettings.stickerCostPerSqFt) + " / sq ft";
     if (ps3) ps3.innerText = formatPrice(appSettings.labelsA4Cost) + " / A4 sheet";
     if (ps4) ps4.innerText = formatPrice(appSettings.dtfA4Cost) + " / A4 sheet";
+    
+    const ps5 = document.getElementById('price-s5');
+    if (ps5) ps5.innerText = formatPrice(appSettings.printAndCutCostPerSqFt) + " / sq ft";
     
     // Update cost per sq ft indicator on screen if exists
     const costIndicator = document.getElementById('cost-per-sqft-indicator');
@@ -328,6 +344,8 @@ function calculatePrice() {
         let ratePerSqFt = appSettings.bannerCostPerSqFt; // default Custom (e.g. 15 GHS)
         if (service === 'stickers') {
             ratePerSqFt = appSettings.stickerCostPerSqFt; // Sticker specific rate (2.50 GHS!)
+        } else if (service === 'print_and_cut') {
+            ratePerSqFt = appSettings.printAndCutCostPerSqFt; // Print & Cut specific rate (5 GHS)
         } else if (service === 'banner') {
             ratePerSqFt = appSettings.bannerCostPerSqFt; // Banner specific rate (15 GHS)
         }
@@ -714,7 +732,7 @@ function toggleDimensionFields() {
     sheetSizeBox.classList.add('hidden');
     customDescBox.classList.add('hidden');
     
-    if (service === 'banner' || service === 'stickers' || service === 'custom') {
+    if (service === 'banner' || service === 'stickers' || service === 'print_and_cut' || service === 'custom') {
         dimensionBox.classList.remove('hidden');
     }
     
