@@ -459,6 +459,156 @@
             }
         }
 
+        function generateReceipt(order) {
+            const receiptWindow = window.open('', '_blank', 'width=800,height=900');
+            const verifiedDate = order.verifiedAt ? new Date(order.verifiedAt).toLocaleString('en-GB') : new Date().toLocaleString('en-GB');
+            
+            receiptWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Receipt - ${order.ref}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; background: #fff; }
+                        .header { text-align: center; border-bottom: 3px solid #f97316; padding-bottom: 20px; margin-bottom: 30px; }
+                        .logo-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
+                        .logo-img { height: 60px; width: auto; }
+                        .logo-text { text-align: left; }
+                        .logo { font-size: 28px; font-weight: 900; color: #f97316; letter-spacing: 4px; }
+                        .tagline { font-size: 10px; color: #64748b; letter-spacing: 2px; margin-top: 3px; }
+                        .receipt-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 20px 0; text-transform: uppercase; }
+                        .section { margin: 25px 0; }
+                        .section-title { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+                        .row { display: flex; justify-content: space-between; margin: 10px 0; font-size: 14px; }
+                        .label { color: #64748b; font-weight: 600; }
+                        .value { color: #0f172a; font-weight: 700; }
+                        .highlight { background: #f97316; color: white; padding: 15px; border-radius: 12px; margin: 20px 0; }
+                        .highlight .label { color: rgba(255,255,255,0.8); }
+                        .highlight .value { color: white; font-size: 20px; }
+                        .status-badge { display: inline-block; background: #10b981; color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+                        .footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; text-align: center; font-size: 12px; color: #64748b; }
+                        .print-btn { background: #f97316; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; margin: 20px 0; }
+                        .print-btn:hover { background: #ea580c; }
+                        @media print { .print-btn { display: none; } body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <button class="print-btn" onclick="window.print()">🖨️ Print Receipt</button>
+                    
+                    <div class="header">
+                        <div class="logo-container">
+                            <img src="chromique-logo.svg" alt="Chromique Logo" class="logo-img">
+                            <div class="logo-text">
+                                <div class="logo">CHROMIQUE</div>
+                                <div class="tagline">PREMIUM PRINT & PRECISION CUT</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="receipt-title">Payment Receipt</div>
+
+                    <div class="section">
+                        <div class="section-title">Order Information</div>
+                        <div class="row">
+                            <span class="label">Reference Number:</span>
+                            <span class="value">${order.ref}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Order Date:</span>
+                            <span class="value">${new Date(order.timestamp).toLocaleString('en-GB')}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Payment Method:</span>
+                            <span class="value">Mobile Money (MoMo)</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Status:</span>
+                            <span class="status-badge">✓ Verified</span>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Customer Details</div>
+                        <div class="row">
+                            <span class="label">Name:</span>
+                            <span class="value">${order.name}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Phone:</span>
+                            <span class="value">${order.phone}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Email:</span>
+                            <span class="value">${order.email || 'N/A'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Delivery Method:</span>
+                            <span class="value">${order.deliveryMethod === 'delivery' ? '📦 Delivery' : '🏪 Pickup at Office'}</span>
+                        </div>
+                        ${order.deliveryMethod === 'delivery' ? `
+                        <div class="row">
+                            <span class="label">Delivery Address:</span>
+                            <span class="value">${order.address}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Print Job Details</div>
+                        <div class="row">
+                            <span class="label">Service:</span>
+                            <span class="value">${order.quote.service}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Dimensions:</span>
+                            <span class="value">${order.quote.areaSummary || 'N/A'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Quantity:</span>
+                            <span class="value">${order.quote.qty} ${order.quote.qty == 1 ? 'piece' : 'pieces'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Artwork Submission:</span>
+                            <span class="value">${order.artworkMethod === 'whatsapp' ? '📱 WhatsApp' : '📧 Email'}</span>
+                        </div>
+                        ${order.notes ? `
+                        <div class="row">
+                            <span class="label">Notes:</span>
+                            <span class="value">${order.notes}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="highlight">
+                        <div class="row">
+                            <span class="label">Total Amount Paid:</span>
+                            <span class="value">${order.quote.totalPrice}</span>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Verification Details</div>
+                        <div class="row">
+                            <span class="label">Verified By:</span>
+                            <span class="value">${order.verifiedBy || 'Manager'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Verification Date:</span>
+                            <span class="value">${verifiedDate}</span>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        <p><strong>Thank you for choosing CHROMIQUE!</strong></p>
+                        <p>Your order is now being processed. We'll contact you when it's ready.</p>
+                        <p style="margin-top: 15px; font-size: 10px;">This is a computer-generated receipt. No signature required.</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            receiptWindow.document.close();
+        }
+
         async function rejectMomoOrder(docId) {
             const order = momoOrdersData.find(o => o.id === docId);
             if (order) {
