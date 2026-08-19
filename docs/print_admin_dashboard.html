@@ -209,7 +209,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Amount (GH¢) *</label>
-                        <input type="number" id="manual-amount" required step="0.01" placeholder="e.g. 180.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                        <input type="number" id="manual-amount" required step="0.01" placeholder="Auto-calculated" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                        <p class="text-[10px] text-brand-500 italic font-bold" id="manual-calculation-summary"></p>
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Order Notes (Optional)</label>
@@ -960,6 +961,65 @@
                 addressSection.style.display = 'block';
             } else {
                 addressSection.style.display = 'none';
+            }
+        });
+
+        // Auto-calculate amount for manual orders
+        function calculateManualAmount() {
+            const service = document.getElementById('manual-service').value;
+            const width = parseFloat(document.getElementById('manual-width').value) || 0;
+            const height = parseFloat(document.getElementById('manual-height').value) || 0;
+            const unit = document.getElementById('manual-unit').value;
+            const qty = parseInt(document.getElementById('manual-qty').value) || 1;
+            const amountInput = document.getElementById('manual-amount');
+            const summaryEl = document.getElementById('manual-calculation-summary');
+            
+            // Only calculate for dimensional services
+            const dimensionalServices = ['Banner', 'Sticker', 'Print & Cut', 'Custom'];
+            if (!dimensionalServices.includes(service) || width <= 0 || height <= 0) {
+                summaryEl.innerText = '';
+                return;
+            }
+            
+            // Convert to feet
+            let widthFt = width;
+            let heightFt = height;
+            
+            if (unit === 'in') {
+                widthFt = width / 12;
+                heightFt = height / 12;
+            } else if (unit === 'cm') {
+                widthFt = width / 30.48;
+                heightFt = height / 30.48;
+            }
+            
+            // Get rate based on service type
+            let ratePerSqFt = 15.0; // default
+            if (service === 'Banner') {
+                ratePerSqFt = appSettings.bannerCostPerSqFt || 15.0;
+            } else if (service === 'Sticker') {
+                ratePerSqFt = appSettings.stickerCostPerSqFt || 2.5;
+            } else if (service === 'Print & Cut') {
+                ratePerSqFt = appSettings.printAndCutCostPerSqFt || 5.0;
+            }
+            
+            // Calculate
+            const areaSqFt = widthFt * heightFt;
+            const totalAmount = areaSqFt * ratePerSqFt * qty;
+            
+            // Update amount field
+            amountInput.value = totalAmount.toFixed(2);
+            
+            // Update summary
+            summaryEl.innerText = `Size: ${widthFt.toFixed(2)}ft x ${heightFt.toFixed(2)}ft (${areaSqFt.toFixed(4)} sq ft total) @ GH¢${ratePerSqFt.toFixed(2)}/sq ft`;
+        }
+        
+        // Add event listeners for auto-calculation
+        ['manual-service', 'manual-width', 'manual-height', 'manual-unit', 'manual-qty'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', calculateManualAmount);
+                element.addEventListener('change', calculateManualAmount);
             }
         });
 
