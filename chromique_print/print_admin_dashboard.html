@@ -394,13 +394,7 @@
                 
                 // Artwork method display
                 let artworkHTML = '';
-                if (order.artworkMethod === 'upload' && order.artworkUrl) {
-                    artworkHTML = `
-                        <a href="${order.artworkUrl}" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold">
-                            <i class="fa-solid fa-download mr-1"></i> Download
-                        </a>
-                    `;
-                } else if (order.artworkMethod === 'whatsapp') {
+                if (order.artworkMethod === 'whatsapp') {
                     artworkHTML = '<span class="text-green-400 font-bold">📱 WhatsApp</span>';
                 } else if (order.artworkMethod === 'email') {
                     artworkHTML = '<span class="text-blue-400 font-bold">📧 Email</span>';
