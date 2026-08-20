@@ -376,40 +376,79 @@
 
         // Load staff profiles from Firebase
         async function loadStaffProfiles() {
+            console.log('loadStaffProfiles called');
             const select = document.getElementById('manager-select');
+            console.log('Select element:', select);
+            
+            // Check if Firebase is available
+            if (!window.firebaseDB || !window.firebaseCollection || !window.firebaseGetDocs) {
+                console.error('Firebase functions not available');
+                select.innerHTML = '<option value="">Firebase not initialized</option>';
+                return;
+            }
             
             try {
-                const snapshot = await window.firebaseGetDocs(
-                    window.firebaseCollection(window.firebaseDB, 'staff_profiles')
-                );
+                console.log('Fetching staff profiles from Firebase...');
+                const staffCollection = window.firebaseCollection(window.firebaseDB, 'staff_profiles');
+                console.log('Collection reference:', staffCollection);
+                
+                const snapshot = await window.firebaseGetDocs(staffCollection);
+                console.log('Snapshot received:', snapshot);
+                console.log('Snapshot empty:', snapshot.empty);
+                console.log('Snapshot size:', snapshot.size);
 
                 if (snapshot.empty) {
+                    console.log('No staff profiles found in Firebase');
                     select.innerHTML = '<option value="">No staff profiles found</option>';
                     return;
                 }
 
                 const staffList = [];
+                console.log('Processing staff documents...');
                 snapshot.forEach(doc => {
                     const staff = doc.data();
+                    console.log('Staff document:', { id: doc.id, data: staff });
+                    console.log('Staff active status:', staff.active);
+                    
                     if (staff.active) {
+                        console.log('Adding active staff:', staff.displayName);
                         staffList.push({ id: doc.id, ...staff });
+                    } else {
+                        console.log('Skipping inactive staff:', staff.displayName);
                     }
                 });
 
+                console.log('Total active staff:', staffList.length);
+
+                if (staffList.length === 0) {
+                    console.log('No active staff found');
+                    select.innerHTML = '<option value="">No active staff found</option>';
+                    return;
+                }
+
                 // Sort by name
                 staffList.sort((a, b) => a.name.localeCompare(b.name));
+                console.log('Sorted staff list:', staffList);
 
                 // Populate dropdown
                 select.innerHTML = '';
                 staffList.forEach(staff => {
+                    console.log('Adding option for:', staff.displayName);
                     const option = document.createElement('option');
                     option.value = staff.displayName;
                     option.textContent = staff.displayName;
                     select.appendChild(option);
                 });
 
+                console.log('Dropdown populated successfully with', staffList.length, 'staff members');
+
             } catch (error) {
                 console.error('Error loading staff profiles:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
                 select.innerHTML = '<option value="">Error loading staff</option>';
             }
         }
