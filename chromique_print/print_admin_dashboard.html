@@ -736,39 +736,6 @@
             logActivity('EXPORT_ORDERS', `Exported ${momoOrdersData.length} orders to CSV`);
             loadActivityLog();
         }
-                            `;
-                        } else if (order.status === 'MoMo Rejected') {
-                            actionButtons = `<span class="text-[10px] text-red-400 font-bold">✗ ${order.rejectedBy || 'Rejected'}</span>`;
-                        }
-
-                        const row = document.createElement('tr');
-                        row.className = 'hover:bg-slate-800/50 transition';
-                        row.innerHTML = `
-                            <td class="p-3 font-mono text-brand-500 font-bold whitespace-nowrap">${order.ref}</td>
-                            <td class="p-3 whitespace-nowrap">
-                                <div class="font-bold text-white">${order.name}</div>
-                                <div class="text-[10px] text-slate-500">${order.email || '—'}</div>
-                            </td>
-                            <td class="p-3 font-mono whitespace-nowrap">${order.phone}</td>
-                            <td class="p-3 min-w-[200px]">
-                                <div class="font-bold text-white text-[11px]">${order.quote.service || '—'}</div>
-                                <div class="text-[10px] text-slate-500 mt-0.5">${order.quote.areaSummary || '—'}</div>
-                                <div class="text-[10px] text-slate-500">Qty: ${order.quote.qty || 1} | ${order.deliveryMethod === 'delivery' ? '📦 Delivery' : '🏪 Pickup'}</div>
-                            </td>
-                            <td class="p-3 font-bold text-brand-500 whitespace-nowrap">${order.quote.totalPrice || '—'}</td>
-                            <td class="p-3 whitespace-nowrap"><span class="${statusColor} ${statusBg} px-2 py-1 rounded font-bold text-[10px]">${order.status}</span></td>
-                            <td class="p-3 text-slate-500 whitespace-nowrap">${date}</td>
-                            <td class="p-3 whitespace-nowrap">${receiptButton}</td>
-                            <td class="p-3 whitespace-nowrap">${actionButtons}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                },
-                (error) => {
-                    console.error('Error loading orders from Firebase:', error);
-                }
-            );
-        }
 
         function updateStats(orders) {
             const totalSales = orders
