@@ -71,6 +71,23 @@ service cloud.firestore {
       // This allows updating admin passcode and other settings
       allow write: if request.resource.data.keys().hasAny(['value', 'updatedAt']);
     }
+    
+    // ============================================
+    // Staff Profiles Collection
+    // ============================================
+    match /staff_profiles/{staffId} {
+      // Anyone can read staff profiles (for login dropdown)
+      allow read: if true;
+      
+      // Anyone can create staff profiles (managers adding staff)
+      allow create: if true;
+      
+      // Anyone can update staff profiles (activating/deactivating staff)
+      allow update: if true;
+      
+      // Anyone can delete staff profiles (removing staff)
+      allow delete: if true;
+    }
   }
 }
 ```
