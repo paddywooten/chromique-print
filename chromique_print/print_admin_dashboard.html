@@ -50,6 +50,15 @@
         window.firebaseGetDoc = getDoc;
         window.firebaseSetDoc = setDoc;
     </script>
+
+    <!-- EmailJS SDK for sending OTP emails -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        // Initialize EmailJS (replace with your actual Public Key after setup)
+        (function() {
+            emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // TODO: Replace with your EmailJS Public Key
+        })();
+    </script>
     
     <!-- Link to external modular assets for synchronized state -->
     <link rel="stylesheet" href="print_style.css">
@@ -1335,11 +1344,8 @@
         // CHANGE PASSCODE FUNCTIONALITY
         // ============================================
         
-        // Manager email mapping
-        const MANAGER_EMAILS = {
-            'PATRICK (DIRECTOR)': 'patrick@chromique.com',
-            'JESSICA (GENERAL MANAGER)': 'jessica@chromique.com'
-        };
+        // Company email for OTP delivery (all OTPs sent here)
+        const COMPANY_EMAIL = 'chromique.print@gmail.com';
 
         // OTP state
         let currentOTP = null;
@@ -1368,27 +1374,42 @@
         function sendOTP() {
             const managerSelect = document.getElementById('passcode-manager-select');
             selectedManagerForPasscode = managerSelect.value;
-            const email = MANAGER_EMAILS[selectedManagerForPasscode];
             
-            if (!email) {
-                showToast('Manager email not configured', 'error');
-                return;
-            }
-
             // Generate 6-digit OTP
             currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
             otpExpiry = Date.now() + (10 * 60 * 1000); // 10 minutes
 
-            // In production, you would send this via EmailJS or your email service
-            // For now, we'll show it in a toast (REMOVE THIS IN PRODUCTION!)
-            showToast(`OTP sent to ${email}: ${currentOTP}`, 'success');
-            
-            // TODO: Replace with actual email sending
-            // sendOTPEmail(email, currentOTP, selectedManagerForPasscode);
+            // Send OTP via EmailJS
+            sendOTPEmail(COMPANY_EMAIL, currentOTP, selectedManagerForPasscode);
+        }
 
-            // Show step 2
-            document.getElementById('passcode-step-1').classList.add('hidden');
-            document.getElementById('passcode-step-2').classList.remove('hidden');
+        function sendOTPEmail(toEmail, otpCode, managerName) {
+            // EmailJS template parameters
+            const templateParams = {
+                to_email: toEmail,
+                to_name: managerName,
+                otp_code: otpCode,
+                company_name: 'CHROMIQUE',
+                expiry_minutes: '10'
+            };
+
+            // Send email using EmailJS
+            // TODO: Replace 'YOUR_SERVICE_ID' and 'YOUR_TEMPLATE_ID' with your actual IDs
+            emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+                .then(function(response) {
+                    console.log('OTP email sent successfully!', response.status, response.text);
+                    showToast(`OTP sent to ${toEmail}. Check your email!`, 'success');
+                    
+                    // Show step 2
+                    document.getElementById('passcode-step-1').classList.add('hidden');
+                    document.getElementById('passcode-step-2').classList.remove('hidden');
+                }, function(error) {
+                    console.error('Failed to send OTP email:', error);
+                    showToast('Error sending email. Please try again or contact support.', 'error');
+                    
+                    // For debugging: Show OTP in console if email fails
+                    console.log('DEBUG OTP:', otpCode);
+                });
         }
 
         function resendOTP() {
