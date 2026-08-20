@@ -25,7 +25,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
@@ -49,6 +49,7 @@
         window.firebaseAddDoc = addDoc;
         window.firebaseGetDoc = getDoc;
         window.firebaseSetDoc = setDoc;
+        window.firebaseDeleteDoc = deleteDoc;
     </script>
 
     <!-- EmailJS SDK for sending OTP emails -->
@@ -219,6 +220,64 @@
                 <button onclick="closeChangePasscodeModal()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider">
                     Close
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Management Modal -->
+    <div id="staff-management-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center hidden p-6">
+        <div class="bg-slate-900 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 space-y-6 shadow-2xl border border-slate-800">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="font-extrabold text-lg text-white uppercase tracking-wide">Staff Management</h3>
+                    <p class="text-xs text-slate-500 mt-1">Add, edit, or remove staff profiles</p>
+                </div>
+                <button onclick="closeStaffManagementModal()" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Add New Staff Form -->
+            <div class="bg-slate-800/50 rounded-2xl p-6 space-y-4 border border-slate-700">
+                <h4 class="font-bold text-sm text-white uppercase tracking-wider">Add New Staff Member</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Full Name *</label>
+                        <input type="text" id="new-staff-name" placeholder="e.g. KOFI MENSAH" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Role *</label>
+                        <select id="new-staff-role" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500">
+                            <option value="SALES">SALES</option>
+                            <option value="PRODUCTION">PRODUCTION</option>
+                            <option value="CUSTOMER SERVICE">CUSTOMER SERVICE</option>
+                            <option value="ADMIN">ADMIN</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email (Optional)</label>
+                        <input type="email" id="new-staff-email" placeholder="e.g. kofi@chromique.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone (Optional)</label>
+                        <input type="tel" id="new-staff-phone" placeholder="e.g. 0241234567" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500">
+                    </div>
+                </div>
+                <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+                    <p class="text-[11px] text-blue-400"><i class="fa-solid fa-info-circle mr-1"></i> Staff will use the default passcode <strong>2026</strong> to login. They cannot change it.</p>
+                </div>
+                <button onclick="addNewStaff()" class="w-full bg-green-500 hover:bg-green-600 text-slate-950 font-black text-xs py-3 rounded-xl transition uppercase tracking-wider">
+                    <i class="fa-solid fa-user-plus mr-2"></i> Add Staff Member
+                </button>
+            </div>
+
+            <!-- Existing Staff List -->
+            <div class="space-y-4">
+                <h4 class="font-bold text-sm text-white uppercase tracking-wider">Current Staff Members</h4>
+                <div id="staff-list-container" class="space-y-3">
+                    <!-- Staff cards will be populated here -->
+                    <p class="text-slate-500 text-sm text-center py-8">Loading staff list...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -527,6 +586,16 @@
 
         <!-- Change Passcode Button (Bottom Left) -->
         <div class="mt-8">
+            <button onclick="openChangePasscodeModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-key"></i> Change Passcode
+            </button>
+        </div>
+
+        <!-- Staff Management Button (Bottom Left) -->
+        <div class="mt-8 flex gap-4">
+            <button onclick="openStaffManagementModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-users"></i> Manage Staff Profiles
+            </button>
             <button onclick="openChangePasscodeModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-lg">
                 <i class="fa-solid fa-key"></i> Change Passcode
             </button>
@@ -1485,6 +1554,180 @@
             } catch (error) {
                 console.error('Error updating passcode:', error);
                 showToast('Error updating passcode. Please try again.', 'error');
+            }
+        }
+
+        // ============================================
+        // STAFF MANAGEMENT FUNCTIONALITY
+        // ============================================
+        
+        function openStaffManagementModal() {
+            document.getElementById('staff-management-modal').classList.remove('hidden');
+            loadStaffList();
+        }
+
+        function closeStaffManagementModal() {
+            document.getElementById('staff-management-modal').classList.add('hidden');
+            // Clear form
+            document.getElementById('new-staff-name').value = '';
+            document.getElementById('new-staff-email').value = '';
+            document.getElementById('new-staff-phone').value = '';
+            document.getElementById('new-staff-role').value = 'SALES';
+        }
+
+        async function addNewStaff() {
+            const name = document.getElementById('new-staff-name').value.trim().toUpperCase();
+            const role = document.getElementById('new-staff-role').value;
+            const email = document.getElementById('new-staff-email').value.trim();
+            const phone = document.getElementById('new-staff-phone').value.trim();
+
+            if (!name) {
+                showToast('Please enter staff name', 'error');
+                return;
+            }
+
+            // Check if staff already exists
+            const staffRef = window.firebaseDoc(window.firebaseDB, 'staff_profiles', name);
+            const staffSnap = await window.firebaseGetDoc(staffRef);
+            
+            if (staffSnap.exists()) {
+                showToast('Staff member already exists', 'error');
+                return;
+            }
+
+            const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+
+            try {
+                await window.firebaseSetDoc(staffRef, {
+                    name: name,
+                    role: role,
+                    email: email,
+                    phone: phone,
+                    displayName: `${name} (${role})`,
+                    createdBy: manager,
+                    createdAt: new Date().toISOString(),
+                    active: true
+                });
+
+                logActivity('ADD_STAFF', `${manager} added new staff: ${name} (${role})`);
+                loadActivityLog();
+                loadStaffList();
+                
+                // Clear form
+                document.getElementById('new-staff-name').value = '';
+                document.getElementById('new-staff-email').value = '';
+                document.getElementById('new-staff-phone').value = '';
+                
+                showToast(`Staff member ${name} added successfully!`, 'success');
+
+            } catch (error) {
+                console.error('Error adding staff:', error);
+                showToast('Error adding staff member', 'error');
+            }
+        }
+
+        async function loadStaffList() {
+            const container = document.getElementById('staff-list-container');
+            container.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">Loading staff list...</p>';
+
+            try {
+                const snapshot = await window.firebaseGetDoc(
+                    window.firebaseCollection(window.firebaseDB, 'staff_profiles')
+                );
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">No staff members found. Add your first staff member above.</p>';
+                    return;
+                }
+
+                const staffList = [];
+                snapshot.forEach(doc => {
+                    staffList.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Sort by name
+                staffList.sort((a, b) => a.name.localeCompare(b.name));
+
+                container.innerHTML = '';
+                staffList.forEach(staff => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-slate-800/50 rounded-xl p-4 border border-slate-700 flex justify-between items-center';
+                    card.innerHTML = `
+                        <div>
+                            <div class="font-bold text-white">${staff.displayName}</div>
+                            <div class="text-[11px] text-slate-400 mt-1">
+                                ${staff.email ? `<i class="fa-solid fa-envelope mr-1"></i>${staff.email}` : ''}
+                                ${staff.phone ? `<span class="ml-3"><i class="fa-solid fa-phone mr-1"></i>${staff.phone}</span>` : ''}
+                            </div>
+                            <div class="text-[10px] text-slate-500 mt-1">
+                                Added by ${staff.createdBy} on ${new Date(staff.createdAt).toLocaleDateString('en-GB')}
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="toggleStaffStatus('${staff.id}', ${staff.active})" class="${staff.active ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'} px-3 py-2 rounded-lg text-[10px] font-bold transition">
+                                ${staff.active ? '<i class="fa-solid fa-pause mr-1"></i>Deactivate' : '<i class="fa-solid fa-play mr-1"></i>Activate'}
+                            </button>
+                            <button onclick="deleteStaff('${staff.id}', '${staff.name}')" class="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-2 rounded-lg text-[10px] font-bold transition">
+                                <i class="fa-solid fa-trash mr-1"></i>Delete
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error loading staff:', error);
+                container.innerHTML = '<p class="text-red-400 text-sm text-center py-8">Error loading staff list</p>';
+            }
+        }
+
+        async function toggleStaffStatus(staffId, currentStatus) {
+            const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+            const newStatus = !currentStatus;
+
+            try {
+                await window.firebaseUpdateDoc(
+                    window.firebaseDoc(window.firebaseDB, 'staff_profiles', staffId),
+                    {
+                        active: newStatus,
+                        updatedBy: manager,
+                        updatedAt: new Date().toISOString()
+                    }
+                );
+
+                logActivity('TOGGLE_STAFF', `${manager} ${newStatus ? 'activated' : 'deactivated'} staff: ${staffId}`);
+                loadActivityLog();
+                loadStaffList();
+                
+                showToast(`Staff member ${newStatus ? 'activated' : 'deactivated'} successfully!`, 'success');
+
+            } catch (error) {
+                console.error('Error toggling staff status:', error);
+                showToast('Error updating staff status', 'error');
+            }
+        }
+
+        async function deleteStaff(staffId, staffName) {
+            if (!confirm(`Are you sure you want to delete ${staffName}? This action cannot be undone.`)) {
+                return;
+            }
+
+            const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+
+            try {
+                await window.firebaseDeleteDoc(
+                    window.firebaseDoc(window.firebaseDB, 'staff_profiles', staffId)
+                );
+
+                logActivity('DELETE_STAFF', `${manager} deleted staff: ${staffName}`);
+                loadActivityLog();
+                loadStaffList();
+                
+                showToast(`Staff member ${staffName} deleted successfully!`, 'success');
+
+            } catch (error) {
+                console.error('Error deleting staff:', error);
+                showToast('Error deleting staff member', 'error');
             }
         }
 

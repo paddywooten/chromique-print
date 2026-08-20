@@ -93,10 +93,7 @@
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Staff Member</label>
                     <select id="manager-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500">
-                        <option value="KOFI (SALES)">KOFI (SALES)</option>
-                        <option value="AMA (SALES)">AMA (SALES)</option>
-                        <option value="KWAME (PRODUCTION)">KWAME (PRODUCTION)</option>
-                        <option value="ABENA (CUSTOMER SERVICE)">ABENA (CUSTOMER SERVICE)</option>
+                        <option value="">Loading staff...</option>
                     </select>
                 </div>
                 <input type="password" id="admin-passcode-input" placeholder="Enter Staff Passcode" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500 tracking-widest text-white font-mono">
@@ -356,6 +353,46 @@
     <!-- Secure Password Authentication & Dynamic Orders Ingestion Script -->
     <script>
         let ADMIN_PASSCODE = "2026"; // Default passcode, will be loaded from Firebase
+
+        // Load staff profiles from Firebase
+        async function loadStaffProfiles() {
+            const select = document.getElementById('manager-select');
+            
+            try {
+                const snapshot = await window.firebaseGetDoc(
+                    window.firebaseCollection(window.firebaseDB, 'staff_profiles')
+                );
+
+                if (snapshot.empty) {
+                    select.innerHTML = '<option value="">No staff profiles found</option>';
+                    return;
+                }
+
+                const staffList = [];
+                snapshot.forEach(doc => {
+                    const staff = doc.data();
+                    if (staff.active) {
+                        staffList.push({ id: doc.id, ...staff });
+                    }
+                });
+
+                // Sort by name
+                staffList.sort((a, b) => a.name.localeCompare(b.name));
+
+                // Populate dropdown
+                select.innerHTML = '';
+                staffList.forEach(staff => {
+                    const option = document.createElement('option');
+                    option.value = staff.displayName;
+                    option.textContent = staff.displayName;
+                    select.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Error loading staff profiles:', error);
+                select.innerHTML = '<option value="">Error loading staff</option>';
+            }
+        }
 
         function checkSessionAuth() {
             // ALWAYS REQUIRE ACCESS ON EACH INDIVIDUAL PAGE ENTRY OR PAGE REFRESH!
@@ -1085,7 +1122,10 @@
             }
         });
 
-        window.addEventListener('DOMContentLoaded', checkSessionAuth);
+        window.addEventListener('DOMContentLoaded', () => {
+            checkSessionAuth();
+            loadStaffProfiles();
+        });
 
         // Scroll to top button functionality
         const scrollTopBtn = document.getElementById('scroll-top-btn');
