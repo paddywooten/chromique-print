@@ -61,14 +61,14 @@ service cloud.firestore {
     }
     
     // ============================================
-    // Settings Collection (Future Use)
+    // Settings Collection (For admin passcode and app settings)
     // ============================================
-    // For storing app settings, pricing, etc.
     match /settings/{settingId} {
-      // Anyone can read settings (for pricing display)
+      // Anyone can read settings (for pricing display and passcode loading)
       allow read: if true;
       
       // Only allow writes if the setting has required fields
+      // This allows updating admin passcode and other settings
       allow write: if request.resource.data.keys().hasAny(['value', 'updatedAt']);
     }
   }
