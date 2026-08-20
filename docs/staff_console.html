@@ -354,6 +354,25 @@
     <script>
         let ADMIN_PASSCODE = "2026"; // Default passcode, will be loaded from Firebase
 
+        // Load staff passcode from Firebase
+        async function loadStaffPasscode() {
+            try {
+                const docSnap = await window.firebaseGetDoc(
+                    window.firebaseDoc(window.firebaseDB, 'settings', 'staff_passcode')
+                );
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data && data.value) {
+                        ADMIN_PASSCODE = data.value;
+                        console.log('Staff passcode loaded from Firebase');
+                    }
+                }
+            } catch (error) {
+                console.log('No custom staff passcode found, using default');
+            }
+        }
+
         // Load staff profiles from Firebase
         async function loadStaffProfiles() {
             const select = document.getElementById('manager-select');
@@ -1125,6 +1144,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             checkSessionAuth();
             loadStaffProfiles();
+            loadStaffPasscode();
         });
 
         // Scroll to top button functionality

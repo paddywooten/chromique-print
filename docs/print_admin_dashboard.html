@@ -282,6 +282,54 @@
         </div>
     </div>
 
+    <!-- Change Staff Passcode Modal -->
+    <div id="change-staff-passcode-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center hidden p-6">
+        <div class="bg-slate-900 rounded-3xl max-w-md w-full p-8 space-y-6 shadow-2xl border border-slate-800">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="font-extrabold text-lg text-white uppercase tracking-wide">Change Staff Passcode</h3>
+                    <p class="text-xs text-slate-500 mt-1">Set a new passcode for all staff members</p>
+                </div>
+                <button onclick="closeChangeStaffPasscodeModal()" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 space-y-2">
+                <p class="text-xs text-purple-400 font-bold"><i class="fa-solid fa-info-circle mr-1"></i> Important:</p>
+                <ul class="text-[11px] text-slate-400 space-y-1 list-disc list-inside">
+                    <li>This passcode applies to <strong>ALL staff members</strong></li>
+                    <li>Staff cannot change this passcode themselves</li>
+                    <li>Only managers can change the staff passcode</li>
+                    <li>Minimum 4 characters required</li>
+                </ul>
+            </div>
+
+            <div class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Current Staff Passcode</label>
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-400 text-sm font-mono" id="current-staff-passcode-display">
+                        Loading...
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">New Staff Passcode *</label>
+                    <input type="password" id="new-staff-passcode-input" placeholder="Enter new passcode" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm font-bold focus:outline-none focus:ring-1 focus:ring-purple-500 tracking-widest font-mono">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confirm New Passcode *</label>
+                    <input type="password" id="confirm-staff-passcode-input" placeholder="Confirm new passcode" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm font-bold focus:outline-none focus:ring-1 focus:ring-purple-500 tracking-widest font-mono">
+                </div>
+
+                <button onclick="changeStaffPasscode()" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider">
+                    <i class="fa-solid fa-user-lock mr-2"></i> Update Staff Passcode
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-6 py-10 space-y-10">
         
@@ -592,12 +640,15 @@
         </div>
 
         <!-- Staff Management Button (Bottom Left) -->
-        <div class="mt-8 flex gap-4">
+        <div class="mt-8 flex gap-4 flex-wrap">
             <button onclick="openStaffManagementModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-lg">
                 <i class="fa-solid fa-users"></i> Manage Staff Profiles
             </button>
+            <button onclick="openChangeStaffPasscodeModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-user-lock"></i> Change Staff Passcode
+            </button>
             <button onclick="openChangePasscodeModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-lg">
-                <i class="fa-solid fa-key"></i> Change Passcode
+                <i class="fa-solid fa-key"></i> Change Manager Passcode
             </button>
         </div>
 
@@ -1730,6 +1781,120 @@
                 showToast('Error deleting staff member', 'error');
             }
         }
+
+        // ============================================
+        // CHANGE STAFF PASSCODE FUNCTIONALITY
+        // ============================================
+        
+        let STAFF_PASSCODE = "2026"; // Default staff passcode
+
+        function openChangeStaffPasscodeModal() {
+            document.getElementById('change-staff-passcode-modal').classList.remove('hidden');
+            loadCurrentStaffPasscode();
+        }
+
+        function closeChangeStaffPasscodeModal() {
+            document.getElementById('change-staff-passcode-modal').classList.add('hidden');
+            // Clear form
+            document.getElementById('new-staff-passcode-input').value = '';
+            document.getElementById('confirm-staff-passcode-input').value = '';
+        }
+
+        async function loadCurrentStaffPasscode() {
+            const display = document.getElementById('current-staff-passcode-display');
+            
+            try {
+                const docSnap = await window.firebaseGetDoc(
+                    window.firebaseDoc(window.firebaseDB, 'settings', 'staff_passcode')
+                );
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data && data.value) {
+                        STAFF_PASSCODE = data.value;
+                        display.textContent = '•'.repeat(data.value.length) + ' (hidden for security)';
+                    } else {
+                        display.textContent = '•••• (default)';
+                    }
+                } else {
+                    display.textContent = '•••• (default)';
+                }
+            } catch (error) {
+                console.error('Error loading staff passcode:', error);
+                display.textContent = '•••• (default)';
+            }
+        }
+
+        async function changeStaffPasscode() {
+            const newPasscode = document.getElementById('new-staff-passcode-input').value;
+            const confirmPasscode = document.getElementById('confirm-staff-passcode-input').value;
+
+            if (!newPasscode || !confirmPasscode) {
+                showToast('Please fill in both fields', 'error');
+                return;
+            }
+
+            if (newPasscode.length < 4) {
+                showToast('Passcode must be at least 4 characters', 'error');
+                return;
+            }
+
+            if (newPasscode !== confirmPasscode) {
+                showToast('Passcodes do not match', 'error');
+                return;
+            }
+
+            const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+
+            try {
+                // Save to Firebase
+                await window.firebaseSetDoc(
+                    window.firebaseDoc(window.firebaseDB, 'settings', 'staff_passcode'),
+                    {
+                        value: newPasscode,
+                        updatedAt: new Date().toISOString(),
+                        updatedBy: manager
+                    }
+                );
+
+                // Update local STAFF_PASSCODE
+                STAFF_PASSCODE = newPasscode;
+
+                // Log activity
+                logActivity('CHANGE_STAFF_PASSCODE', `${manager} changed staff passcode`);
+                loadActivityLog();
+
+                // Close modal and show success
+                closeChangeStaffPasscodeModal();
+                showToast('Staff passcode updated successfully!', 'success');
+
+            } catch (error) {
+                console.error('Error updating staff passcode:', error);
+                showToast('Error updating staff passcode. Please try again.', 'error');
+            }
+        }
+
+        // Load staff passcode from Firebase on page load
+        async function loadStaffPasscodeOnLoad() {
+            try {
+                const docSnap = await window.firebaseGetDoc(
+                    window.firebaseDoc(window.firebaseDB, 'settings', 'staff_passcode')
+                );
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data && data.value) {
+                        STAFF_PASSCODE = data.value;
+                        console.log('Staff passcode loaded from Firebase');
+                    }
+                }
+            } catch (error) {
+                console.log('No custom staff passcode found, using default');
+            }
+        }
+
+        // Initialize staff passcode loading
+        window.addEventListener('DOMContentLoaded', loadStaffPasscodeOnLoad);
 
         // Load passcode from Firebase on page load
         async function loadAdminPasscode() {
