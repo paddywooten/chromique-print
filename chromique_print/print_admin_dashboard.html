@@ -54,9 +54,9 @@
     <!-- EmailJS SDK for sending OTP emails -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script type="text/javascript">
-        // Initialize EmailJS (replace with your actual Public Key after setup)
+        // Initialize EmailJS with actual Public Key
         (function() {
-            emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // TODO: Replace with your EmailJS Public Key
+            emailjs.init("pI615F1av7b7zaQsU");
         })();
     </script>
     
@@ -1394,8 +1394,7 @@
             };
 
             // Send email using EmailJS
-            // TODO: Replace 'YOUR_SERVICE_ID' and 'YOUR_TEMPLATE_ID' with your actual IDs
-            emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+            emailjs.send('service_2xv5sun', 'template_la3j92r', templateParams)
                 .then(function(response) {
                     console.log('OTP email sent successfully!', response.status, response.text);
                     showToast(`OTP sent to ${toEmail}. Check your email!`, 'success');
