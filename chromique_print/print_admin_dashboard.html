@@ -1627,28 +1627,49 @@
         }
 
         async function addNewStaff() {
+            console.log('addNewStaff called');
+            
             const name = document.getElementById('new-staff-name').value.trim().toUpperCase();
             const role = document.getElementById('new-staff-role').value;
             const email = document.getElementById('new-staff-email').value.trim();
             const phone = document.getElementById('new-staff-phone').value.trim();
 
+            console.log('Staff details:', { name, role, email, phone });
+
             if (!name) {
+                console.log('Validation failed: No name');
                 showToast('Please enter staff name', 'error');
                 return;
             }
 
+            // Check if Firebase is available
+            if (!window.firebaseDB || !window.firebaseDoc || !window.firebaseGetDoc || !window.firebaseSetDoc) {
+                console.error('Firebase functions not available');
+                showToast('Firebase not initialized. Please refresh the page.', 'error');
+                return;
+            }
+
+            console.log('Checking if staff already exists...');
+            
             // Check if staff already exists
             const staffRef = window.firebaseDoc(window.firebaseDB, 'staff_profiles', name);
+            console.log('Staff ref created:', staffRef);
+            
             const staffSnap = await window.firebaseGetDoc(staffRef);
+            console.log('Staff snapshot:', staffSnap.exists());
             
             if (staffSnap.exists()) {
+                console.log('Staff already exists');
                 showToast('Staff member already exists', 'error');
                 return;
             }
 
             const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+            console.log('Manager:', manager);
 
             try {
+                console.log('Adding staff to Firebase...');
+                
                 await window.firebaseSetDoc(staffRef, {
                     name: name,
                     role: role,
@@ -1659,6 +1680,8 @@
                     createdAt: new Date().toISOString(),
                     active: true
                 });
+
+                console.log('Staff added successfully');
 
                 logActivity('ADD_STAFF', `${manager} added new staff: ${name} (${role})`);
                 loadActivityLog();
@@ -1673,7 +1696,12 @@
 
             } catch (error) {
                 console.error('Error adding staff:', error);
-                showToast('Error adding staff member', 'error');
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
+                showToast(`Error adding staff member: ${error.message}`, 'error');
             }
         }
 
