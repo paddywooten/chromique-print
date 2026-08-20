@@ -137,13 +137,6 @@
         </div>
     </nav>
 
-    <!-- Change Passcode Button (Top Right) -->
-    <div class="fixed top-24 right-6 z-30">
-        <button onclick="openChangePasscodeModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-lg">
-            <i class="fa-solid fa-key"></i> Change Passcode
-        </button>
-    </div>
-
     <!-- Change Passcode Modal -->
     <div id="change-passcode-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center hidden p-6">
         <div class="bg-slate-900 rounded-3xl max-w-md w-full p-8 space-y-6 shadow-2xl border border-slate-800">
@@ -530,6 +523,13 @@
                     <i class="fa-solid fa-floppy-disk"></i> Save &amp; Sync Global Pricing Matrix
                 </button>
             </div>
+        </div>
+
+        <!-- Change Passcode Button (Bottom Left) -->
+        <div class="mt-8">
+            <button onclick="openChangePasscodeModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-key"></i> Change Passcode
+            </button>
         </div>
 
     </main>
