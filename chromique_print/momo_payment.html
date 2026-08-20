@@ -164,25 +164,57 @@
             <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-user text-brand-500 mr-2"></i> Your Details</h3>
             <div class="space-y-3">
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Full Name</label>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Full Name *</label>
                     <input type="text" id="momo-name" placeholder="e.g. Kofi Boateng" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number (MoMo)</label>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number (MoMo) *</label>
                     <input type="tel" id="momo-phone" placeholder="e.g. 024 123 4567" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email Address</label>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email Address (Optional)</label>
                     <input type="email" id="momo-email" placeholder="e.g. kofi@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
                 </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Delivery Address / Pickup Location</label>
-                    <input type="text" id="momo-address" placeholder="e.g. East Legon, Accra" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Order Notes (Optional)</label>
-                    <textarea id="momo-notes" rows="2" placeholder="Any special instructions for your print job..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold resize-none"></textarea>
-                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Method Selection -->
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
+            <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-truck text-brand-500 mr-2"></i> Delivery Method</h3>
+            <div class="space-y-3">
+                <label class="block cursor-pointer">
+                    <input type="radio" name="delivery-method" value="pickup" class="peer hidden" checked>
+                    <div class="peer-checked:border-brand-500 peer-checked:bg-brand-500/5 border border-slate-800 rounded-xl p-4 transition hover:border-slate-700">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 bg-brand-500/10 text-brand-500 rounded-lg flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-store"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-white text-sm">🏪 Pickup at Office</div>
+                                <div class="text-[11px] text-slate-500 mt-1">Collect your order from our Accra office</div>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+
+                <label class="block cursor-pointer">
+                    <input type="radio" name="delivery-method" value="delivery" class="peer hidden">
+                    <div class="peer-checked:border-brand-500 peer-checked:bg-brand-500/5 border border-slate-800 rounded-xl p-4 transition hover:border-slate-700">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 bg-blue-500/10 text-blue-400 rounded-lg flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-truck"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-white text-sm">📦 Delivery</div>
+                                <div class="text-[11px] text-slate-500 mt-1">We'll deliver to your location in Accra/Tema</div>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+            <div id="delivery-address-section" class="hidden mt-4 space-y-1.5">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Delivery Address *</label>
+                <input type="text" id="momo-delivery-address" placeholder="e.g. East Legon, Accra" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
             </div>
         </div>
 
@@ -316,21 +348,84 @@
             });
         }
 
+        // Handle delivery method selection
+        function setupDeliveryMethods() {
+            const radios = document.querySelectorAll('input[name="delivery-method"]');
+            const deliveryAddressSection = document.getElementById('delivery-address-section');
+            
+            radios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'delivery') {
+                        deliveryAddressSection.classList.remove('hidden');
+                    } else {
+                        deliveryAddressSection.classList.add('hidden');
+                    }
+                });
+            });
+        }
+
         async function submitMomoOrder() {
             const name = document.getElementById('momo-name').value.trim();
             const phone = document.getElementById('momo-phone').value.trim();
             const email = document.getElementById('momo-email').value.trim();
-            const address = document.getElementById('momo-address').value.trim();
+            const deliveryMethod = document.querySelector('input[name="delivery-method"]:checked').value;
+            const deliveryAddress = document.getElementById('momo-delivery-address').value.trim();
             const notes = document.getElementById('momo-notes').value.trim();
             const artworkMethod = document.querySelector('input[name="artwork-method"]:checked').value;
             
-            if (!name || !phone) {
-                showToast('Please enter your name and phone number', 'error');
+            // Validate name
+            if (!name) {
+                document.getElementById('momo-name').classList.add('border-red-500');
+                showToast('Please enter your full name', 'error');
                 return;
+            } else {
+                document.getElementById('momo-name').classList.remove('border-red-500');
+            }
+            
+            // Validate phone
+            if (!phone) {
+                document.getElementById('momo-phone').classList.add('border-red-500');
+                showToast('Please enter your phone number', 'error');
+                return;
+            } else if (!validatePhone(phone)) {
+                document.getElementById('momo-phone').classList.add('border-red-500');
+                showToast('Please enter a valid Ghana phone number (e.g., 0241234567)', 'error');
+                return;
+            } else {
+                document.getElementById('momo-phone').classList.remove('border-red-500');
+            }
+            
+            // Validate email if provided
+            if (email && !validateEmail(email)) {
+                document.getElementById('momo-email').classList.add('border-red-500');
+                showToast('Please enter a valid email address', 'error');
+                return;
+            } else {
+                document.getElementById('momo-email').classList.remove('border-red-500');
+            }
+            
+            // Validate delivery address if delivery selected
+            if (deliveryMethod === 'delivery' && !deliveryAddress) {
+                document.getElementById('momo-delivery-address').classList.add('border-red-500');
+                showToast('Please enter your delivery address', 'error');
+                return;
+            } else {
+                document.getElementById('momo-delivery-address').classList.remove('border-red-500');
             }
 
             const ref = document.getElementById('momo-reference').dataset.ref || 'CHQ-XXXXXX';
             const quote = JSON.parse(sessionStorage.getItem('chromique_momo_quote') || '{}');
+
+            // Confirmation dialog
+            const confirmed = confirm(
+                `Confirm your order:\n\n` +
+                `Service: ${quote.service || 'N/A'}\n` +
+                `Amount: ${quote.totalPrice || 'N/A'}\n` +
+                `Delivery: ${deliveryMethod === 'delivery' ? 'Yes (' + deliveryAddress + ')' : 'Pickup at office'}\n` +
+                `Artwork: ${artworkMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}\n\n` +
+                `Proceed with submission?`
+            );
+            if (!confirmed) return;
 
             // Create order object
             const orderData = {
@@ -338,7 +433,8 @@
                 name: name,
                 phone: phone,
                 email: email,
-                address: address,
+                deliveryMethod: deliveryMethod,
+                deliveryAddress: deliveryMethod === 'delivery' ? deliveryAddress : '',
                 notes: notes,
                 quote: quote,
                 paymentMethod: 'MoMo',
@@ -380,10 +476,24 @@
             }
         }
 
+        // Phone validation for Ghana
+        function validatePhone(phone) {
+            const cleaned = phone.replace(/\s|-/g, '');
+            const phoneRegex = /^(\+233|0)[2357]\d{8}$/;
+            return phoneRegex.test(cleaned);
+        }
+
+        // Email validation
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
         // Load quote on page load
         window.addEventListener('DOMContentLoaded', () => {
             loadQuote();
             setupArtworkMethods();
+            setupDeliveryMethods();
         });
         
         // Toast notification function

@@ -265,9 +265,23 @@
 
         <!-- MoMo Payment Orders -->
         <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-mobile-screen-button text-yellow-400 mr-2"></i> MoMo Payment Orders</h3>
-                <span class="text-[10px] bg-yellow-500/10 text-yellow-400 px-3 py-1 rounded-full font-bold" id="momo-order-count">0 Orders</span>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white">
+                    <i class="fa-solid fa-mobile-screen-button text-yellow-400 mr-2"></i> MoMo Payment Orders
+                </h3>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <input type="text" id="momo-search" placeholder="Search orders..." class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 w-40">
+                    <select id="momo-status-filter" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500">
+                        <option value="all">All Status</option>
+                        <option value="Pending MoMo Verification">Pending</option>
+                        <option value="MoMo Verified">Verified</option>
+                        <option value="MoMo Rejected">Rejected</option>
+                    </select>
+                    <button onclick="exportOrdersToCSV()" class="bg-green-500/10 text-green-400 px-3 py-2 rounded-lg text-xs font-bold hover:bg-green-500/20 transition">
+                        <i class="fa-solid fa-download mr-1"></i> Export
+                    </button>
+                    <span class="text-[10px] bg-yellow-500/10 text-yellow-400 px-3 py-1 rounded-full font-bold" id="momo-order-count">0 Orders</span>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -286,11 +300,25 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800" id="momo-orders-tbody">
-                        <!-- Populated dynamically by JS -->
+                        <!-- Loading state -->
+                        <tr id="momo-loading-state">
+                            <td colspan="9" class="text-center py-12">
+                                <i class="fa-solid fa-spinner fa-spin text-3xl text-brand-500 mb-3"></i>
+                                <p class="text-slate-500 text-sm">Loading orders...</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-            <p class="text-[10px] text-slate-500 italic" id="momo-empty-msg">No MoMo orders yet. Orders will appear here when customers submit payments.</p>
+            <!-- Empty state -->
+            <div id="momo-empty-state" class="hidden text-center py-12">
+                <i class="fa-solid fa-inbox text-6xl text-slate-700 mb-4"></i>
+                <h3 class="text-lg font-bold text-slate-400 mb-2">No Orders Found</h3>
+                <p class="text-sm text-slate-500 mb-4">Orders will appear here when customers place them</p>
+                <button onclick="loadMomoOrders()" class="bg-brand-500 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-brand-600 transition">
+                    <i class="fa-solid fa-refresh mr-2"></i>Refresh
+                </button>
+            </div>
         </div>
 
         <!-- Activity Log Section -->
@@ -454,9 +482,14 @@
         function loadMomoOrders() {
             const tbody = document.getElementById('momo-orders-tbody');
             const countEl = document.getElementById('momo-order-count');
-            const emptyMsg = document.getElementById('momo-empty-msg');
+            const emptyState = document.getElementById('momo-empty-state');
+            const loadingState = document.getElementById('momo-loading-state');
 
             if (!tbody) return;
+
+            // Show loading state
+            if (loadingState) loadingState.style.display = 'table-row';
+            if (emptyState) emptyState.classList.add('hidden');
 
             // Set up real-time listener for Firebase
             window.firebaseOnSnapshot(
@@ -466,13 +499,15 @@
                     momoOrdersData = [];
 
                     if (snapshot.empty) {
-                        if (emptyMsg) emptyMsg.style.display = 'block';
+                        if (loadingState) loadingState.style.display = 'none';
+                        if (emptyState) emptyState.classList.remove('hidden');
                         if (countEl) countEl.innerText = '0 Orders';
                         updateStats([]);
                         return;
                     }
 
-                    if (emptyMsg) emptyMsg.style.display = 'none';
+                    if (loadingState) loadingState.style.display = 'none';
+                    if (emptyState) emptyState.classList.add('hidden');
                     
                     // Convert snapshot to array and sort by timestamp (newest first)
                     const orders = [];
@@ -483,43 +518,202 @@
                     
                     momoOrdersData = orders;
                     
-                    if (countEl) countEl.innerText = orders.length + ' Order' + (orders.length > 1 ? 's' : '');
+                    // Apply filters
+                    const filteredOrders = filterOrders(orders);
                     
-                    updateStats(orders);
+                    if (countEl) countEl.innerText = filteredOrders.length + ' Order' + (filteredOrders.length > 1 ? 's' : '');
+                    
+                    updateStats(filteredOrders);
+                    renderOrders(filteredOrders);
+                },
+                (error) => {
+                    console.error('Error loading orders:', error);
+                    if (loadingState) loadingState.style.display = 'none';
+                    showToast('Error loading orders. Please refresh the page.', 'error');
+                }
+            );
+        }
 
-                    orders.forEach((order, index) => {
-                        const date = new Date(order.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                        
-                        // Status styling
-                        let statusColor = 'text-yellow-400';
-                        let statusBg = 'bg-yellow-500/10';
-                        if (order.status === 'MoMo Verified') {
-                            statusColor = 'text-green-400';
-                            statusBg = 'bg-green-500/10';
-                        } else if (order.status === 'MoMo Rejected') {
-                            statusColor = 'text-red-400';
-                            statusBg = 'bg-red-500/10';
-                        }
+        function filterOrders(orders) {
+            const searchTerm = document.getElementById('momo-search')?.value.toLowerCase() || '';
+            const statusFilter = document.getElementById('momo-status-filter')?.value || 'all';
+            
+            return orders.filter(order => {
+                // Status filter
+                if (statusFilter !== 'all' && order.status !== statusFilter) {
+                    return false;
+                }
+                
+                // Search filter
+                if (searchTerm) {
+                    const searchFields = [
+                        order.ref,
+                        order.name,
+                        order.phone,
+                        order.email,
+                        order.quote?.service,
+                        order.quote?.totalPrice
+                    ].map(f => (f || '').toString().toLowerCase());
+                    
+                    return searchFields.some(field => field.includes(searchTerm));
+                }
+                
+                return true;
+            });
+        }
 
-                        // Action buttons based on status
-                        let actionButtons = '';
-                        let receiptButton = '<span class="text-[10px] text-slate-600">—</span>';
-                        
-                        if (order.status === 'Pending MoMo Verification') {
-                            actionButtons = `
-                                <button onclick="verifyMomoOrder('${order.id}')" class="text-[10px] bg-green-500/20 text-green-400 px-2 py-1 rounded font-bold hover:bg-green-500/30 transition mr-1">
-                                    <i class="fa-solid fa-check"></i> Verify
-                                </button>
-                                <button onclick="rejectMomoOrder('${order.id}')" class="text-[10px] bg-red-500/20 text-red-400 px-2 py-1 rounded font-bold hover:bg-red-500/30 transition">
-                                    <i class="fa-solid fa-xmark"></i> Reject
-                                </button>
-                            `;
-                        } else if (order.status === 'MoMo Verified') {
-                            actionButtons = `<span class="text-[10px] text-green-400 font-bold">✓ ${order.verifiedBy || 'Confirmed'}</span>`;
-                            receiptButton = `
-                                <button onclick="viewReceipt('${order.id}')" class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold hover:bg-blue-500/30 transition">
-                                    <i class="fa-solid fa-receipt"></i> View
-                                </button>
+        function renderOrders(orders) {
+            const tbody = document.getElementById('momo-orders-tbody');
+            const emptyState = document.getElementById('momo-empty-state');
+            
+            tbody.innerHTML = '';
+            
+            if (orders.length === 0) {
+                if (emptyState) emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            if (emptyState) emptyState.classList.add('hidden');
+
+            orders.forEach((order, index) => {
+                const date = new Date(order.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                
+                // Status styling
+                let statusColor = 'text-yellow-400';
+                let statusBg = 'bg-yellow-500/10';
+                if (order.status === 'MoMo Verified') {
+                    statusColor = 'text-green-400';
+                    statusBg = 'bg-green-500/10';
+                } else if (order.status === 'MoMo Rejected') {
+                    statusColor = 'text-red-400';
+                    statusBg = 'bg-red-500/10';
+                }
+
+                // Action buttons based on status
+                let actionButtons = '';
+                let receiptButton = '<span class="text-[10px] text-slate-600">—</span>';
+                
+                if (order.status === 'Pending MoMo Verification') {
+                    actionButtons = `
+                        <button onclick="verifyMomoOrder('${order.id}')" class="text-[10px] bg-green-500/20 text-green-400 px-2 py-1 rounded font-bold hover:bg-green-500/30 transition mr-1">
+                            <i class="fa-solid fa-check"></i> Verify
+                        </button>
+                        <button onclick="rejectMomoOrder('${order.id}')" class="text-[10px] bg-red-500/20 text-red-400 px-2 py-1 rounded font-bold hover:bg-red-500/30 transition">
+                            <i class="fa-solid fa-xmark"></i> Reject
+                        </button>
+                    `;
+                } else if (order.status === 'MoMo Verified') {
+                    actionButtons = `<span class="text-[10px] text-green-400 font-bold">✓ ${order.verifiedBy || 'Confirmed'}</span>`;
+                    receiptButton = `
+                        <button onclick="viewReceipt('${order.id}')" class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold hover:bg-blue-500/30 transition">
+                            <i class="fa-solid fa-receipt"></i> View
+                        </button>
+                    `;
+                } else if (order.status === 'MoMo Rejected') {
+                    actionButtons = `<span class="text-[10px] text-red-400 font-bold">✗ ${order.rejectedBy || 'Rejected'}</span>`;
+                }
+
+                const artworkMethod = order.artworkMethod === 'whatsapp' ? '📱 WhatsApp' : 
+                                     order.artworkMethod === 'email' ? '📧 Email' : '—';
+
+                const rowHTML = `
+                    <tr class="hover:bg-slate-800/50 transition">
+                        <td class="p-3 font-mono text-brand-500 font-bold">${order.ref}</td>
+                        <td class="p-3">
+                            <div class="font-bold text-white">${order.name}</div>
+                            <div class="text-[10px] text-slate-500">${order.email || 'No email'}</div>
+                        </td>
+                        <td class="p-3 font-mono text-slate-300">${order.phone}</td>
+                        <td class="p-3">
+                            <div class="font-bold text-slate-300">${order.quote?.service || 'N/A'}</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">${order.quote?.areaSummary || 'N/A'}</div>
+                            <div class="text-[10px] text-slate-500">Qty: ${order.quote?.qty || 1} | ${order.deliveryMethod === 'delivery' ? '📦 Delivery' : '🏪 Pickup'}</div>
+                        </td>
+                        <td class="p-3 font-bold text-brand-500">${order.quote?.totalPrice || 'N/A'}</td>
+                        <td class="p-3 text-[10px]">${artworkMethod}</td>
+                        <td class="p-3"><span class="${statusColor} ${statusBg} px-2 py-1 rounded-full text-[10px] font-bold">${order.status}</span></td>
+                        <td class="p-3 text-[10px] text-slate-500">${date}</td>
+                        <td class="p-3">
+                            <div class="space-y-1">
+                                ${receiptButton}
+                                ${actionButtons}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += rowHTML;
+            });
+        }
+
+        // Add event listeners for search and filter
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('momo-search');
+            const statusFilter = document.getElementById('momo-status-filter');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    const filtered = filterOrders(momoOrdersData);
+                    renderOrders(filtered);
+                    document.getElementById('momo-order-count').innerText = filtered.length + ' Order' + (filtered.length > 1 ? 's' : '');
+                });
+            }
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', () => {
+                    const filtered = filterOrders(momoOrdersData);
+                    renderOrders(filtered);
+                    document.getElementById('momo-order-count').innerText = filtered.length + ' Order' + (filtered.length > 1 ? 's' : '');
+                });
+            }
+        });
+
+        // Export orders to CSV
+        function exportOrdersToCSV() {
+            if (momoOrdersData.length === 0) {
+                showToast('No orders to export', 'warning');
+                return;
+            }
+
+            const headers = ['Reference', 'Customer Name', 'Phone', 'Email', 'Service', 'Dimensions', 'Quantity', 'Amount', 'Delivery Method', 'Delivery Address', 'Artwork Method', 'Status', 'Verified By', 'Date', 'Notes'];
+            
+            const rows = momoOrdersData.map(order => [
+                order.ref || '',
+                order.name || '',
+                order.phone || '',
+                order.email || '',
+                order.quote?.service || '',
+                order.quote?.areaSummary || '',
+                order.quote?.qty || '',
+                order.quote?.totalPrice || '',
+                order.deliveryMethod || '',
+                order.deliveryAddress || '',
+                order.artworkMethod || '',
+                order.status || '',
+                order.verifiedBy || order.rejectedBy || '',
+                new Date(order.timestamp).toLocaleString('en-GB') || '',
+                (order.notes || '').replace(/"/g, '""') // Escape quotes
+            ]);
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `chromique_orders_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast(`Exported ${momoOrdersData.length} orders to CSV`, 'success');
+            logActivity('EXPORT_ORDERS', `Exported ${momoOrdersData.length} orders to CSV`);
+            loadActivityLog();
+        }
                             `;
                         } else if (order.status === 'MoMo Rejected') {
                             actionButtons = `<span class="text-[10px] text-red-400 font-bold">✗ ${order.rejectedBy || 'Rejected'}</span>`;
@@ -1033,6 +1227,30 @@
         });
 
         window.addEventListener('DOMContentLoaded', checkSessionAuth);
+
+        // Scroll to top button functionality
+        const scrollTopBtn = document.getElementById('scroll-top-btn');
+        if (scrollTopBtn) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    scrollTopBtn.classList.add('show');
+                } else {
+                    scrollTopBtn.classList.remove('show');
+                }
+            });
+            
+            scrollTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        }
     </script>
+
+    <!-- Scroll to top button -->
+    <button id="scroll-top-btn" aria-label="Scroll to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
 </body>
 </html>
