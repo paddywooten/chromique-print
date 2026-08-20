@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <title>CHROMIQUE | Staff Console</title>
+    <meta name="description" content="CHROMIQUE Staff Console - Manual order entry and order management for staff members.">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="chromique-logo.svg">
+    <link rel="apple-touch-icon" href="chromique-logo.svg">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
+            authDomain: "chromique-print.firebaseapp.com",
+            projectId: "chromique-print",
+            storageBucket: "chromique-print.firebasestorage.app",
+            messagingSenderId: "133831518444",
+            appId: "1:133831518444:web:c41d88c924bd245d5bddc9",
+            measurementId: "G-0MFWEZ9CDV"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Expose to global scope
+        window.firebaseDB = db;
+        window.firebaseCollection = collection;
+        window.firebaseOnSnapshot = onSnapshot;
+        window.firebaseDoc = doc;
+        window.firebaseUpdateDoc = updateDoc;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseGetDoc = getDoc;
+        window.firebaseSetDoc = setDoc;
+    </script>
+    
+    <!-- Link to external modular assets for synchronized state -->
+    <link rel="stylesheet" href="print_style.css">
+    <script src="print_app.js" defer></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#f97316', /* Orange */
+                            600: '#ea580c',
+                            950: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
+
+    <!-- 🔒 STAFF LOGIN CONSOLE OVERLAY -->
+    <div id="auth-lockscreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-6 transition-all duration-300">
+        <div class="bg-slate-900 rounded-3xl p-8 border border-slate-850 max-w-md w-full text-center space-y-6 shadow-2xl animate-fade-in">
+            <div class="w-16 h-16 bg-brand-500/10 text-brand-500 rounded-full flex items-center justify-center text-2xl mx-auto shadow-lg shadow-brand-500/10">
+                <i class="fa-solid fa-user-shield animate-pulse"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="font-extrabold text-white text-base uppercase tracking-wider">Staff Login Console</h3>
+                <p class="text-xs text-slate-500">CHROMIQUE Staff Access</p>
+            </div>
+            <div class="space-y-3">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Staff Member</label>
+                    <select id="manager-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500">
+                        <option value="KOFI (SALES)">KOFI (SALES)</option>
+                        <option value="AMA (SALES)">AMA (SALES)</option>
+                        <option value="KWAME (PRODUCTION)">KWAME (PRODUCTION)</option>
+                        <option value="ABENA (CUSTOMER SERVICE)">ABENA (CUSTOMER SERVICE)</option>
+                    </select>
+                </div>
+                <input type="password" id="admin-passcode-input" placeholder="Enter Staff Passcode" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500 tracking-widest text-white font-mono">
+                <button onclick="verifyPasscode()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider shadow-lg shadow-brand-500/10">
+                    Verify &amp; Login
+                </button>
+            </div>
+            <p id="auth-error-msg" class="text-[11px] text-red-500 font-bold hidden"><i class="fa-solid fa-circle-exclamation mr-1.5 animate-bounce"></i> Access Denied. Redirecting back home...</p>
+        </div>
+    </div>
+
+    <!-- Top Navbar -->
+    <nav class="bg-slate-900 border-b border-slate-800 h-20 px-6 flex justify-between items-center sticky top-0 z-40">
+        <!-- Logo redirects back to print_index.html storefront -->
+        <a href="print_index.html" class="flex items-center gap-3 group hover:opacity-90 transition">
+            <img src="chromique-logo.svg" alt="Chromique Logo" class="h-10 w-auto">
+            <div>
+                <h1 class="font-extrabold text-sm tracking-widest text-white uppercase group-hover:text-brand-500 transition">CHROMIQUE</h1>
+                <p class="text-[9px] text-brand-500 font-mono tracking-wider font-bold">PRODUCTION &amp; PAYSTACK CONSOLE</p>
+            </div>
+        </a>
+
+        <div class="flex items-center gap-4 text-xs font-bold text-slate-400">
+            <a href="print_index.html" class="bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl transition flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+                <i class="fa-solid fa-house text-brand-500"></i> View Print Shop
+            </a>
+            <span class="text-slate-800">|</span>
+            <span class="bg-brand-500/10 text-brand-500 border border-brand-500/20 px-3 py-1.5 rounded-full font-mono font-bold hidden md:inline-block"><i class="fa-solid fa-circle text-[8px] mr-1.5 animate-pulse"></i> SYSTEM ONLINE</span>
+            <span class="text-slate-800 hidden md:inline-block">|</span>
+            <span id="welcome-manager" class="text-brand-500 font-bold">—</span>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-6 py-10 space-y-10">
+        
+        <!-- Manual Order Entry Section -->
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-plus-circle text-green-400 mr-2"></i> Manual Order Entry</h3>
+                <span class="text-[10px] bg-green-500/10 text-green-400 px-3 py-1 rounded-full font-bold">Walk-in / Phone Orders</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Record jobs that were not placed online and generate receipts for them</p>
+            
+            <form id="manual-order-form" class="space-y-4">
+                <!-- Customer Details -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Customer Name *</label>
+                        <input type="text" id="manual-name" required placeholder="e.g. Kofi Boateng" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number *</label>
+                        <input type="tel" id="manual-phone" required placeholder="e.g. 024 123 4567" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email (Optional)</label>
+                        <input type="email" id="manual-email" placeholder="e.g. kofi@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Service Type *</label>
+                        <select id="manual-service" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                            <option value="">Select service...</option>
+                            <option value="Banner">Banner</option>
+                            <option value="Sticker">Sticker</option>
+                            <option value="Print & Cut">Print & Cut</option>
+                            <option value="Labels">Labels</option>
+                            <option value="DTF">DTF</option>
+                            <option value="Sublimation">Sublimation</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dimensions (for dimensional services) -->
+                <div id="manual-dimensions-section" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Width</label>
+                        <input type="number" id="manual-width" step="0.1" placeholder="e.g. 3" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Height</label>
+                        <input type="number" id="manual-height" step="0.1" placeholder="e.g. 4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unit</label>
+                        <select id="manual-unit" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                            <option value="ft">Feet (ft)</option>
+                            <option value="in">Inches (in)</option>
+                            <option value="cm">Centimeters (cm)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quantity *</label>
+                        <input type="number" id="manual-qty" required min="1" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                </div>
+
+                <!-- Delivery & Payment -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Delivery Method *</label>
+                        <select id="manual-delivery" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                            <option value="pickup">🏪 Pickup at Office</option>
+                            <option value="delivery">📦 Delivery</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5" id="manual-address-section">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Delivery Address</label>
+                        <input type="text" id="manual-address" placeholder="e.g. East Legon, Accra" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Artwork Method *</label>
+                        <select id="manual-artwork" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                            <option value="whatsapp">📱 WhatsApp</option>
+                            <option value="email">📧 Email</option>
+                            <option value="usb">💾 USB/Physical</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Amount & Notes -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Amount (GH¢) *</label>
+                        <input type="number" id="manual-amount" required step="0.01" placeholder="Auto-calculated" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                        <p class="text-[10px] text-brand-500 italic font-bold" id="manual-calculation-summary"></p>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Order Notes (Optional)</label>
+                        <input type="text" id="manual-notes" placeholder="Special instructions..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-slate-950 font-black text-xs py-4 rounded-xl transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-green-500/10">
+                        <i class="fa-solid fa-check-circle"></i> Create Order & Generate Receipt
+                    </button>
+                    <button type="reset" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs px-6 py-4 rounded-xl transition uppercase tracking-wider">
+                        Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total MoMo Sales</p>
+                <p class="text-3xl font-black text-brand-500 break-all overflow-hidden" id="momo-sales-display">GH¢0.00</p>
+                <p class="text-[10px] text-slate-500 font-semibold"><i class="fa-solid fa-mobile-screen-button text-brand-500"></i> Verified payments</p>
+            </div>
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Orders</p>
+                <p class="text-3xl font-black text-white" id="momo-total-display">0 Orders</p>
+                <p class="text-[10px] text-slate-500 font-semibold">All MoMo orders</p>
+            </div>
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pending</p>
+                <p class="text-3xl font-black text-amber-400" id="momo-pending-display">0 Orders</p>
+                <p class="text-[10px] text-slate-500 font-semibold">Awaiting verification</p>
+            </div>
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified</p>
+                <p class="text-3xl font-black text-green-400" id="momo-verified-display">0 Orders</p>
+                <p class="text-[10px] text-brand-500 font-bold">Ready for production</p>
+            </div>
+        </div>
+
+        <!-- MoMo Payment Orders -->
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white">
+                    <i class="fa-solid fa-mobile-screen-button text-yellow-400 mr-2"></i> MoMo Payment Orders
+                </h3>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <input type="text" id="momo-search" placeholder="Search orders..." class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 w-40">
+                    <select id="momo-status-filter" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500">
+                        <option value="all">All Status</option>
+                        <option value="Pending MoMo Verification">Pending</option>
+                        <option value="MoMo Verified">Verified</option>
+                        <option value="MoMo Rejected">Rejected</option>
+                    </select>
+                    <button onclick="exportOrdersToCSV()" class="bg-green-500/10 text-green-400 px-3 py-2 rounded-lg text-xs font-bold hover:bg-green-500/20 transition">
+                        <i class="fa-solid fa-download mr-1"></i> Export
+                    </button>
+                    <span class="text-[10px] bg-yellow-500/10 text-yellow-400 px-3 py-1 rounded-full font-bold" id="momo-order-count">0 Orders</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-950 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                        <tr>
+                            <th class="p-3 rounded-l-xl">Reference</th>
+                            <th class="p-3">Customer</th>
+                            <th class="p-3">Phone</th>
+                            <th class="p-3">Print Job Details</th>
+                            <th class="p-3">Amount</th>
+                            <th class="p-3">Artwork</th>
+                            <th class="p-3">Status</th>
+                            <th class="p-3">Date</th>
+                            <th class="p-3 rounded-r-xl">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800" id="momo-orders-tbody">
+                        <!-- Loading state -->
+                        <tr id="momo-loading-state">
+                            <td colspan="9" class="text-center py-12">
+                                <i class="fa-solid fa-spinner fa-spin text-3xl text-brand-500 mb-3"></i>
+                                <p class="text-slate-500 text-sm">Loading orders...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Empty state -->
+            <div id="momo-empty-state" class="hidden text-center py-12">
+                <i class="fa-solid fa-inbox text-6xl text-slate-700 mb-4"></i>
+                <h3 class="text-lg font-bold text-slate-400 mb-2">No Orders Found</h3>
+                <p class="text-sm text-slate-500 mb-4">Orders will appear here when customers place them</p>
+                <button onclick="loadMomoOrders()" class="bg-brand-500 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-brand-600 transition">
+                    <i class="fa-solid fa-refresh mr-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Activity Log Section -->
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-clock-rotate-left text-purple-400 mr-2"></i> Activity Log</h3>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full font-bold" id="activity-count">0 Activities</span>
+                    <button onclick="clearActivityLog()" class="text-[10px] bg-red-500/10 text-red-400 px-3 py-1 rounded-full font-bold hover:bg-red-500/20 transition">Clear Log</button>
+                </div>
+            </div>
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-950 text-[10px] font-bold uppercase text-slate-400 tracking-wider sticky top-0">
+                        <tr>
+                            <th class="p-3 rounded-l-xl">Time</th>
+                            <th class="p-3">Action</th>
+                            <th class="p-3">Manager</th>
+                            <th class="p-3 rounded-r-xl">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800" id="activity-log-tbody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Secure Password Authentication & Dynamic Orders Ingestion Script -->
+    <script>
+        let ADMIN_PASSCODE = "2026"; // Default passcode, will be loaded from Firebase
+
+        function checkSessionAuth() {
+            // ALWAYS REQUIRE ACCESS ON EACH INDIVIDUAL PAGE ENTRY OR PAGE REFRESH!
+            // We bypass the sessionStorage cache, forcing the lockscreen to be visible by default on load.
+            document.getElementById('auth-lockscreen').classList.remove('hidden');
+            loadMomoOrders();
+            loadActivityLog();
+        }
+
+        function verifyPasscode() {
+            console.log('verifyPasscode called');
+            const val = document.getElementById('admin-passcode-input').value;
+            const managerSelect = document.getElementById('manager-select');
+            const selectedManager = managerSelect ? managerSelect.value : 'Unknown';
+            const errorMsg = document.getElementById('auth-error-msg');
+            
+            console.log('Passcode entered:', val);
+            console.log('Expected passcode:', ADMIN_PASSCODE);
+            console.log('Selected manager:', selectedManager);
+            
+            if (val === ADMIN_PASSCODE) {
+                console.log('Passcode correct! Logging in...');
+                
+                // Store the logged-in manager
+                sessionStorage.setItem('chromique_logged_in_manager', selectedManager);
+                
+                // Log the login activity
+                logActivity('LOGIN', `${selectedManager} logged into the console`);
+                
+                // Hide the lockscreen overlay
+                const lockscreen = document.getElementById('auth-lockscreen');
+                if (lockscreen) {
+                    lockscreen.classList.add('hidden');
+                    console.log('Lockscreen hidden');
+                }
+                
+                // Update the welcome message in navbar
+                const welcomeEl = document.getElementById('welcome-manager');
+                if (welcomeEl) {
+                    welcomeEl.innerText = selectedManager;
+                    console.log('Welcome message updated');
+                }
+                
+                // Reload data
+                loadMomoOrders();
+                loadActivityLog();
+                
+                console.log('Login complete!');
+            } else {
+                console.log('Passcode incorrect!');
+                if (errorMsg) {
+                    errorMsg.classList.remove('hidden');
+                }
+                document.getElementById('admin-passcode-input').value = '';
+                
+                // Boot them back to the storefront home if they guess wrong!
+                setTimeout(() => {
+                    window.location.href = "print_index.html";
+                }, 1800);
+            }
+        }
+        
+        // Make function globally accessible
+        window.verifyPasscode = verifyPasscode;
+
+        // Global array to store orders with their Firebase document IDs
+        let momoOrdersData = [];
+
+        function loadMomoOrders() {
+            const tbody = document.getElementById('momo-orders-tbody');
+            const countEl = document.getElementById('momo-order-count');
+            const emptyState = document.getElementById('momo-empty-state');
+            const loadingState = document.getElementById('momo-loading-state');
+
+            if (!tbody) return;
+
+            // Show loading state
+            if (loadingState) loadingState.style.display = 'table-row';
+            if (emptyState) emptyState.classList.add('hidden');
+
+            // Set up real-time listener for Firebase
+            window.firebaseOnSnapshot(
+                window.firebaseCollection(window.firebaseDB, 'momo_orders'),
+                (snapshot) => {
+                    tbody.innerHTML = '';
+                    momoOrdersData = [];
+
+                    if (snapshot.empty) {
+                        if (loadingState) loadingState.style.display = 'none';
+                        if (emptyState) emptyState.classList.remove('hidden');
+                        if (countEl) countEl.innerText = '0 Orders';
+                        updateStats([]);
+                        return;
+                    }
+
+                    if (loadingState) loadingState.style.display = 'none';
+                    if (emptyState) emptyState.classList.add('hidden');
+                    
+                    // Convert snapshot to array and sort by timestamp (newest first)
+                    const orders = [];
+                    snapshot.forEach((doc) => {
+                        orders.push({ id: doc.id, ...doc.data() });
+                    });
+                    orders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    
+                    momoOrdersData = orders;
+                    
+                    // Apply filters
+                    const filteredOrders = filterOrders(orders);
+                    
+                    if (countEl) countEl.innerText = filteredOrders.length + ' Order' + (filteredOrders.length > 1 ? 's' : '');
+                    
+                    updateStats(filteredOrders);
+                    renderOrders(filteredOrders);
+                },
+                (error) => {
+                    console.error('Error loading orders:', error);
+                    if (loadingState) loadingState.style.display = 'none';
+                    showToast('Error loading orders. Please refresh the page.', 'error');
+                }
+            );
+        }
+
+        function filterOrders(orders) {
+            const searchTerm = document.getElementById('momo-search')?.value.toLowerCase() || '';
+            const statusFilter = document.getElementById('momo-status-filter')?.value || 'all';
+            
+            return orders.filter(order => {
+                // Status filter
+                if (statusFilter !== 'all' && order.status !== statusFilter) {
+                    return false;
+                }
+                
+                // Search filter
+                if (searchTerm) {
+                    const searchFields = [
+                        order.ref,
+                        order.name,
+                        order.phone,
+                        order.email,
+                        order.quote?.service,
+                        order.quote?.totalPrice
+                    ].map(f => (f || '').toString().toLowerCase());
+                    
+                    return searchFields.some(field => field.includes(searchTerm));
+                }
+                
+                return true;
+            });
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.getElementById('momo-orders-tbody');
+            const emptyState = document.getElementById('momo-empty-state');
+            
+            tbody.innerHTML = '';
+            
+            if (orders.length === 0) {
+                if (emptyState) emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            if (emptyState) emptyState.classList.add('hidden');
+
+            orders.forEach((order, index) => {
+                const date = new Date(order.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                
+                // Status styling
+                let statusColor = 'text-yellow-400';
+                let statusBg = 'bg-yellow-500/10';
+                if (order.status === 'MoMo Verified') {
+                    statusColor = 'text-green-400';
+                    statusBg = 'bg-green-500/10';
+                } else if (order.status === 'MoMo Rejected') {
+                    statusColor = 'text-red-400';
+                    statusBg = 'bg-red-500/10';
+                }
+
+                // Action buttons based on status (Staff can only view, not verify/reject)
+                let actionButtons = '';
+                let receiptButton = '<span class="text-[10px] text-slate-600">—</span>';
+                
+                if (order.status === 'Pending MoMo Verification') {
+                    // Staff cannot verify/reject - only managers can
+                    actionButtons = `<span class="text-[10px] text-yellow-400 font-bold">⏳ Pending Manager Review</span>`;
+                } else if (order.status === 'MoMo Verified') {
+                    actionButtons = `<span class="text-[10px] text-green-400 font-bold">✓ ${order.verifiedBy || 'Confirmed'}</span>`;
+                    receiptButton = `
+                        <button onclick="viewReceipt('${order.id}')" class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold hover:bg-blue-500/30 transition">
+                            <i class="fa-solid fa-receipt"></i> View
+                        </button>
+                    `;
+                } else if (order.status === 'MoMo Rejected') {
+                    actionButtons = `<span class="text-[10px] text-red-400 font-bold">✗ ${order.rejectedBy || 'Rejected'}</span>`;
+                }
+
+                const artworkMethod = order.artworkMethod === 'whatsapp' ? '📱 WhatsApp' : 
+                                     order.artworkMethod === 'email' ? '📧 Email' : '—';
+
+                const rowHTML = `
+                    <tr class="hover:bg-slate-800/50 transition">
+                        <td class="p-3 font-mono text-brand-500 font-bold">${order.ref}</td>
+                        <td class="p-3">
+                            <div class="font-bold text-white">${order.name}</div>
+                            <div class="text-[10px] text-slate-500">${order.email || 'No email'}</div>
+                        </td>
+                        <td class="p-3 font-mono text-slate-300">${order.phone}</td>
+                        <td class="p-3">
+                            <div class="font-bold text-slate-300">${order.quote?.service || 'N/A'}</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">${order.quote?.areaSummary || 'N/A'}</div>
+                            <div class="text-[10px] text-slate-500">Qty: ${order.quote?.qty || 1} | ${order.deliveryMethod === 'delivery' ? '📦 Delivery' : '🏪 Pickup'}</div>
+                        </td>
+                        <td class="p-3 font-bold text-brand-500">${order.quote?.totalPrice || 'N/A'}</td>
+                        <td class="p-3 text-[10px]">${artworkMethod}</td>
+                        <td class="p-3"><span class="${statusColor} ${statusBg} px-2 py-1 rounded-full text-[10px] font-bold">${order.status}</span></td>
+                        <td class="p-3 text-[10px] text-slate-500">${date}</td>
+                        <td class="p-3">
+                            <div class="space-y-1">
+                                ${receiptButton}
+                                ${actionButtons}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += rowHTML;
+            });
+        }
+
+        // Add event listeners for search and filter
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('momo-search');
+            const statusFilter = document.getElementById('momo-status-filter');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    const filtered = filterOrders(momoOrdersData);
+                    renderOrders(filtered);
+                    document.getElementById('momo-order-count').innerText = filtered.length + ' Order' + (filtered.length > 1 ? 's' : '');
+                });
+            }
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', () => {
+                    const filtered = filterOrders(momoOrdersData);
+                    renderOrders(filtered);
+                    document.getElementById('momo-order-count').innerText = filtered.length + ' Order' + (filtered.length > 1 ? 's' : '');
+                });
+            }
+        });
+
+        // Export orders to CSV
+        function exportOrdersToCSV() {
+            if (momoOrdersData.length === 0) {
+                showToast('No orders to export', 'warning');
+                return;
+            }
+
+            const headers = ['Reference', 'Customer Name', 'Phone', 'Email', 'Service', 'Dimensions', 'Quantity', 'Amount', 'Delivery Method', 'Delivery Address', 'Artwork Method', 'Status', 'Verified By', 'Date', 'Notes'];
+            
+            const rows = momoOrdersData.map(order => [
+                order.ref || '',
+                order.name || '',
+                order.phone || '',
+                order.email || '',
+                order.quote?.service || '',
+                order.quote?.areaSummary || '',
+                order.quote?.qty || '',
+                order.quote?.totalPrice || '',
+                order.deliveryMethod || '',
+                order.deliveryAddress || '',
+                order.artworkMethod || '',
+                order.status || '',
+                order.verifiedBy || order.rejectedBy || '',
+                new Date(order.timestamp).toLocaleString('en-GB') || '',
+                (order.notes || '').replace(/"/g, '""') // Escape quotes
+            ]);
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `chromique_orders_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast(`Exported ${momoOrdersData.length} orders to CSV`, 'success');
+            logActivity('EXPORT_ORDERS', `Exported ${momoOrdersData.length} orders to CSV`);
+            loadActivityLog();
+        }
+
+        function updateStats(orders) {
+            const totalSales = orders
+                .filter(o => o.status === 'MoMo Verified')
+                .reduce((sum, o) => {
+                    const price = o.quote?.totalPrice || 'GH¢0.00';
+                    const numericPrice = parseFloat(price.replace(/GH¢|,/g, '')) || 0;
+                    return sum + numericPrice;
+                }, 0);
+            
+            const pendingCount = orders.filter(o => o.status === 'Pending MoMo Verification').length;
+            const verifiedCount = orders.filter(o => o.status === 'MoMo Verified').length;
+            
+            document.getElementById('momo-sales-display').innerText = `GH¢${totalSales.toFixed(2)}`;
+            document.getElementById('momo-total-display').innerText = `${orders.length} Order${orders.length !== 1 ? 's' : ''}`;
+            document.getElementById('momo-pending-display').innerText = `${pendingCount} Order${pendingCount !== 1 ? 's' : ''}`;
+            document.getElementById('momo-verified-display').innerText = `${verifiedCount} Order${verifiedCount !== 1 ? 's' : ''}`;
+        }
+
+        // Staff cannot verify/reject orders - only managers can
+        // These functions are removed for staff console
+
+        function viewReceipt(docId) {
+            const order = momoOrdersData.find(o => o.id === docId);
+            if (order) {
+                generateReceipt(order);
+            }
+        }
+
+        function generateReceipt(order) {
+            const receiptWindow = window.open('', '_blank', 'width=800,height=900');
+            const verifiedDate = order.verifiedAt ? new Date(order.verifiedAt).toLocaleString('en-GB') : new Date().toLocaleString('en-GB');
+            
+            receiptWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Receipt - ${order.ref}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; background: #fff; }
+                        .header { text-align: center; border-bottom: 3px solid #f97316; padding-bottom: 20px; margin-bottom: 30px; }
+                        .logo-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
+                        .logo-img { height: 60px; width: auto; }
+                        .logo-text { text-align: left; }
+                        .logo { font-size: 28px; font-weight: 900; color: #f97316; letter-spacing: 4px; }
+                        .tagline { font-size: 10px; color: #64748b; letter-spacing: 2px; margin-top: 3px; }
+                        .receipt-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 20px 0; text-transform: uppercase; }
+                        .section { margin: 25px 0; }
+                        .section-title { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+                        .row { display: flex; justify-content: space-between; margin: 10px 0; font-size: 14px; }
+                        .label { color: #64748b; font-weight: 600; }
+                        .value { color: #0f172a; font-weight: 700; }
+                        .highlight { background: #f97316; color: white; padding: 15px; border-radius: 12px; margin: 20px 0; }
+                        .highlight .label { color: rgba(255,255,255,0.8); }
+                        .highlight .value { color: white; font-size: 20px; }
+                        .status-badge { display: inline-block; background: #10b981; color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+                        .footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; text-align: center; font-size: 12px; color: #64748b; }
+                        .print-btn { background: #f97316; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; margin: 20px 0; }
+                        .print-btn:hover { background: #ea580c; }
+                        @media print { .print-btn { display: none; } body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <button class="print-btn" onclick="window.print()">🖨️ Print Receipt</button>
+                    
+                    <div class="header">
+                        <div class="logo-container">
+                            <img src="chromique-logo.svg" alt="Chromique Logo" class="logo-img">
+                            <div class="logo-text">
+                                <div class="logo">CHROMIQUE</div>
+                                <div class="tagline">PREMIUM PRINT & PRECISION CUT</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="receipt-title">Payment Receipt</div>
+
+                    <div class="section">
+                        <div class="section-title">Order Information</div>
+                        <div class="row">
+                            <span class="label">Reference Number:</span>
+                            <span class="value">${order.ref}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Order Date:</span>
+                            <span class="value">${new Date(order.timestamp).toLocaleString('en-GB')}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Payment Method:</span>
+                            <span class="value">Mobile Money (MoMo)</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Status:</span>
+                            <span class="status-badge">✓ Verified</span>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Customer Details</div>
+                        <div class="row">
+                            <span class="label">Name:</span>
+                            <span class="value">${order.name}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Phone:</span>
+                            <span class="value">${order.phone}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Email:</span>
+                            <span class="value">${order.email || 'N/A'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Delivery Method:</span>
+                            <span class="value">${order.deliveryMethod === 'delivery' ? '📦 Delivery' : '🏪 Pickup at Office'}</span>
+                        </div>
+                        ${order.deliveryMethod === 'delivery' ? `
+                        <div class="row">
+                            <span class="label">Delivery Address:</span>
+                            <span class="value">${order.address}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Print Job Details</div>
+                        <div class="row">
+                            <span class="label">Service:</span>
+                            <span class="value">${order.quote.service}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Dimensions:</span>
+                            <span class="value">${order.quote.areaSummary || 'N/A'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Quantity:</span>
+                            <span class="value">${order.quote.qty} ${order.quote.qty == 1 ? 'piece' : 'pieces'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Artwork Submission:</span>
+                            <span class="value">${order.artworkMethod === 'whatsapp' ? '📱 WhatsApp' : '📧 Email'}</span>
+                        </div>
+                        ${order.notes ? `
+                        <div class="row">
+                            <span class="label">Notes:</span>
+                            <span class="value">${order.notes}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="highlight">
+                        <div class="row">
+                            <span class="label">Total Amount Paid:</span>
+                            <span class="value">${order.quote.totalPrice}</span>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Verification Details</div>
+                        <div class="row">
+                            <span class="label">Verified By:</span>
+                            <span class="value">${order.verifiedBy || 'Manager'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Verification Date:</span>
+                            <span class="value">${verifiedDate}</span>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        <p><strong>Thank you for choosing CHROMIQUE!</strong></p>
+                        <p>Your order is now being processed. We'll contact you when it's ready.</p>
+                        <p style="margin-top: 15px; font-size: 10px;">This is a computer-generated receipt. No signature required.</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            receiptWindow.document.close();
+        }
+
+        // Staff cannot reject orders - only managers can
+        // This function is removed for staff console
+
+        // Activity Log Functions
+        function logActivity(action, description) {
+            const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+            const activityLog = JSON.parse(localStorage.getItem('chromique_activity_log') || '[]');
+            
+            activityLog.unshift({
+                timestamp: new Date().toISOString(),
+                manager: manager,
+                action: action,
+                description: description
+            });
+            
+            // Keep only last 100 activities
+            if (activityLog.length > 100) {
+                activityLog.splice(100);
+            }
+            
+            localStorage.setItem('chromique_activity_log', JSON.stringify(activityLog));
+        }
+
+        function loadActivityLog() {
+            const activityLog = JSON.parse(localStorage.getItem('chromique_activity_log') || '[]');
+            const tbody = document.getElementById('activity-log-tbody');
+            const countEl = document.getElementById('activity-count');
+            
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            if (countEl) {
+                countEl.innerText = activityLog.length + ' Activities';
+            }
+            
+            activityLog.forEach(activity => {
+                const date = new Date(activity.timestamp);
+                const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                
+                let actionColor = 'text-slate-400';
+                let actionBg = 'bg-slate-800';
+                
+                if (activity.action === 'LOGIN') {
+                    actionColor = 'text-blue-400';
+                    actionBg = 'bg-blue-500/10';
+                } else if (activity.action === 'SAVE_SETTINGS') {
+                    actionColor = 'text-brand-500';
+                    actionBg = 'bg-brand-500/10';
+                } else if (activity.action === 'VERIFY_ORDER') {
+                    actionColor = 'text-green-400';
+                    actionBg = 'bg-green-500/10';
+                } else if (activity.action === 'REJECT_ORDER') {
+                    actionColor = 'text-red-400';
+                    actionBg = 'bg-red-500/10';
+                } else if (activity.action === 'UPDATE_STATUS') {
+                    actionColor = 'text-amber-400';
+                    actionBg = 'bg-amber-500/10';
+                } else if (activity.action === 'CLEAR_ORDERS') {
+                    actionColor = 'text-red-400';
+                    actionBg = 'bg-red-500/10';
+                } else if (activity.action === 'CLEAR_LOG') {
+                    actionColor = 'text-purple-400';
+                    actionBg = 'bg-purple-500/10';
+                }
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-800/50 transition';
+                row.innerHTML = `
+                    <td class="p-3 text-[10px] text-slate-500 whitespace-nowrap">${dateStr} ${timeStr}</td>
+                    <td class="p-3"><span class="${actionColor} ${actionBg} px-2 py-1 rounded font-bold text-[10px]">${activity.action}</span></td>
+                    <td class="p-3 font-bold text-white text-[11px]">${activity.manager}</td>
+                    <td class="p-3 text-slate-300 text-[11px]">${activity.description}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function clearActivityLog() {
+            if (confirm('Are you sure you want to clear the activity log?')) {
+                localStorage.removeItem('chromique_activity_log');
+                logActivity('CLEAR_LOG', 'Activity log cleared');
+                loadActivityLog();
+            }
+        }
+
+        // Manual Order Form Handler
+        document.getElementById('manual-order-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const manager = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+            
+            // Collect form data
+            const name = document.getElementById('manual-name').value.trim();
+            const phone = document.getElementById('manual-phone').value.trim();
+            const email = document.getElementById('manual-email').value.trim();
+            const service = document.getElementById('manual-service').value;
+            const width = parseFloat(document.getElementById('manual-width').value) || 0;
+            const height = parseFloat(document.getElementById('manual-height').value) || 0;
+            const unit = document.getElementById('manual-unit').value;
+            const qty = parseInt(document.getElementById('manual-qty').value) || 1;
+            const deliveryMethod = document.getElementById('manual-delivery').value;
+            const address = document.getElementById('manual-address').value.trim();
+            const artworkMethod = document.getElementById('manual-artwork').value;
+            const amount = parseFloat(document.getElementById('manual-amount').value) || 0;
+            const notes = document.getElementById('manual-notes').value.trim();
+            
+            // Validate required fields
+            if (!name || !phone || !service || !amount) {
+                alert('Please fill in all required fields (Name, Phone, Service, Amount)');
+                return;
+            }
+            
+            // Calculate dimensions summary
+            let areaSummary = 'N/A';
+            if (width > 0 && height > 0) {
+                let widthFt = width;
+                let heightFt = height;
+                
+                if (unit === 'in') {
+                    widthFt = width / 12;
+                    heightFt = height / 12;
+                } else if (unit === 'cm') {
+                    widthFt = width / 30.48;
+                    heightFt = height / 30.48;
+                }
+                
+                const areaSqFt = widthFt * heightFt;
+                const ratePerSqFt = amount / (areaSqFt * qty);
+                areaSummary = `Size: ${widthFt.toFixed(2)}ft x ${heightFt.toFixed(2)}ft (${areaSqFt.toFixed(4)} sq ft total) @ GH¢${ratePerSqFt.toFixed(2)}/sq ft`;
+            }
+            
+            // Generate unique reference
+            const ref = 'CHQ-' + Date.now().toString(36).toUpperCase().slice(-6);
+            
+            // Create order object
+            const orderData = {
+                ref: ref,
+                name: name,
+                phone: phone,
+                email: email,
+                deliveryMethod: deliveryMethod,
+                address: deliveryMethod === 'delivery' ? address : 'Pickup at office',
+                notes: notes,
+                quote: {
+                    service: service,
+                    areaSummary: areaSummary,
+                    qty: qty,
+                    totalPrice: `GH¢${amount.toFixed(2)}`
+                },
+                paymentMethod: 'Manual Entry',
+                artworkMethod: artworkMethod,
+                status: 'MoMo Verified',
+                verifiedBy: manager,
+                verifiedAt: new Date().toISOString(),
+                timestamp: new Date().toISOString(),
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                // Save to Firebase
+                await window.firebaseAddDoc(
+                    window.firebaseCollection(window.firebaseDB, 'momo_orders'),
+                    orderData
+                );
+                
+                // Log activity
+                logActivity('MANUAL_ORDER', `Created manual order ${ref} for ${name} (${service}, GH¢${amount.toFixed(2)})`);
+                loadActivityLog();
+                
+                // Generate receipt
+                generateReceipt(orderData);
+                
+                // Reset form
+                document.getElementById('manual-order-form').reset();
+                
+                alert(`Manual order ${ref} created successfully!\n\nCustomer: ${name}\nService: ${service}\nAmount: GH¢${amount.toFixed(2)}\n\nReceipt has been generated.`);
+                
+            } catch (error) {
+                console.error('Error creating manual order:', error);
+                alert('Error creating order. Please try again.');
+            }
+        });
+        
+        // Show/hide address field based on delivery method
+        document.getElementById('manual-delivery').addEventListener('change', function() {
+            const addressSection = document.getElementById('manual-address-section');
+            if (this.value === 'delivery') {
+                addressSection.style.display = 'block';
+            } else {
+                addressSection.style.display = 'none';
+            }
+        });
+
+        // Auto-calculate amount for manual orders
+        function calculateManualAmount() {
+            const service = document.getElementById('manual-service').value;
+            const width = parseFloat(document.getElementById('manual-width').value) || 0;
+            const height = parseFloat(document.getElementById('manual-height').value) || 0;
+            const unit = document.getElementById('manual-unit').value;
+            const qty = parseInt(document.getElementById('manual-qty').value) || 1;
+            const amountInput = document.getElementById('manual-amount');
+            const summaryEl = document.getElementById('manual-calculation-summary');
+            
+            // Only calculate for dimensional services
+            const dimensionalServices = ['Banner', 'Sticker', 'Print & Cut', 'Custom'];
+            if (!dimensionalServices.includes(service) || width <= 0 || height <= 0) {
+                summaryEl.innerText = '';
+                return;
+            }
+            
+            // Convert to feet
+            let widthFt = width;
+            let heightFt = height;
+            
+            if (unit === 'in') {
+                widthFt = width / 12;
+                heightFt = height / 12;
+            } else if (unit === 'cm') {
+                widthFt = width / 30.48;
+                heightFt = height / 30.48;
+            }
+            
+            // Get rate based on service type
+            let ratePerSqFt = 15.0; // default
+            if (service === 'Banner') {
+                ratePerSqFt = appSettings.bannerCostPerSqFt || 15.0;
+            } else if (service === 'Sticker') {
+                ratePerSqFt = appSettings.stickerCostPerSqFt || 2.5;
+            } else if (service === 'Print & Cut') {
+                ratePerSqFt = appSettings.printAndCutCostPerSqFt || 5.0;
+            }
+            
+            // Calculate
+            const areaSqFt = widthFt * heightFt;
+            const totalAmount = areaSqFt * ratePerSqFt * qty;
+            
+            // Update amount field
+            amountInput.value = totalAmount.toFixed(2);
+            
+            // Update summary
+            summaryEl.innerText = `Size: ${widthFt.toFixed(2)}ft x ${heightFt.toFixed(2)}ft (${areaSqFt.toFixed(4)} sq ft total) @ GH¢${ratePerSqFt.toFixed(2)}/sq ft`;
+        }
+        
+        // Add event listeners for auto-calculation
+        ['manual-service', 'manual-width', 'manual-height', 'manual-unit', 'manual-qty'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', calculateManualAmount);
+                element.addEventListener('change', calculateManualAmount);
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', checkSessionAuth);
+
+        // Scroll to top button functionality
+        const scrollTopBtn = document.getElementById('scroll-top-btn');
+        if (scrollTopBtn) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    scrollTopBtn.classList.add('show');
+                } else {
+                    scrollTopBtn.classList.remove('show');
+                }
+            });
+            
+            scrollTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', checkSessionAuth);
+
+        // Scroll to top button functionality
+    <button id="scroll-top-btn" aria-label="Scroll to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+</body>
+</html>
