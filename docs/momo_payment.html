@@ -3,7 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHROMIQUE | MoMo Payment</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>CHROMIQUE | Mobile Money Payment</title>
+    <meta name="description" content="Complete your CHROMIQUE print order payment via Mobile Money. Secure, fast, and convenient payment processing.">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="CHROMIQUE | MoMo Payment">
+    <meta property="og:description" content="Complete your print order payment via Mobile Money.">
+    <meta property="og:image" content="https://chromiqueprint.com/chromique-logo.svg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:title" content="CHROMIQUE | MoMo Payment">
+    <meta property="twitter:description" content="Complete your print order payment via Mobile Money.">
+    <meta property="twitter:image" content="https://chromiqueprint.com/chromique-logo.svg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="chromique-logo.svg">
+    <link rel="apple-touch-icon" href="chromique-logo.svg">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Firebase SDK -->
@@ -304,35 +325,59 @@
             const artworkMethod = document.querySelector('input[name="artwork-method"]:checked').value;
             
             if (!name || !phone) {
-                alert('Please enter your name and phone number to confirm the order.');
+                showToast('Please enter your name and phone number', 'error');
                 return;
             }
 
             const ref = document.getElementById('momo-reference').dataset.ref || 'CHQ-XXXXXX';
+            const quote = JSON.parse(sessionStorage.getItem('chromique_momo_quote') || '{}');
 
-            // Save order to localStorage for admin tracking
-            const orders = JSON.parse(localStorage.getItem('chromique_print_orders') || '[]');
-            orders.push({
+            // Create order object
+            const orderData = {
                 ref: ref,
                 name: name,
                 phone: phone,
                 email: email,
                 address: address,
                 notes: notes,
-                quote: JSON.parse(sessionStorage.getItem('chromique_momo_quote') || '{}'),
+                quote: quote,
                 paymentMethod: 'MoMo',
                 artworkMethod: artworkMethod,
                 status: 'Pending MoMo Verification',
-                timestamp: new Date().toISOString()
-            });
-            localStorage.setItem('chromique_print_orders', JSON.stringify(orders));
+                timestamp: new Date().toISOString(),
+                createdAt: new Date().toISOString()
+            };
 
-            // Show success modal
-            document.getElementById('momo-confirm-ref').innerText = ref;
-            document.getElementById('momo-confirm-name').innerText = name;
-            document.getElementById('momo-confirm-phone').innerText = phone;
-            document.getElementById('momo-confirm-total').innerText = document.getElementById('momo-total').innerText;
-            document.getElementById('momo-success-modal').classList.remove('hidden');
+            // Show loading state
+            const submitBtn = document.querySelector('button[onclick="submitMomoOrder()"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            submitBtn.disabled = true;
+
+            try {
+                // Save to Firebase
+                await window.firebaseAddDoc(
+                    window.firebaseCollection(window.firebaseDB, 'momo_orders'),
+                    orderData
+                );
+                
+                // Success - show modal
+                document.getElementById('momo-confirm-ref').innerText = ref;
+                document.getElementById('momo-confirm-name').innerText = name;
+                document.getElementById('momo-confirm-phone').innerText = phone;
+                document.getElementById('momo-confirm-total').innerText = document.getElementById('momo-total').innerText;
+                document.getElementById('momo-success-modal').classList.remove('hidden');
+                
+                showToast('Order submitted successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error saving order to Firebase:', error);
+                showToast('Connection error. Please check your internet and try again.', 'error');
+                
+                // Restore button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
         }
 
         // Load quote on page load
@@ -340,6 +385,31 @@
             loadQuote();
             setupArtworkMethods();
         });
+        
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const existingToasts = document.querySelectorAll('.toast-notification');
+            existingToasts.forEach(toast => toast.remove());
+            
+            const toast = document.createElement('div');
+            toast.className = `toast-notification fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-bold text-sm transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+            }`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                         type === 'error' ? 'fa-exclamation-circle' : 
+                         type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+            
+            toast.innerHTML = `<i class="fa-solid ${icon} mr-2"></i>${message}`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
     </script>
 </body>
 </html>

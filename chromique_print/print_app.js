@@ -39,6 +39,38 @@ let activeUploadedFile = {
 };
 
 // ----------------------------------------------------
+// Toast Notification System
+// ----------------------------------------------------
+function showToast(message, type = 'success') {
+    // Remove existing toasts
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => toast.remove());
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast-notification fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-bold text-sm transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500' : 
+        type === 'error' ? 'bg-red-500' : 
+        type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+    }`;
+    
+    // Add icon based on type
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                 type === 'error' ? 'fa-exclamation-circle' : 
+                 type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    
+    toast.innerHTML = `<i class="fa-solid ${icon} mr-2"></i>${message}`;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ----------------------------------------------------
 // 1. Initializations & Configurations
 // ----------------------------------------------------
 function initPrintStore() {
@@ -298,6 +330,17 @@ function calculatePrice() {
     const service = type.value;
     let qty = parseInt(qtyInput.value) || 1;
     
+    // Validate quantity
+    if (qty < 1) {
+        qty = 1;
+        qtyInput.value = 1;
+    }
+    if (qty > 1000) {
+        qty = 1000;
+        qtyInput.value = 1000;
+        showToast('Maximum quantity is 1000', 'warning');
+    }
+    
     let totalGHS = 0;
     let areaSqFt = 0;
     
@@ -332,6 +375,26 @@ function calculatePrice() {
         // D. For Dimension-Based services (Banner, Sticker, Custom)
         let width = parseFloat(wInput.value) || 0;
         let height = parseFloat(hInput.value) || 0;
+        
+        // Validate dimensions
+        if (width < 0) {
+            width = 0;
+            wInput.value = 0;
+        }
+        if (height < 0) {
+            height = 0;
+            hInput.value = 0;
+        }
+        if (width > 100) {
+            width = 100;
+            wInput.value = 100;
+            showToast('Maximum width is 100 feet', 'warning');
+        }
+        if (height > 100) {
+            height = 100;
+            hInput.value = 100;
+            showToast('Maximum height is 100 feet', 'warning');
+        }
         
         let width_ft = 0;
         let height_ft = 0;
@@ -805,5 +868,48 @@ window.addEventListener('DOMContentLoaded', () => {
     if (type) {
         type.addEventListener('change', toggleDimensionFields);
         toggleDimensionFields(); // initial run
+    }
+    
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            const icon = mobileMenuBtn.querySelector('i');
+            if (mobileMenu.classList.contains('hidden')) {
+                icon.className = 'fa-solid fa-bars text-xl';
+            } else {
+                icon.className = 'fa-solid fa-xmark text-xl';
+            }
+        });
+        
+        // Close mobile menu when clicking a link
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+                mobileMenuBtn.querySelector('i').className = 'fa-solid fa-bars text-xl';
+            });
+        });
+    }
+    
+    // Scroll to top button
+    const scrollTopBtn = document.getElementById('scroll-top-btn');
+    if (scrollTopBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollTopBtn.classList.add('show');
+            } else {
+                scrollTopBtn.classList.remove('show');
+            }
+        });
+        
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
     }
 });

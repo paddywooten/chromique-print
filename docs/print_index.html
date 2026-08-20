@@ -3,7 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHROMIQUE | High-Speed Commercial Printing</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>CHROMIQUE | Premium Commercial Printing in Accra, Ghana</title>
+    <meta name="description" content="CHROMIQUE - Premium commercial printing and precision cutting services in Accra, Ghana. Banners, stickers, labels, DTF, sublimation, and custom prints. Fast turnaround, competitive pricing.">
+    <meta name="keywords" content="printing, banners, stickers, labels, DTF, sublimation, print and cut, Accra, Ghana, commercial printing, large format printing">
+    <meta name="author" content="CHROMIQUE">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://chromiqueprint.com/">
+    <meta property="og:title" content="CHROMIQUE | Premium Print & Precision Cut">
+    <meta property="og:description" content="High-speed commercial printing and precision cutting services in Accra, Ghana. Banners, stickers, labels, DTF, sublimation.">
+    <meta property="og:image" content="https://chromiqueprint.com/chromique-logo.svg">
+    <meta property="og:site_name" content="CHROMIQUE">
+    <meta property="og:locale" content="en_GH">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://chromiqueprint.com/">
+    <meta property="twitter:title" content="CHROMIQUE | Premium Print & Precision Cut">
+    <meta property="twitter:description" content="High-speed commercial printing and precision cutting services in Accra, Ghana.">
+    <meta property="twitter:image" content="https://chromiqueprint.com/chromique-logo.svg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="chromique-logo.svg">
+    <link rel="apple-touch-icon" href="chromique-logo.svg">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://chromiqueprint.com/">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -52,11 +82,22 @@
                 </div>
             </a>
 
-            <!-- Menu links -->
+            <!-- Desktop Menu links -->
             <div class="hidden md:flex items-center gap-8 text-xs font-bold tracking-widest text-slate-400 uppercase">
                 <a href="#services" class="hover:text-brand-500 transition">What We Do</a>
                 <a href="#calculator" class="hover:text-brand-500 transition">Book Your Order</a>
             </div>
+
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-btn" class="md:hidden text-white w-11 h-11 flex items-center justify-center" aria-label="Open navigation menu">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 right-0 bg-slate-950 border-b border-slate-900 p-6 shadow-lg">
+            <a href="#services" class="block py-3 text-slate-400 hover:text-brand-500 font-bold text-sm uppercase tracking-wider transition">What We Do</a>
+            <a href="#calculator" class="block py-3 text-slate-400 hover:text-brand-500 font-bold text-sm uppercase tracking-wider transition">Book Your Order</a>
         </div>
     </nav>
 
@@ -87,7 +128,7 @@
             <!-- Beautiful Landscape Frame displaying the entire 6-foot wide printer and operator! -->
             <div class="lg:col-span-5 relative hidden lg:block animate-fade-in">
                 <div class="w-full aspect-[4/3] border border-slate-800 rounded-3xl p-3 relative bg-slate-900 overflow-hidden shadow-2xl">
-                    <img src="large_format_printer_landscape.jpg" alt="Commercial 6-Foot Large-Format Printer" class="w-full h-full object-cover rounded-2xl">
+                    <img src="large_format_printer_landscape.jpg" alt="Commercial 6-Foot Large-Format Printer" loading="lazy" class="w-full h-full object-cover rounded-2xl">
                 </div>
             </div>
         </div>
@@ -260,6 +301,13 @@
         </div>
     </footer>
 
+    <!-- Scroll to top button -->
+    <button id="scroll-top-btn" aria-label="Scroll to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- Skip to main content (accessibility) -->
+    <a href="#calculator" class="skip-link">Skip to main content</a>
 
 </body>
 </html>
