@@ -443,12 +443,19 @@
         }
 
         function verifyPasscode() {
+            console.log('verifyPasscode called');
             const val = document.getElementById('admin-passcode-input').value;
             const managerSelect = document.getElementById('manager-select');
-            const selectedManager = managerSelect.value;
+            const selectedManager = managerSelect ? managerSelect.value : 'Unknown';
             const errorMsg = document.getElementById('auth-error-msg');
             
+            console.log('Passcode entered:', val);
+            console.log('Expected passcode:', ADMIN_PASSCODE);
+            console.log('Selected manager:', selectedManager);
+            
             if (val === ADMIN_PASSCODE) {
+                console.log('Passcode correct! Logging in...');
+                
                 // Store the logged-in manager
                 sessionStorage.setItem('chromique_logged_in_manager', selectedManager);
                 
@@ -456,17 +463,29 @@
                 logActivity('LOGIN', `${selectedManager} logged into the console`);
                 
                 // Hide the lockscreen overlay
-                document.getElementById('auth-lockscreen').classList.add('hidden');
+                const lockscreen = document.getElementById('auth-lockscreen');
+                if (lockscreen) {
+                    lockscreen.classList.add('hidden');
+                    console.log('Lockscreen hidden');
+                }
                 
                 // Update the welcome message in navbar
                 const welcomeEl = document.getElementById('welcome-manager');
-                if (welcomeEl) welcomeEl.innerText = selectedManager;
+                if (welcomeEl) {
+                    welcomeEl.innerText = selectedManager;
+                    console.log('Welcome message updated');
+                }
                 
                 // Reload data
                 loadMomoOrders();
                 loadActivityLog();
+                
+                console.log('Login complete!');
             } else {
-                errorMsg.classList.remove('hidden');
+                console.log('Passcode incorrect!');
+                if (errorMsg) {
+                    errorMsg.classList.remove('hidden');
+                }
                 document.getElementById('admin-passcode-input').value = '';
                 
                 // Boot them back to the storefront home if they guess wrong!
@@ -475,6 +494,9 @@
                 }, 1800);
             }
         }
+        
+        // Make function globally accessible
+        window.verifyPasscode = verifyPasscode;
 
         // Global array to store orders with their Firebase document IDs
         let momoOrdersData = [];
