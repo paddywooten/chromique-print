@@ -25,7 +25,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
@@ -50,6 +50,7 @@
         window.firebaseGetDoc = getDoc;
         window.firebaseSetDoc = setDoc;
         window.firebaseDeleteDoc = deleteDoc;
+        window.firebaseGetDocs = getDocs;
     </script>
 
     <!-- EmailJS SDK for sending OTP emails -->
@@ -1710,7 +1711,7 @@
             container.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">Loading staff list...</p>';
 
             try {
-                const snapshot = await window.firebaseGetDoc(
+                const snapshot = await window.firebaseGetDocs(
                     window.firebaseCollection(window.firebaseDB, 'staff_profiles')
                 );
 
