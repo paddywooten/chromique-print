@@ -489,6 +489,8 @@
 
     <!-- Secure Password Authentication & Dynamic Orders Ingestion Script -->
     <script>
+        console.log('Main script starting...');
+        
         // ============================================
         // FIREBASE AUTHENTICATION (Email/Password)
         // Roles come from the 'user_roles' Firestore collection, keyed by uid:
@@ -496,6 +498,8 @@
         // This console accepts active 'staff' and 'manager' accounts.
         // ============================================
         let CURRENT_USER = null;
+
+        console.log('CURRENT_USER initialized');
 
         function showAuthError(message) {
             const errorMsg = document.getElementById('auth-error-msg');
@@ -596,6 +600,9 @@
         }
         window.handleAuthStateChange = handleAuthStateChange;
 
+        console.log('handleAuthStateChange exposed');
+
+        console.log('Defining signIn function...');
         async function signIn() {
             const email = document.getElementById('auth-email-input').value.trim();
             const password = document.getElementById('auth-password-input').value;
@@ -627,8 +634,11 @@
                 if (btn) { btn.disabled = false; btn.innerText = 'Sign In'; }
             }
         }
+        console.log('signIn function defined');
+        
         // Expose as _realSignIn so the inline wrapper can call it
         window._realSignIn = signIn;
+        console.log('signIn exposed as window._realSignIn');
 
         async function forgotPassword() {
             const email = document.getElementById('auth-email-input').value.trim();
