@@ -117,6 +117,25 @@
                         </button>
                     </div>
                 </div>
+                <script>
+                    // Define password toggle function immediately
+                    function togglePasswordVisibility() {
+                        const passwordInput = document.getElementById('auth-password-input');
+                        const toggleIcon = document.getElementById('password-toggle-icon');
+                        
+                        if (passwordInput && toggleIcon) {
+                            if (passwordInput.type === 'password') {
+                                passwordInput.type = 'text';
+                                toggleIcon.classList.remove('fa-eye');
+                                toggleIcon.classList.add('fa-eye-slash');
+                            } else {
+                                passwordInput.type = 'password';
+                                toggleIcon.classList.remove('fa-eye-slash');
+                                toggleIcon.classList.add('fa-eye');
+                            }
+                        }
+                    }
+                </script>
                 <button id="auth-signin-btn" onclick="signIn()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider shadow-lg shadow-brand-500/10">
                     Sign In
                 </button>
@@ -397,22 +416,6 @@
             const errorMsg = document.getElementById('auth-error-msg');
             if (errorMsg) errorMsg.classList.add('hidden');
         }
-
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('auth-password-input');
-            const toggleIcon = document.getElementById('password-toggle-icon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-        }
-        window.togglePasswordVisibility = togglePasswordVisibility;
 
         function checkSessionAuth() {
             // Lockscreen visible by default; Firebase Auth decides whether to lift it.
