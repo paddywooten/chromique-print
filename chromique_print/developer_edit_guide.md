@@ -4,20 +4,30 @@
 ---
 
 ## 1. How to Change Your Admin Passcode (PIN)
-If you want to change your passcode from **`2026`** to any other custom password or pin:
+Your passcode is no longer stored as readable text — it is stored as a **SHA-256 hash** (a scrambled fingerprint), so nobody who views the code or the database can read your actual passcode.
 
-### Step-by-Step:
-1. Open the file **`print_admin_dashboard.html`** in any text editor (like Notepad, TextEdit, or VS Code).
-2. Scroll all the way down to the very bottom of the file (around line 185) where you see the `<script>` tag.
-3. Locate this exact line:
+### ✅ Recommended: Use the Dashboard (No Coding Needed!)
+1. Log into your **Admin Dashboard** (`print_admin_dashboard.html`).
+2. Click the **"Change Manager Passcode"** button at the bottom.
+3. Follow the steps: select your name → receive the OTP code by email → enter it → set your new passcode.
+4. The new passcode is saved (as a secure hash) to Firebase automatically, and works everywhere immediately.
+
+*The staff passcode works the same way — use the **"Change Staff Passcode"** button in the dashboard.*
+
+### 🛠️ Advanced: Change the Default Fallback in the Code
+The default passcode (used only when Firebase has no saved passcode) is **`2026`**. To change this fallback:
+1. Open **`print_admin_dashboard.html`** in a text editor and find this line near the bottom `<script>` section:
    ```javascript
-   const ADMIN_PASSCODE = "2026";
+   let ADMIN_PASSCODE_HASH = "158a323a7ba44870f23d96f1516dd70aa48e9a72db4ebb026b0a89e212a208ab";
    ```
-4. Change `"2026"` to your new desired passcode inside the quotation marks. For example:
+2. Generate the SHA-256 hash of your new passcode. The easiest way: open your website, press **F12** to open the browser console, and run:
    ```javascript
-   const ADMIN_PASSCODE = "Venture777";
+   sha256Hex("YourNewPasscode").then(console.log)
    ```
-5. Save the file. **That's it!** The next time you open your dashboard, the page will require your new passcode.
+   (Run this on the admin dashboard page — the helper function is built in.)
+3. Copy the 64-character result and paste it between the quotes, replacing the old hash.
+4. Do the same for `STAFF_PASSCODE_HASH` in **`print_admin_dashboard.html`** and **`staff_console.html`** if you want to change the staff default too.
+5. Save the file(s).
 
 ---
 
@@ -32,17 +42,18 @@ If you ever want to change the default prices that load when a customer first vi
        currency: 'GHS',
        currencySymbol: 'GH¢',
        exchangeRate: 1.0,
-       bannerCostPerSqFt: 15.0,     // Default GHS cost per sqft for Banners
-       stickerCostPerSqFt: 12.0,    // Default GHS cost per sqft for Stickers
-       labelsCostPerSheet: 15.0,    // Default GHS cost per sheet for Labels
+       bannerCostPerSqFt: 15.0,     // Default GHS cost per sqft for Banners / Custom
+       stickerCostPerSqFt: 2.5,     // Default GHS cost per sqft for Stickers
+       printAndCutCostPerSqFt: 5.0, // Default GHS cost per sqft for Print & Cut
+       labelsA4Cost: 15.0,          // Default GHS cost for Labels A4
+       labelsA3Cost: 25.0,          // Default GHS cost for Labels A3
        dtfA4Cost: 15.0,             // Default GHS cost for DTF A4
        dtfA3Cost: 25.0,             // Default GHS cost for DTF A3
        sublimationA4Cost: 15.0,     // Default GHS cost for Sublimation A4
-       sublimationA3Cost: 25.0,     // Default GHS cost for Sublimation A3
-       paystackKey: 'pk_test_a0d8ea9c81523cbf729119632832810cd8ea3120'
+       sublimationA3Cost: 25.0      // Default GHS cost for Sublimation A3
    };
    ```
-3. Edit any of the numeric values on the right side of the colons (e.g. change `12.0` to `13.50` or `15.0` to `18.0`).
+3. Edit any of the numeric values on the right side of the colons (e.g. change `2.5` to `3.50` or `15.0` to `18.0`).
 4. Save the file.
 
 ---

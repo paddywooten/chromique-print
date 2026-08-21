@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHROMIQUE | Operations Console</title>
+    <meta name="description" content="CHROMIQUE operations console — search, sort and export orders, activity logs and team data.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="chromique-logo.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="print_style.css">
+
+    <!-- jsPDF + AutoTable for PDF exports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
+            authDomain: "chromique-print.firebaseapp.com",
+            projectId: "chromique-print",
+            storageBucket: "chromique-print.firebasestorage.app",
+            messagingSenderId: "133831518444",
+            appId: "1:133831518444:web:c41d88c924bd245d5bddc9",
+            measurementId: "G-0MFWEZ9CDV"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        window.firebaseDB = db;
+        window.firebaseCollection = collection;
+        window.firebaseOnSnapshot = onSnapshot;
+        window.firebaseDoc = doc;
+        window.firebaseUpdateDoc = updateDoc;
+        window.firebaseDeleteDoc = deleteDoc;
+        window.firebaseGetDoc = getDoc;
+        window.firebaseGetDocs = getDocs;
+        window.firebaseSignIn = (email, password) => signInWithEmailAndPassword(auth, email, password);
+        window.firebaseSignOut = () => signOut(auth);
+        window.firebaseSendReset = (email) => sendPasswordResetEmail(auth, email);
+
+        onAuthStateChanged(auth, (user) => {
+            if (window.handleAuthStateChange) window.handleAuthStateChange(user);
+        });
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: { brand: { 500: '#f97316', 600: '#ea580c', 950: '#0f172a' } }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
+
+    <!-- Auth Lockscreen -->
+    <div id="auth-lockscreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-6">
+        <div class="bg-slate-900 rounded-3xl p-8 border border-slate-800 max-w-md w-full text-center space-y-6 shadow-2xl">
+            <div class="w-16 h-16 bg-brand-500/10 text-brand-500 rounded-full flex items-center justify-center text-2xl mx-auto">
+                <i class="fa-solid fa-table-list"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="font-extrabold text-white text-base uppercase tracking-wider">Operations Console</h3>
+                <p class="text-xs text-slate-500">Manager access required</p>
+            </div>
+            <div class="space-y-3">
+                <div class="space-y-1.5 text-left">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</label>
+                    <input type="email" id="auth-email-input" placeholder="manager@chromique.com" autocomplete="username" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500 text-white">
+                </div>
+                <div class="space-y-1.5 text-left">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password</label>
+                    <input type="password" id="auth-password-input" placeholder="Enter your password" autocomplete="current-password" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500 tracking-widest text-white font-mono">
+                </div>
+                <button id="auth-signin-btn" onclick="signIn()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider">Sign In</button>
+                <button onclick="forgotPassword()" class="text-[11px] text-slate-500 hover:text-brand-500 font-bold transition">Forgot password? Send reset email</button>
+            </div>
+            <p id="auth-error-msg" class="text-[11px] text-red-500 font-bold hidden"><i class="fa-solid fa-circle-exclamation mr-1.5"></i> <span id="auth-error-text">Access Denied.</span></p>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="bg-slate-900 border-b border-slate-800 h-20 px-6 flex justify-between items-center sticky top-0 z-40">
+        <a href="print_index.html" class="flex items-center gap-3 group">
+            <img src="chromique-logo.svg" alt="Chromique Logo" class="h-10 w-auto">
+            <div>
+                <h1 class="font-extrabold text-sm tracking-widest text-white uppercase group-hover:text-brand-500 transition">CHROMIQUE</h1>
+                <p class="text-[9px] text-brand-500 font-mono tracking-wider font-bold">OPERATIONS CONSOLE</p>
+            </div>
+        </a>
+        <div class="flex items-center gap-3 text-xs font-bold text-slate-400">
+            <a href="print_admin_dashboard.html" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl transition font-bold uppercase tracking-wider text-[10px] hidden md:inline-block">
+                <i class="fa-solid fa-gauge-high text-brand-500 mr-1"></i> Dashboard
+            </a>
+            <span id="welcome-manager" class="text-brand-500 font-bold hidden md:inline-block">—</span>
+            <button onclick="logoutUser()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl transition font-bold uppercase tracking-wider text-[10px]">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-8 space-y-6">
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Orders</div>
+                <div class="text-2xl font-black text-white mt-1" id="stat-total">—</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pending</div>
+                <div class="text-2xl font-black text-amber-400 mt-1" id="stat-pending">—</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Verified</div>
+                <div class="text-2xl font-black text-green-400 mt-1" id="stat-verified">—</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Rejected</div>
+                <div class="text-2xl font-black text-red-400 mt-1" id="stat-rejected">—</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 col-span-2 md:col-span-1">
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Verified Revenue</div>
+                <div class="text-2xl font-black text-brand-500 mt-1" id="stat-revenue">—</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-2 border-b border-slate-800">
+            <button onclick="switchTab('orders')" id="tab-btn-orders" class="tab-btn px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 border-brand-500 text-white transition"><i class="fa-solid fa-receipt mr-1.5"></i>Orders</button>
+            <button onclick="switchTab('logs')" id="tab-btn-logs" class="tab-btn px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-white transition"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i>Activity Logs</button>
+            <button onclick="switchTab('team')" id="tab-btn-team" class="tab-btn px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-white transition"><i class="fa-solid fa-users mr-1.5"></i>Team</button>
+        </div>
+
+        <!-- ORDERS TAB -->
+        <section id="tab-orders" class="space-y-4">
+            <div class="flex flex-wrap gap-3 items-end">
+                <div class="flex-1 min-w-[220px] space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Search</label>
+                    <input type="text" id="ord-search" oninput="renderOrders()" placeholder="Ref, name, phone, email, service, notes..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</label>
+                    <select id="ord-status" onchange="renderOrders()" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none">
+                        <option value="">All</option>
+                        <option value="Pending MoMo Verification">Pending</option>
+                        <option value="MoMo Verified">Verified</option>
+                        <option value="MoMo Rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">From</label>
+                    <input type="date" id="ord-from" onchange="renderOrders()" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">To</label>
+                    <input type="date" id="ord-to" onchange="renderOrders()" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none">
+                </div>
+                <button onclick="clearOrderFilters()" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-4 py-3 rounded-xl transition uppercase">Clear</button>
+                <button onclick="exportOrdersCSV()" class="bg-green-500 hover:bg-green-600 text-slate-950 text-[10px] font-black px-4 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button>
+                <button onclick="exportOrdersJSON()" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-4 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-file-code mr-1"></i>JSON</button>
+                <button onclick="exportOrdersPDF()" class="bg-red-500 hover:bg-red-600 text-white text-[10px] font-black px-4 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-file-pdf mr-1"></i>PDF</button>
+            </div>
+            <div class="text-[11px] text-slate-500 font-bold" id="ord-count">—</div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-left text-[10px] uppercase tracking-widest text-slate-500">
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortOrders('createdAt')">Date <span data-sort-ord="createdAt"></span></th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortOrders('ref')">Ref <span data-sort-ord="ref"></span></th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortOrders('name')">Customer <span data-sort-ord="name"></span></th>
+                            <th class="p-3">Phone</th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortOrders('service')">Service <span data-sort-ord="service"></span></th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortOrders('amount')">Amount <span data-sort-ord="amount"></span></th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortOrders('status')">Status <span data-sort-ord="status"></span></th>
+                            <th class="p-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-tbody"><tr><td colspan="9" class="p-4"><div class="space-y-3"><span class="skeleton w-full"></span><span class="skeleton w-5/6"></span><span class="skeleton w-2/3"></span></div></td></tr></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- LOGS TAB -->
+        <section id="tab-logs" class="space-y-4 hidden">
+            <div class="bg-blue-500/5 border border-blue-500/20 rounded-xl p-3 text-[11px] text-blue-400">
+                <i class="fa-solid fa-circle-info mr-1"></i> Activity logs are stored in this browser (same store the Admin Dashboard writes to). Logs from other devices appear on those devices.
+            </div>
+            <div class="flex flex-wrap gap-3 items-end">
+                <div class="flex-1 min-w-[220px] space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Search</label>
+                    <input type="text" id="log-search" oninput="renderLogs()" placeholder="Manager, action, description..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Action</label>
+                    <select id="log-action" onchange="renderLogs()" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">From</label>
+                    <input type="date" id="log-from" onchange="renderLogs()" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">To</label>
+                    <input type="date" id="log-to" onchange="renderLogs()" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none">
+                </div>
+                <button onclick="clearLogFilters()" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-4 py-3 rounded-xl transition uppercase">Clear</button>
+                <button onclick="exportLogsCSV()" class="bg-green-500 hover:bg-green-600 text-slate-950 text-[10px] font-black px-4 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button>
+                <button onclick="exportLogsPDF()" class="bg-red-500 hover:bg-red-600 text-white text-[10px] font-black px-4 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-file-pdf mr-1"></i>PDF</button>
+                <button onclick="clearAllLogs()" class="bg-red-600 hover:bg-red-700 text-white text-[10px] font-black px-4 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-trash mr-1"></i>Clear Logs</button>
+            </div>
+            <div class="text-[11px] text-slate-500 font-bold" id="log-count">—</div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-left text-[10px] uppercase tracking-widest text-slate-500">
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortLogs('timestamp')">Time <span data-sort-log="timestamp"></span></th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortLogs('manager')">Who <span data-sort-log="manager"></span></th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortLogs('action')">Action <span data-sort-log="action"></span></th>
+                            <th class="p-3">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-tbody"><tr><td colspan="9" class="p-4"><div class="space-y-3"><span class="skeleton w-full"></span><span class="skeleton w-5/6"></span><span class="skeleton w-2/3"></span></div></td></tr></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TEAM TAB -->
+        <section id="tab-team" class="space-y-4 hidden">
+            <div class="flex flex-wrap gap-3 items-end">
+                <div class="flex-1 min-w-[220px] space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Search</label>
+                    <input type="text" id="team-search" oninput="renderTeam()" placeholder="Name, email, role..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-brand-500">
+                </div>
+                <button onclick="loadTeam()" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-4 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
+                <button onclick="exportTeamCSV()" class="bg-green-500 hover:bg-green-600 text-slate-950 text-[10px] font-black px-4 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button>
+                <button onclick="exportTeamPDF()" class="bg-red-500 hover:bg-red-600 text-white text-[10px] font-black px-4 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-file-pdf mr-1"></i>PDF</button>
+            </div>
+            <div class="text-[11px] text-slate-500 font-bold" id="team-count">—</div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-left text-[10px] uppercase tracking-widest text-slate-500">
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortTeam('displayName')">Name <span data-sort-team="displayName"></span></th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortTeam('email')">Email <span data-sort-team="email"></span></th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortTeam('role')">Access <span data-sort-team="role"></span></th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortTeam('active')">Status <span data-sort-team="active"></span></th>
+                            <th class="p-3 cursor-pointer hover:text-white select-none" onclick="sortTeam('createdAt')">Added <span data-sort-team="createdAt"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="team-tbody"><tr><td colspan="9" class="p-4"><div class="space-y-3"><span class="skeleton w-full"></span><span class="skeleton w-5/6"></span><span class="skeleton w-2/3"></span></div></td></tr></tbody>
+                </table>
+            </div>
+            <p class="text-[11px] text-slate-500">Team accounts are managed in the <a href="print_admin_dashboard.html" class="text-brand-500 font-bold hover:underline">Admin Dashboard → Manage Team Accounts</a>.</p>
+        </section>
+    </main>
+
+    <!-- Order Details Modal -->
+    <div id="order-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md items-center justify-center hidden p-6" style="display:none;">
+        <div class="bg-slate-900 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-800 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-start">
+                <h3 class="font-extrabold text-base text-white uppercase tracking-wide">Order Details</h3>
+                <button onclick="closeOrderModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="order-modal-body" class="text-xs space-y-2"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // AUTH (managers only)
+        // ============================================
+        let CURRENT_USER = null;
+        let MANAGER_NAME = 'Unknown';
+
+        function showAuthError(m) {
+            const e = document.getElementById('auth-error-msg');
+            document.getElementById('auth-error-text').innerText = m;
+            e.classList.remove('hidden');
+        }
+        function hideAuthError() { document.getElementById('auth-error-msg').classList.add('hidden'); }
+
+        async function handleAuthStateChange(user) {
+            const lock = document.getElementById('auth-lockscreen');
+            if (!user) { CURRENT_USER = null; lock.classList.remove('hidden'); return; }
+            try {
+                const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDB, 'user_roles', user.uid));
+                const d = snap.exists() ? snap.data() : null;
+                if (!d || d.role !== 'manager' || d.active === false) {
+                    showAuthError('This account does not have manager access.');
+                    await window.firebaseSignOut();
+                    return;
+                }
+                CURRENT_USER = user;
+                MANAGER_NAME = d.displayName || user.email;
+                sessionStorage.setItem('chromique_logged_in_manager', MANAGER_NAME);
+                hideAuthError();
+                lock.classList.add('hidden');
+                document.getElementById('welcome-manager').innerText = MANAGER_NAME;
+                startOrdersListener();
+                loadLogs();
+                loadTeam();
+            } catch (e) {
+                showAuthError('Could not verify your access. Please try again.');
+                await window.firebaseSignOut();
+            }
+        }
+        window.handleAuthStateChange = handleAuthStateChange;
+
+        async function signIn() {
+            const email = document.getElementById('auth-email-input').value.trim();
+            const password = document.getElementById('auth-password-input').value;
+            const btn = document.getElementById('auth-signin-btn');
+            if (!email || !password) { showAuthError('Please enter your email and password.'); return; }
+            hideAuthError();
+            btn.disabled = true; btn.innerText = 'Signing in...';
+            try {
+                await window.firebaseSignIn(email, password);
+                document.getElementById('auth-password-input').value = '';
+            } catch (error) {
+                const c = error.code || '';
+                if (c === 'auth/invalid-credential' || c === 'auth/wrong-password' || c === 'auth/user-not-found') showAuthError('Invalid email or password.');
+                else if (c === 'auth/too-many-requests') showAuthError('Too many attempts. Try again later or reset your password.');
+                else showAuthError('Sign-in failed. Check your connection and try again.');
+            } finally {
+                btn.disabled = false; btn.innerText = 'Sign In';
+            }
+        }
+        async function forgotPassword() {
+            const email = document.getElementById('auth-email-input').value.trim();
+            if (!email) { showAuthError('Enter your email above first, then click reset.'); return; }
+            try { await window.firebaseSendReset(email); hideAuthError(); showToast(`Password reset email sent to ${email}`, 'success'); }
+            catch (e) { showAuthError('Could not send reset email. Check the address.'); }
+        }
+        async function logoutUser() {
+            logActivity('LOGOUT', `${MANAGER_NAME} logged out of the operations console`);
+            await window.firebaseSignOut().catch(() => {});
+        }
+
+        // ============================================
+        // SHARED HELPERS
+        // ============================================
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+            const toast = document.createElement('div');
+            toast.className = `toast-notification fixed top-4 right-4 z-[60] px-6 py-3 rounded-xl shadow-lg text-white font-bold text-sm transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+            }`;
+            const icon = type === 'success' ? 'fa-check-circle' :
+                         type === 'error' ? 'fa-exclamation-circle' :
+                         type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+            toast.innerHTML = `<i class="fa-solid ${icon} mr-2"></i>${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+        function csvCell(v) {
+            const s = String(v == null ? '' : v);
+            return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+        }
+        function downloadFile(name, content, mime) {
+            const blob = new Blob([content], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = name;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+        }
+        function parseAmount(order) {
+            const t = order.quote && order.quote.totalPrice ? order.quote.totalPrice : '';
+            const m = String(t).replace(/,/g, '').match(/[\d.]+/);
+            return m ? parseFloat(m[0]) : 0;
+        }
+        function orderDate(o) { return o.createdAt || o.timestamp || ''; }
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return isNaN(d) ? String(iso) : d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        }
+        function inDateRange(iso, fromId, toId) {
+            const from = document.getElementById(fromId).value;
+            const to = document.getElementById(toId).value;
+            if (!from && !to) return true;
+            if (!iso) return false;
+            const t = new Date(iso).getTime();
+            if (from && t < new Date(from + 'T00:00:00').getTime()) return false;
+            if (to && t > new Date(to + 'T23:59:59').getTime()) return false;
+            return true;
+        }
+        function logActivity(action, description) {
+            const log = JSON.parse(localStorage.getItem('chromique_activity_log') || '[]');
+            log.unshift({ timestamp: new Date().toISOString(), manager: MANAGER_NAME, action, description });
+            if (log.length > 100) log.splice(100);
+            localStorage.setItem('chromique_activity_log', JSON.stringify(log));
+            loadLogs();
+        }
+        function setSortIndicators(attr, key, dir) {
+            document.querySelectorAll(`[${attr}]`).forEach(el => {
+                el.innerHTML = el.getAttribute(attr) === key ? (dir === 'asc' ? '▲' : '▼') : '';
+            });
+        }
+        function switchTab(name) {
+            ['orders', 'logs', 'team'].forEach(t => {
+                document.getElementById('tab-' + t).classList.toggle('hidden', t !== name);
+                const btn = document.getElementById('tab-btn-' + t);
+                btn.classList.toggle('border-brand-500', t === name);
+                btn.classList.toggle('text-white', t === name);
+                btn.classList.toggle('border-transparent', t !== name);
+                btn.classList.toggle('text-slate-500', t !== name);
+            });
+        }
+
+        // ============================================
+        // ORDERS
+        // ============================================
+        let allOrders = [];
+        let ordSort = { key: 'createdAt', dir: 'desc' };
+        let ordersUnsub = null;
+
+        function startOrdersListener() {
+            if (ordersUnsub) return;
+            ordersUnsub = window.firebaseOnSnapshot(
+                window.firebaseCollection(window.firebaseDB, 'momo_orders'),
+                (snapshot) => {
+                    allOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    updateStats();
+                    renderOrders();
+                },
+                (error) => {
+                    console.error('Orders listener error:', error);
+                    document.getElementById('orders-tbody').innerHTML = '<tr><td colspan="8" class="p-6 text-center text-red-400 font-bold">Could not load orders. Check your access and connection.</td></tr>';
+                }
+            );
+        }
+
+        function updateStats() {
+            const pend = allOrders.filter(o => o.status === 'Pending MoMo Verification').length;
+            const ver = allOrders.filter(o => o.status === 'MoMo Verified');
+            const rej = allOrders.filter(o => o.status === 'MoMo Rejected').length;
+            document.getElementById('stat-total').innerText = allOrders.length;
+            document.getElementById('stat-pending').innerText = pend;
+            document.getElementById('stat-verified').innerText = ver.length;
+            document.getElementById('stat-rejected').innerText = rej;
+            const revenue = ver.reduce((acc, o) => acc + parseAmount(o), 0);
+            document.getElementById('stat-revenue').innerText = 'GH¢' + revenue.toFixed(2);
+        }
+
+        function filteredOrders() {
+            const q = document.getElementById('ord-search').value.trim().toLowerCase();
+            const status = document.getElementById('ord-status').value;
+            let rows = allOrders.filter(o => {
+                if (status && o.status !== status) return false;
+                if (!inDateRange(orderDate(o), 'ord-from', 'ord-to')) return false;
+                if (q) {
+                    const hay = [
+                        o.ref, o.name, o.phone, o.email, o.notes, o.status, o.paymentMethod,
+                        o.deliveryMethod, o.deliveryAddress, o.address,
+                        o.quote && o.quote.service, o.quote && o.quote.totalPrice
+                    ].map(x => String(x || '').toLowerCase()).join(' ');
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+            const { key, dir } = ordSort;
+            const mult = dir === 'asc' ? 1 : -1;
+            rows.sort((a, b) => {
+                let va, vb;
+                if (key === 'amount') { va = parseAmount(a); vb = parseAmount(b); }
+                else if (key === 'createdAt') { va = orderDate(a); vb = orderDate(b); }
+                else if (key === 'service') { va = (a.quote && a.quote.service) || ''; vb = (b.quote && b.quote.service) || ''; }
+                else { va = a[key] || ''; vb = b[key] || ''; }
+                if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * mult;
+                return String(va).localeCompare(String(vb)) * mult;
+            });
+            return rows;
+        }
+
+        function sortOrders(key) {
+            if (ordSort.key === key) ordSort.dir = ordSort.dir === 'asc' ? 'desc' : 'asc';
+            else ordSort = { key, dir: key === 'createdAt' ? 'desc' : 'asc' };
+            renderOrders();
+        }
+
+        function statusBadge(s) {
+            if (s === 'MoMo Verified') return '<span class="bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-1 rounded-full text-[9px] font-black uppercase whitespace-nowrap">Verified</span>';
+            if (s === 'MoMo Rejected') return '<span class="bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-1 rounded-full text-[9px] font-black uppercase whitespace-nowrap">Rejected</span>';
+            return '<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-1 rounded-full text-[9px] font-black uppercase whitespace-nowrap">Pending</span>';
+        }
+
+        function renderOrders() {
+            const tbody = document.getElementById('orders-tbody');
+            const rows = filteredOrders();
+            setSortIndicators('data-sort-ord', ordSort.key, ordSort.dir);
+            document.getElementById('ord-count').innerText = `Showing ${rows.length} of ${allOrders.length} orders`;
+            if (rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-500 font-bold">No orders match your filters.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = rows.map(o => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/30 transition">
+                    <td class="p-3 whitespace-nowrap text-slate-400">${fmtDate(orderDate(o))}</td>
+                    <td class="p-3 font-mono font-bold text-brand-500 whitespace-nowrap">${esc(o.ref)}</td>
+                    <td class="p-3 font-bold text-white">${esc(o.name)}</td>
+                    <td class="p-3 font-mono text-slate-400 whitespace-nowrap">${esc(o.phone)}</td>
+                    <td class="p-3 text-slate-300">${esc(o.quote && o.quote.service || '—')}</td>
+                    <td class="p-3 font-bold text-white whitespace-nowrap">${esc(o.quote && o.quote.totalPrice || '—')}</td>
+                    <td class="p-3">${statusBadge(o.status)}</td>
+                    <td class="p-3 text-right whitespace-nowrap">
+                        <button onclick="viewOrder('${o.id}')" title="Details" aria-label="View order details" class="bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition"><i class="fa-solid fa-eye"></i></button>
+                        ${o.status === 'Pending MoMo Verification' ? `
+                        <button onclick="verifyOrder('${o.id}')" title="Verify" aria-label="Verify order" class="bg-green-500/20 hover:bg-green-500/30 text-green-400 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition"><i class="fa-solid fa-check"></i></button>
+                        <button onclick="rejectOrder('${o.id}')" title="Reject" aria-label="Reject order" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition"><i class="fa-solid fa-ban"></i></button>` : ''}
+                        <button onclick="deleteOrder('${o.id}')" title="Delete" aria-label="Delete order" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function clearOrderFilters() {
+            document.getElementById('ord-search').value = '';
+            document.getElementById('ord-status').value = '';
+            document.getElementById('ord-from').value = '';
+            document.getElementById('ord-to').value = '';
+            renderOrders();
+        }
+
+        function viewOrder(id) {
+            const o = allOrders.find(x => x.id === id);
+            if (!o) return;
+            const rows = [
+                ['Reference', o.ref], ['Status', o.status], ['Date', fmtDate(orderDate(o))],
+                ['Customer', o.name], ['Phone', o.phone], ['Email', o.email || '—'],
+                ['Service', o.quote && o.quote.service], ['Dimensions', o.quote && o.quote.areaSummary],
+                ['Quantity', o.quote && o.quote.qty], ['Amount', o.quote && o.quote.totalPrice],
+                ['Payment', o.paymentMethod], ['Artwork via', o.artworkMethod],
+                ['Delivery', o.deliveryMethod === 'delivery' ? ('Delivery — ' + (o.deliveryAddress || o.address || '')) : 'Pickup at office'],
+                ['Notes', o.notes || '—'],
+                ['Verified by', o.verifiedBy ? `${o.verifiedBy} (${fmtDate(o.verifiedAt)})` : '—'],
+                ['Rejected by', o.rejectedBy ? `${o.rejectedBy} (${fmtDate(o.rejectedAt)})` : '—']
+            ];
+            document.getElementById('order-modal-body').innerHTML = rows.map(([k, v]) => `
+                <div class="flex justify-between gap-4 border-b border-slate-800/60 pb-2">
+                    <span class="text-slate-500 font-bold uppercase text-[10px] tracking-widest shrink-0">${k}</span>
+                    <span class="text-white font-bold text-right break-words">${esc(v == null || v === '' ? '—' : v)}</span>
+                </div>`).join('');
+            const m = document.getElementById('order-modal');
+            m.classList.remove('hidden'); m.style.display = 'flex';
+        }
+        function closeOrderModal() {
+            const m = document.getElementById('order-modal');
+            m.classList.add('hidden'); m.style.display = 'none';
+        }
+
+        async function verifyOrder(id) {
+            const o = allOrders.find(x => x.id === id);
+            if (!o || !confirm(`Verify order ${o.ref} (${o.name})?`)) return;
+            try {
+                await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDB, 'momo_orders', id), {
+                    status: 'MoMo Verified', verifiedBy: MANAGER_NAME, verifiedAt: new Date().toISOString()
+                });
+                logActivity('VERIFY_ORDER', `Verified MoMo order ${o.ref} (${o.name}, ${o.quote && o.quote.totalPrice})`);
+            } catch (e) { showToast('Error verifying order: ' + (e.code || e.message), 'error'); }
+        }
+        async function rejectOrder(id) {
+            const o = allOrders.find(x => x.id === id);
+            if (!o || !confirm(`Reject order ${o.ref} (${o.name})?`)) return;
+            try {
+                await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDB, 'momo_orders', id), {
+                    status: 'MoMo Rejected', rejectedBy: MANAGER_NAME, rejectedAt: new Date().toISOString()
+                });
+                logActivity('REJECT_ORDER', `Rejected MoMo order ${o.ref} (${o.name})`);
+            } catch (e) { showToast('Error rejecting order: ' + (e.code || e.message), 'error'); }
+        }
+        async function deleteOrder(id) {
+            const o = allOrders.find(x => x.id === id);
+            if (!o || !confirm(`PERMANENTLY delete order ${o.ref} (${o.name})? This cannot be undone.`)) return;
+            try {
+                await window.firebaseDeleteDoc(window.firebaseDoc(window.firebaseDB, 'momo_orders', id));
+                logActivity('DELETE_ORDER', `Deleted order ${o.ref} (${o.name})`);
+            } catch (e) { showToast('Error deleting order: ' + (e.code || e.message), 'error'); }
+        }
+
+        function exportOrdersCSV() {
+            const rows = filteredOrders();
+            if (!rows.length) { showToast('Nothing to export — adjust your filters.', 'warning'); return; }
+            const header = ['Date', 'Ref', 'Customer', 'Phone', 'Email', 'Service', 'Dimensions', 'Qty', 'Amount', 'Payment', 'Delivery', 'Address', 'Artwork', 'Notes', 'Status', 'VerifiedBy', 'RejectedBy'];
+            const lines = [header.join(',')];
+            rows.forEach(o => lines.push([
+                fmtDate(orderDate(o)), o.ref, o.name, o.phone, o.email || '',
+                o.quote && o.quote.service || '', o.quote && o.quote.areaSummary || '', o.quote && o.quote.qty || '',
+                o.quote && o.quote.totalPrice || '', o.paymentMethod || '', o.deliveryMethod || '',
+                o.deliveryAddress || o.address || '', o.artworkMethod || '', o.notes || '', o.status || '',
+                o.verifiedBy || '', o.rejectedBy || ''
+            ].map(csvCell).join(',')));
+            downloadFile(`chromique_orders_${new Date().toISOString().slice(0, 10)}.csv`, lines.join('\n'), 'text/csv');
+            logActivity('EXPORT_ORDERS', `Exported ${rows.length} orders to CSV`);
+        }
+        function exportOrdersJSON() {
+            const rows = filteredOrders();
+            if (!rows.length) { showToast('Nothing to export — adjust your filters.', 'warning'); return; }
+            downloadFile(`chromique_orders_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(rows, null, 2), 'application/json');
+            logActivity('EXPORT_ORDERS', `Exported ${rows.length} orders to JSON`);
+        }
+
+        // ============================================
+        // ACTIVITY LOGS (localStorage — same store as dashboard)
+        // ============================================
+        let allLogs = [];
+        let logSort = { key: 'timestamp', dir: 'desc' };
+
+        function loadLogs() {
+            allLogs = JSON.parse(localStorage.getItem('chromique_activity_log') || '[]');
+            const sel = document.getElementById('log-action');
+            const current = sel.value;
+            const actions = [...new Set(allLogs.map(l => l.action))].sort();
+            sel.innerHTML = '<option value="">All</option>' + actions.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+            sel.value = actions.includes(current) ? current : '';
+            renderLogs();
+        }
+
+        function filteredLogs() {
+            const q = document.getElementById('log-search').value.trim().toLowerCase();
+            const action = document.getElementById('log-action').value;
+            let rows = allLogs.filter(l => {
+                if (action && l.action !== action) return false;
+                if (!inDateRange(l.timestamp, 'log-from', 'log-to')) return false;
+                if (q && ![l.manager, l.action, l.description].map(x => String(x || '').toLowerCase()).join(' ').includes(q)) return false;
+                return true;
+            });
+            const { key, dir } = logSort;
+            const mult = dir === 'asc' ? 1 : -1;
+            rows.sort((a, b) => String(a[key] || '').localeCompare(String(b[key] || '')) * mult);
+            return rows;
+        }
+
+        function sortLogs(key) {
+            if (logSort.key === key) logSort.dir = logSort.dir === 'asc' ? 'desc' : 'asc';
+            else logSort = { key, dir: key === 'timestamp' ? 'desc' : 'asc' };
+            renderLogs();
+        }
+
+        function renderLogs() {
+            const tbody = document.getElementById('logs-tbody');
+            const rows = filteredLogs();
+            setSortIndicators('data-sort-log', logSort.key, logSort.dir);
+            document.getElementById('log-count').innerText = `Showing ${rows.length} of ${allLogs.length} log entries`;
+            if (!rows.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-500 font-bold">No log entries match your filters.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = rows.map(l => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/30 transition">
+                    <td class="p-3 whitespace-nowrap text-slate-400">${fmtDate(l.timestamp)}</td>
+                    <td class="p-3 font-bold text-brand-500 whitespace-nowrap">${esc(l.manager)}</td>
+                    <td class="p-3"><span class="bg-slate-800 text-slate-300 px-2 py-1 rounded-lg text-[9px] font-black uppercase whitespace-nowrap">${esc(l.action)}</span></td>
+                    <td class="p-3 text-slate-300">${esc(l.description)}</td>
+                </tr>`).join('');
+        }
+
+        function clearLogFilters() {
+            document.getElementById('log-search').value = '';
+            document.getElementById('log-action').value = '';
+            document.getElementById('log-from').value = '';
+            document.getElementById('log-to').value = '';
+            renderLogs();
+        }
+
+        function exportLogsCSV() {
+            const rows = filteredLogs();
+            if (!rows.length) { showToast('Nothing to export — adjust your filters.', 'warning'); return; }
+            const lines = ['Time,Who,Action,Description'];
+            rows.forEach(l => lines.push([fmtDate(l.timestamp), l.manager, l.action, l.description].map(csvCell).join(',')));
+            downloadFile(`chromique_activity_log_${new Date().toISOString().slice(0, 10)}.csv`, lines.join('\n'), 'text/csv');
+        }
+
+        function clearAllLogs() {
+            if (!confirm('Clear ALL activity log entries on this browser? Export to CSV first if you want to keep them.')) return;
+            localStorage.setItem('chromique_activity_log', '[]');
+            loadLogs();
+        }
+
+        // ============================================
+        // TEAM (read-only view)
+        // ============================================
+        let allTeam = [];
+        let teamSort = { key: 'displayName', dir: 'asc' };
+
+        async function loadTeam() {
+            try {
+                const [roleSnap, profSnap] = await Promise.all([
+                    window.firebaseGetDocs(window.firebaseCollection(window.firebaseDB, 'user_roles')),
+                    window.firebaseGetDocs(window.firebaseCollection(window.firebaseDB, 'staff_profiles'))
+                ]);
+                const profiles = {};
+                profSnap.forEach(d => profiles[d.id] = d.data());
+                allTeam = roleSnap.docs.map(d => {
+                    const r = d.data();
+                    const p = profiles[d.id] || {};
+                    return {
+                        id: d.id,
+                        displayName: r.displayName || p.displayName || p.name || r.email || d.id,
+                        email: r.email || p.email || '',
+                        phone: p.phone || '',
+                        role: r.role || '',
+                        active: r.active !== false,
+                        createdAt: r.createdAt || p.createdAt || ''
+                    };
+                });
+                renderTeam();
+            } catch (e) {
+                document.getElementById('team-tbody').innerHTML = '<tr><td colspan="5" class="p-6 text-center text-red-400 font-bold">Could not load team data.</td></tr>';
+            }
+        }
+
+        function filteredTeam() {
+            const q = document.getElementById('team-search').value.trim().toLowerCase();
+            let rows = allTeam.filter(t => !q || [t.displayName, t.email, t.role, t.phone].map(x => String(x || '').toLowerCase()).join(' ').includes(q));
+            const { key, dir } = teamSort;
+            const mult = dir === 'asc' ? 1 : -1;
+            rows.sort((a, b) => {
+                const va = a[key], vb = b[key];
+                if (typeof va === 'boolean') return ((va === vb) ? 0 : va ? -1 : 1) * mult;
+                return String(va || '').localeCompare(String(vb || '')) * mult;
+            });
+            return rows;
+        }
+
+        function sortTeam(key) {
+            if (teamSort.key === key) teamSort.dir = teamSort.dir === 'asc' ? 'desc' : 'asc';
+            else teamSort = { key, dir: 'asc' };
+            renderTeam();
+        }
+
+        function renderTeam() {
+            const tbody = document.getElementById('team-tbody');
+            const rows = filteredTeam();
+            setSortIndicators('data-sort-team', teamSort.key, teamSort.dir);
+            document.getElementById('team-count').innerText = `Showing ${rows.length} of ${allTeam.length} team members`;
+            if (!rows.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold">No team members found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = rows.map(t => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/30 transition">
+                    <td class="p-3 font-bold text-white">${esc(t.displayName)} ${t.id === (CURRENT_USER && CURRENT_USER.uid) ? '<span class="ml-1 bg-brand-500/20 text-brand-500 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">You</span>' : ''}</td>
+                    <td class="p-3 text-slate-400">${esc(t.email)}</td>
+                    <td class="p-3">${t.role === 'manager'
+                        ? '<span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full text-[9px] font-black uppercase">Manager</span>'
+                        : '<span class="bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full text-[9px] font-black uppercase">Staff</span>'}</td>
+                    <td class="p-3">${t.active
+                        ? '<span class="bg-green-500/10 text-green-400 px-2 py-1 rounded-full text-[9px] font-black uppercase">Active</span>'
+                        : '<span class="bg-slate-700 text-slate-400 px-2 py-1 rounded-full text-[9px] font-black uppercase">Inactive</span>'}</td>
+                    <td class="p-3 text-slate-400 whitespace-nowrap">${t.createdAt ? fmtDate(t.createdAt) : '—'}</td>
+                </tr>`).join('');
+        }
+
+        function exportTeamCSV() {
+            const rows = filteredTeam();
+            if (!rows.length) { showToast('Nothing to export.', 'warning'); return; }
+            const lines = ['Name,Email,Phone,Access,Status,Added'];
+            rows.forEach(t => lines.push([t.displayName, t.email, t.phone, t.role, t.active ? 'Active' : 'Inactive', t.createdAt ? fmtDate(t.createdAt) : ''].map(csvCell).join(',')));
+            downloadFile(`chromique_team_${new Date().toISOString().slice(0, 10)}.csv`, lines.join('\n'), 'text/csv');
+        }
+
+        // ============================================
+        // PDF EXPORTS (jsPDF + AutoTable)
+        // ============================================
+        function makePdf({ title, subtitle, head, body, orientation = 'landscape', footNote = '', filename }) {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                showToast('PDF library failed to load — check your connection and refresh.', 'error');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation, unit: 'pt', format: 'a4' });
+            const pageW = doc.internal.pageSize.getWidth();
+
+            // Header band
+            doc.setFillColor(15, 23, 42); // slate-950
+            doc.rect(0, 0, pageW, 64, 'F');
+            doc.setTextColor(249, 115, 22); // brand orange
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16);
+            doc.text('CHROMIQUE', 40, 28);
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(11);
+            doc.text(title, 40, 46);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184); // slate-400
+            doc.text(subtitle, pageW - 40, 28, { align: 'right' });
+            doc.text('Generated: ' + new Date().toLocaleString('en-GB') + '  •  By: ' + MANAGER_NAME, pageW - 40, 42, { align: 'right' });
+
+            doc.autoTable({
+                startY: 80,
+                head: [head],
+                body: body,
+                styles: { font: 'helvetica', fontSize: 7.5, cellPadding: 4, overflow: 'linebreak' },
+                headStyles: { fillColor: [249, 115, 22], textColor: [15, 23, 42], fontStyle: 'bold', fontSize: 7.5 },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
+                margin: { left: 40, right: 40 },
+                didDrawPage: (data) => {
+                    const pageH = doc.internal.pageSize.getHeight();
+                    doc.setFontSize(7);
+                    doc.setTextColor(120);
+                    doc.text('CHROMIQUE — Premium Print & Precision Cut, Accra, Ghana', 40, pageH - 20);
+                    doc.text('Page ' + doc.internal.getNumberOfPages(), pageW - 40, pageH - 20, { align: 'right' });
+                }
+            });
+
+            if (footNote) {
+                const y = doc.lastAutoTable.finalY + 18;
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.setTextColor(15, 23, 42);
+                doc.text(footNote, 40, y);
+            }
+
+            doc.save(filename);
+        }
+
+        function activeOrderFiltersLabel() {
+            const bits = [];
+            const q = document.getElementById('ord-search').value.trim();
+            const s = document.getElementById('ord-status').value;
+            const f = document.getElementById('ord-from').value;
+            const t = document.getElementById('ord-to').value;
+            if (q) bits.push('search: "' + q + '"');
+            if (s) bits.push('status: ' + s);
+            if (f) bits.push('from ' + f);
+            if (t) bits.push('to ' + t);
+            return bits.length ? 'Filters — ' + bits.join(', ') : 'All orders (no filters)';
+        }
+
+        function exportOrdersPDF() {
+            const rows = filteredOrders();
+            if (!rows.length) { showToast('Nothing to export — adjust your filters.', 'warning'); return; }
+            const total = rows.reduce((acc, o) => acc + parseAmount(o), 0);
+            makePdf({
+                title: 'Orders Report (' + rows.length + ' orders)',
+                subtitle: activeOrderFiltersLabel(),
+                orientation: 'landscape',
+                head: ['Date', 'Ref', 'Customer', 'Phone', 'Service', 'Qty', 'Amount', 'Payment', 'Status'],
+                body: rows.map(o => [
+                    fmtDate(orderDate(o)),
+                    o.ref || '',
+                    o.name || '',
+                    o.phone || '',
+                    (o.quote && o.quote.service) || '',
+                    (o.quote && o.quote.qty) || '',
+                    (o.quote && o.quote.totalPrice) || '',
+                    o.paymentMethod || '',
+                    (o.status || '').replace('MoMo ', '').replace(' MoMo Verification', '')
+                ]),
+                footNote: 'Total value of listed orders: GH\u00A2' + total.toFixed(2),
+                filename: 'chromique_orders_' + new Date().toISOString().slice(0, 10) + '.pdf'
+            });
+            logActivity('EXPORT_ORDERS', 'Exported ' + rows.length + ' orders to PDF');
+        }
+
+        function exportLogsPDF() {
+            const rows = filteredLogs();
+            if (!rows.length) { showToast('Nothing to export — adjust your filters.', 'warning'); return; }
+            makePdf({
+                title: 'Activity Log Report (' + rows.length + ' entries)',
+                subtitle: 'Activity recorded on this browser',
+                orientation: 'landscape',
+                head: ['Time', 'Who', 'Action', 'Description'],
+                body: rows.map(l => [fmtDate(l.timestamp), l.manager || '', l.action || '', l.description || '']),
+                filename: 'chromique_activity_log_' + new Date().toISOString().slice(0, 10) + '.pdf'
+            });
+        }
+
+        function exportTeamPDF() {
+            const rows = filteredTeam();
+            if (!rows.length) { showToast('Nothing to export.', 'warning'); return; }
+            makePdf({
+                title: 'Team Report (' + rows.length + ' members)',
+                subtitle: 'Login accounts and access levels',
+                orientation: 'portrait',
+                head: ['Name', 'Email', 'Phone', 'Access', 'Status', 'Added'],
+                body: rows.map(t => [
+                    t.displayName || '', t.email || '', t.phone || '',
+                    t.role === 'manager' ? 'MANAGER' : 'STAFF',
+                    t.active ? 'Active' : 'Inactive',
+                    t.createdAt ? fmtDate(t.createdAt) : ''
+                ]),
+                filename: 'chromique_team_' + new Date().toISOString().slice(0, 10) + '.pdf'
+            });
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('auth-lockscreen').classList.remove('hidden');
+            const pw = document.getElementById('auth-password-input');
+            if (pw) pw.addEventListener('keydown', (e) => { if (e.key === 'Enter') signIn(); });
+            document.getElementById('order-modal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeOrderModal();
+            });
+        });
+    </script>
+</body>
+</html>

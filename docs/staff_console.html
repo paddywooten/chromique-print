@@ -26,6 +26,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
@@ -39,6 +40,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
         
         // Expose to global scope
         window.firebaseDB = db;
@@ -50,6 +52,17 @@
         window.firebaseGetDoc = getDoc;
         window.firebaseSetDoc = setDoc;
         window.firebaseGetDocs = getDocs;
+        
+        // --- Firebase Authentication helpers ---
+        window.firebaseAuth = auth;
+        window.firebaseSignIn = (email, password) => signInWithEmailAndPassword(auth, email, password);
+        window.firebaseSignOut = () => signOut(auth);
+        window.firebaseSendReset = (email) => sendPasswordResetEmail(auth, email);
+        
+        // React to login/logout (classic body script defines the handler before modules run)
+        onAuthStateChanged(auth, (user) => {
+            if (window.handleAuthStateChange) window.handleAuthStateChange(user);
+        });
     </script>
     
     <!-- Link to external modular assets for synchronized state -->
@@ -91,18 +104,22 @@
                 <p class="text-xs text-slate-500">CHROMIQUE Staff Access</p>
             </div>
             <div class="space-y-3">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Staff Member</label>
-                    <select id="manager-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500">
-                        <option value="">Loading staff...</option>
-                    </select>
+                <div class="space-y-1.5 text-left">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</label>
+                    <input type="email" id="auth-email-input" placeholder="you@chromique.com" autocomplete="username" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500 text-white">
                 </div>
-                <input type="password" id="admin-passcode-input" placeholder="Enter Staff Passcode" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500 tracking-widest text-white font-mono">
-                <button onclick="verifyPasscode()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider shadow-lg shadow-brand-500/10">
-                    Verify &amp; Login
+                <div class="space-y-1.5 text-left">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password</label>
+                    <input type="password" id="auth-password-input" placeholder="Enter your password" autocomplete="current-password" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500 tracking-widest text-white font-mono">
+                </div>
+                <button id="auth-signin-btn" onclick="signIn()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider shadow-lg shadow-brand-500/10">
+                    Sign In
+                </button>
+                <button onclick="forgotPassword()" class="text-[11px] text-slate-500 hover:text-brand-500 font-bold transition">
+                    Forgot password? Send reset email
                 </button>
             </div>
-            <p id="auth-error-msg" class="text-[11px] text-red-500 font-bold hidden"><i class="fa-solid fa-circle-exclamation mr-1.5 animate-bounce"></i> Access Denied. Redirecting back home...</p>
+            <p id="auth-error-msg" class="text-[11px] text-red-500 font-bold hidden"><i class="fa-solid fa-circle-exclamation mr-1.5"></i> <span id="auth-error-text">Access Denied.</span></p>
         </div>
     </div>
 
@@ -125,6 +142,9 @@
             <span class="bg-brand-500/10 text-brand-500 border border-brand-500/20 px-3 py-1.5 rounded-full font-mono font-bold hidden md:inline-block"><i class="fa-solid fa-circle text-[8px] mr-1.5 animate-pulse"></i> SYSTEM ONLINE</span>
             <span class="text-slate-800 hidden md:inline-block">|</span>
             <span id="welcome-manager" class="text-brand-500 font-bold">—</span>
+            <button onclick="logoutUser()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl transition flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
         </div>
     </nav>
 
@@ -353,169 +373,140 @@
 
     <!-- Secure Password Authentication & Dynamic Orders Ingestion Script -->
     <script>
-        let ADMIN_PASSCODE = "2026"; // Default passcode, will be loaded from Firebase
+        // ============================================
+        // FIREBASE AUTHENTICATION (Email/Password)
+        // Roles come from the 'user_roles' Firestore collection, keyed by uid:
+        //   { role: 'manager' | 'staff', displayName, email, active }
+        // This console accepts active 'staff' and 'manager' accounts.
+        // ============================================
+        let CURRENT_USER = null;
 
-        // Load staff passcode from Firebase
-        async function loadStaffPasscode() {
-            try {
-                const docSnap = await window.firebaseGetDoc(
-                    window.firebaseDoc(window.firebaseDB, 'settings', 'staff_passcode')
-                );
-                
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data && data.value) {
-                        ADMIN_PASSCODE = data.value;
-                        console.log('Staff passcode loaded from Firebase');
-                    }
-                }
-            } catch (error) {
-                console.log('No custom staff passcode found, using default');
-            }
+        function showAuthError(message) {
+            const errorMsg = document.getElementById('auth-error-msg');
+            const errorText = document.getElementById('auth-error-text');
+            if (errorText) errorText.innerText = message;
+            if (errorMsg) errorMsg.classList.remove('hidden');
         }
 
-        // Load staff profiles from Firebase
-        async function loadStaffProfiles() {
-            console.log('loadStaffProfiles called');
-            const select = document.getElementById('manager-select');
-            console.log('Select element:', select);
-            
-            // Check if Firebase is available
-            if (!window.firebaseDB || !window.firebaseCollection || !window.firebaseGetDocs) {
-                console.error('Firebase functions not available');
-                select.innerHTML = '<option value="">Firebase not initialized</option>';
-                return;
-            }
-            
-            try {
-                console.log('Fetching staff profiles from Firebase...');
-                const staffCollection = window.firebaseCollection(window.firebaseDB, 'staff_profiles');
-                console.log('Collection reference:', staffCollection);
-                
-                const snapshot = await window.firebaseGetDocs(staffCollection);
-                console.log('Snapshot received:', snapshot);
-                console.log('Snapshot empty:', snapshot.empty);
-                console.log('Snapshot size:', snapshot.size);
-
-                if (snapshot.empty) {
-                    console.log('No staff profiles found in Firebase');
-                    select.innerHTML = '<option value="">No staff profiles found</option>';
-                    return;
-                }
-
-                const staffList = [];
-                console.log('Processing staff documents...');
-                snapshot.forEach(doc => {
-                    const staff = doc.data();
-                    console.log('Staff document:', { id: doc.id, data: staff });
-                    console.log('Staff active status:', staff.active);
-                    
-                    if (staff.active) {
-                        console.log('Adding active staff:', staff.displayName);
-                        staffList.push({ id: doc.id, ...staff });
-                    } else {
-                        console.log('Skipping inactive staff:', staff.displayName);
-                    }
-                });
-
-                console.log('Total active staff:', staffList.length);
-
-                if (staffList.length === 0) {
-                    console.log('No active staff found');
-                    select.innerHTML = '<option value="">No active staff found</option>';
-                    return;
-                }
-
-                // Sort by name
-                staffList.sort((a, b) => a.name.localeCompare(b.name));
-                console.log('Sorted staff list:', staffList);
-
-                // Populate dropdown
-                select.innerHTML = '';
-                staffList.forEach(staff => {
-                    console.log('Adding option for:', staff.displayName);
-                    const option = document.createElement('option');
-                    option.value = staff.displayName;
-                    option.textContent = staff.displayName;
-                    select.appendChild(option);
-                });
-
-                console.log('Dropdown populated successfully with', staffList.length, 'staff members');
-
-            } catch (error) {
-                console.error('Error loading staff profiles:', error);
-                console.error('Error details:', {
-                    message: error.message,
-                    code: error.code,
-                    stack: error.stack
-                });
-                select.innerHTML = '<option value="">Error loading staff</option>';
-            }
+        function hideAuthError() {
+            const errorMsg = document.getElementById('auth-error-msg');
+            if (errorMsg) errorMsg.classList.add('hidden');
         }
 
         function checkSessionAuth() {
-            // ALWAYS REQUIRE ACCESS ON EACH INDIVIDUAL PAGE ENTRY OR PAGE REFRESH!
-            // We bypass the sessionStorage cache, forcing the lockscreen to be visible by default on load.
+            // Lockscreen visible by default; Firebase Auth decides whether to lift it.
             document.getElementById('auth-lockscreen').classList.remove('hidden');
-            loadMomoOrders();
-            loadActivityLog();
         }
 
-        function verifyPasscode() {
-            console.log('verifyPasscode called');
-            const val = document.getElementById('admin-passcode-input').value;
-            const managerSelect = document.getElementById('manager-select');
-            const selectedManager = managerSelect ? managerSelect.value : 'Unknown';
-            const errorMsg = document.getElementById('auth-error-msg');
-            
-            console.log('Passcode entered:', val);
-            console.log('Expected passcode:', ADMIN_PASSCODE);
-            console.log('Selected manager:', selectedManager);
-            
-            if (val === ADMIN_PASSCODE) {
-                console.log('Passcode correct! Logging in...');
-                
-                // Store the logged-in manager
-                sessionStorage.setItem('chromique_logged_in_manager', selectedManager);
-                
-                // Log the login activity
-                logActivity('LOGIN', `${selectedManager} logged into the console`);
-                
-                // Hide the lockscreen overlay
-                const lockscreen = document.getElementById('auth-lockscreen');
-                if (lockscreen) {
-                    lockscreen.classList.add('hidden');
-                    console.log('Lockscreen hidden');
+        // Called by the Firebase module script on every auth state change
+        async function handleAuthStateChange(user) {
+            const lockscreen = document.getElementById('auth-lockscreen');
+
+            if (!user) {
+                CURRENT_USER = null;
+                sessionStorage.removeItem('chromique_logged_in_manager');
+                if (lockscreen) lockscreen.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const roleSnap = await window.firebaseGetDoc(
+                    window.firebaseDoc(window.firebaseDB, 'user_roles', user.uid)
+                );
+
+                const roleData = roleSnap.exists() ? roleSnap.data() : null;
+                const hasAccess = roleData
+                    && (roleData.role === 'staff' || roleData.role === 'manager')
+                    && roleData.active !== false;
+
+                if (!hasAccess) {
+                    showAuthError('This account does not have staff access.');
+                    await window.firebaseSignOut();
+                    return;
                 }
-                
-                // Update the welcome message in navbar
+
+                CURRENT_USER = user;
+                const displayName = roleData.displayName || user.email;
+                sessionStorage.setItem('chromique_logged_in_manager', displayName);
+
+                hideAuthError();
+                if (lockscreen) lockscreen.classList.add('hidden');
+
                 const welcomeEl = document.getElementById('welcome-manager');
-                if (welcomeEl) {
-                    welcomeEl.innerText = selectedManager;
-                    console.log('Welcome message updated');
-                }
-                
-                // Reload data
+                if (welcomeEl) welcomeEl.innerText = displayName;
+
+                logActivity('LOGIN', `${displayName} logged into the console`);
                 loadMomoOrders();
                 loadActivityLog();
-                
-                console.log('Login complete!');
-            } else {
-                console.log('Passcode incorrect!');
-                if (errorMsg) {
-                    errorMsg.classList.remove('hidden');
-                }
-                document.getElementById('admin-passcode-input').value = '';
-                
-                // Boot them back to the storefront home if they guess wrong!
-                setTimeout(() => {
-                    window.location.href = "print_index.html";
-                }, 1800);
+
+            } catch (error) {
+                console.error('Error verifying staff role:', error);
+                showAuthError('Could not verify your access. Please try again.');
+                await window.firebaseSignOut();
             }
         }
-        
-        // Make function globally accessible
-        window.verifyPasscode = verifyPasscode;
+        window.handleAuthStateChange = handleAuthStateChange;
+
+        async function signIn() {
+            const email = document.getElementById('auth-email-input').value.trim();
+            const password = document.getElementById('auth-password-input').value;
+            const btn = document.getElementById('auth-signin-btn');
+
+            if (!email || !password) {
+                showAuthError('Please enter your email and password.');
+                return;
+            }
+
+            hideAuthError();
+            if (btn) { btn.disabled = true; btn.innerText = 'Signing in...'; }
+
+            try {
+                await window.firebaseSignIn(email, password);
+                document.getElementById('auth-password-input').value = '';
+            } catch (error) {
+                const code = error.code || '';
+                if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+                    showAuthError('Invalid email or password.');
+                } else if (code === 'auth/too-many-requests') {
+                    showAuthError('Too many attempts. Try again later or reset your password.');
+                } else if (code === 'auth/invalid-email') {
+                    showAuthError('Please enter a valid email address.');
+                } else {
+                    showAuthError('Sign-in failed. Check your connection and try again.');
+                }
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerText = 'Sign In'; }
+            }
+        }
+        window.signIn = signIn;
+
+        async function forgotPassword() {
+            const email = document.getElementById('auth-email-input').value.trim();
+            if (!email) {
+                showAuthError('Enter your email above first, then click reset.');
+                return;
+            }
+            try {
+                await window.firebaseSendReset(email);
+                hideAuthError();
+                showToast(`Password reset email sent to ${email}`, 'success');
+            } catch (error) {
+                showAuthError('Could not send reset email. Check the address.');
+            }
+        }
+        window.forgotPassword = forgotPassword;
+
+        async function logoutUser() {
+            const staffName = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
+            logActivity('LOGOUT', `${staffName} logged out of the console`);
+            try {
+                await window.firebaseSignOut();
+                showToast('Logged out successfully', 'success');
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+        window.logoutUser = logoutUser;
 
         // Global array to store orders with their Firebase document IDs
         let momoOrdersData = [];
@@ -1037,7 +1028,7 @@
             
             // Validate required fields
             if (!name || !phone || !service || !amount) {
-                alert('Please fill in all required fields (Name, Phone, Service, Amount)');
+                showToast('Please fill in all required fields (Name, Phone, Service, Amount)', 'error');
                 return;
             }
             
@@ -1104,11 +1095,11 @@
                 // Reset form
                 document.getElementById('manual-order-form').reset();
                 
-                alert(`Manual order ${ref} created successfully!\n\nCustomer: ${name}\nService: ${service}\nAmount: GH¢${amount.toFixed(2)}\n\nReceipt has been generated.`);
+                showToast(`Manual order ${ref} created for ${name} (GH¢${amount.toFixed(2)}) — receipt generated!`, 'success');
                 
             } catch (error) {
                 console.error('Error creating manual order:', error);
-                alert('Error creating order. Please try again.');
+                showToast('Error creating order. Please try again.', 'error');
             }
         });
         
@@ -1183,8 +1174,8 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             checkSessionAuth();
-            loadStaffProfiles();
-            loadStaffPasscode();
+            const pwInput = document.getElementById('auth-password-input');
+            if (pwInput) pwInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') signIn(); });
         });
 
         // Scroll to top button functionality

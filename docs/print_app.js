@@ -1,8 +1,8 @@
 /**
- * CHROMIQUE - GLOBAL E-COMMERCE & CALCULATOR ENGINE
+ * CHROMIQUE - GLOBAL CALCULATOR & SETTINGS ENGINE
  * Handles custom print math, dimension unit conversions, full-matrix developer pricing,
- * Base64 file reading, Google Drive automated uploads, unique CHQ order token generation,
- * local order synchronization, and Paystack popup APIs.
+ * quote hand-off to the MoMo payment page, and shared UI helpers (toasts, mobile menu,
+ * scroll-to-top). Used by the storefront, admin dashboard, and staff console.
  */
 
 let appSettings = {
@@ -22,20 +22,11 @@ let appSettings = {
     paystackKey: 'pk_test_a0d8ea9c81523cbf729119632832810cd8ea3120' // Default test key
 };
 
-let cart = [];
-
 let calculator = {
     basePrice: 0,
     qty: 1,
     totalGHS: 0,
     areaSqFt: 0
-};
-
-// Global File Upload state holder
-let activeUploadedFile = {
-    base64Data: null,
-    fileName: "",
-    mimeType: ""
 };
 
 // ----------------------------------------------------
@@ -186,22 +177,6 @@ function initPrintStore() {
     }
     
     updateCurrency();
-    
-    // Set up file change listener for Base64 Conversion
-    const fileInput = document.getElementById('print-file-upload');
-    if (fileInput) {
-        fileInput.addEventListener('change', handleFileSelection);
-    }
-}
-
-function toggleDevPanel(show) {
-    const drawer = document.getElementById('dev-drawer');
-    if (!drawer) return;
-    if (show) {
-        drawer.classList.remove('translate-x-[-100%]');
-    } else {
-        drawer.classList.add('translate-x-[-100%]');
-    }
 }
 
 function saveDevSettings() {
@@ -255,7 +230,6 @@ function saveDevSettings() {
     appSettings.currency = currVal;
     
     updateCurrency();
-    if (document.getElementById('dev-drawer')) toggleDevPanel(false);
     
     // Log the activity
     if (typeof logActivity === 'function') {
@@ -264,9 +238,9 @@ function saveDevSettings() {
         if (typeof loadActivityLog === 'function') {
             loadActivityLog();
         }
-        alert(`Configurations saved successfully by ${manager}!`);
+        showToast(`Configurations saved by ${manager}!`, 'success');
     } else {
-        alert("Configurations saved successfully! Your print rates and security parameters have been updated.");
+        showToast('Configurations saved! Print rates updated.', 'success');
     }
 }
 
@@ -304,7 +278,6 @@ function updateCurrency() {
     if (optDtfA3) optDtfA3.innerText = `A3 Sizing (${formatPrice(appSettings.dtfA3Cost)})`;
     
     calculatePrice();
-    renderCart();
 }
 
 function formatPrice(g_price) {
@@ -442,354 +415,8 @@ function calculatePrice() {
 }
 
 // ----------------------------------------------------
-// 3. Base64 File Conversions
+// 3. Quote Hand-off & Page Wiring
 // ----------------------------------------------------
-function handleFileSelection(event) {
-    const file = event.target.targetFiles ? event.target.targetFiles[0] : event.target.files[0];
-    if (!file) return;
-    
-    activeUploadedFile.fileName = file.name;
-    activeUploadedFile.mimeType = file.type;
-    
-    // Read file as Base64 encoded string
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64String = e.target.result.split(',')[1];
-        activeUploadedFile.base64Data = base64String;
-        console.log(`Successfully converted ${file.name} to Base64!`);
-        
-        const label = document.getElementById('upload-status-label');
-        if (label) {
-            label.innerText = `READY: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-            label.classList.add('text-brand-500', 'font-extrabold');
-        }
-    };
-    reader.readAsDataURL(file);
-}
-
-// ----------------------------------------------------
-// 4. Cart Management & Secure Google Drive Upload
-// ----------------------------------------------------
-function toggleCart(show) {
-    const drawer = document.getElementById('cart-drawer');
-    const overlay = document.getElementById('cart-drawer-overlay');
-    if (!drawer || !overlay) return;
-    
-    if (show) {
-        drawer.classList.remove('translate-x-[100%]');
-        overlay.classList.remove('hidden');
-    } else {
-        drawer.classList.add('translate-x-[100%]');
-        overlay.classList.add('hidden');
-        
-        const form = document.getElementById('checkout-form-container');
-        if (form) form.classList.add('hidden');
-        const mainBtn = document.getElementById('main-cart-btn');
-        if (mainBtn) mainBtn.classList.remove('hidden');
-        const paystackBtn = document.getElementById('paystack-btn');
-        if (paystackBtn) paystackBtn.classList.add('hidden');
-    }
-}
-
-async function addToCart() {
-    const type = document.getElementById('print-type');
-    const unit = document.getElementById('print-unit');
-    const wInput = document.getElementById('print-width');
-    const hInput = document.getElementById('print-height');
-    const sheetSizeSelect = document.getElementById('print-sheet-size');
-    const descInput = document.getElementById('custom-print-description');
-    const addBtn = document.querySelector('#calculator button');
-    
-    if (!type || !unit || !wInput || !hInput || !sheetSizeSelect || !descInput) return;
-    
-    const service = type.value;
-    const typeLabel = type.options[type.selectedIndex].text;
-    
-    let sizeDetails = "";
-    let customNotes = "";
-    
-    if (service === 'labels') {
-        sizeDetails = `Standard Sheets`;
-    } else if (service === 'dtf' || service === 'sublimation') {
-        sizeDetails = `${sheetSizeSelect.value.toUpperCase()} Sheet`;
-    } else {
-        sizeDetails = `${wInput.value}x${hInput.value} ${unit.value}`;
-    }
-    
-    // Settle Custom Print descriptions
-    if (service === 'custom') {
-        const descText = descInput.value.trim();
-        if (descText === '') {
-            alert("Please type in what custom print requirements you want before adding to the queue!");
-            descInput.focus();
-            return;
-        }
-        customNotes = ` - "${descText}"`;
-    }
-    
-    let googleDriveLink = "";
-    
-    if (appSettings.googleDriveScriptUrl && activeUploadedFile.base64Data) {
-        if (addBtn) {
-            addBtn.disabled = true;
-            addBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Uploading to Google Drive...';
-        }
-        
-        try {
-            console.log("Sending file to Google Apps Script Web App...");
-            const response = await fetch(appSettings.googleDriveScriptUrl, {
-                method: "POST",
-                mode: "no-cors",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    fileName: activeUploadedFile.fileName,
-                    mimeType: activeUploadedFile.mimeType,
-                    fileData: activeUploadedFile.base64Data
-                })
-            });
-            
-            googleDriveLink = `https://drive.google.com/drive/u/0/folders/by-name-search`;
-            console.log("Google Ingestion completed securely.");
-            
-        } catch (uploadError) {
-            console.error("Google Drive Upload Error: ", uploadError);
-        } finally {
-            if (addBtn) {
-                addBtn.disabled = false;
-                addBtn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> Add Job to Queue';
-            }
-        }
-    } else {
-        googleDriveLink = "Local File (Configure Google Script to automate)";
-    }
-    
-    const cartItemName = `PRINT: ${typeLabel}${customNotes} (${sizeDetails})`;
-    const artworkLabel = activeUploadedFile.fileName || "No file uploaded";
-    
-    cart.push({
-        id: "job_" + Date.now(),
-        name: cartItemName,
-        price: calculator.basePrice,
-        qty: calculator.qty,
-        size: `Size: ${sizeDetails} // QTY: ${calculator.qty}`,
-        fileName: artworkLabel,
-        driveLink: googleDriveLink,
-        serviceCode: getServiceCode(service)
-    });
-    
-    // Reset file uploads and indicators
-    wInput.value = '';
-    hInput.value = '';
-    descInput.value = '';
-    activeUploadedFile = { base64Data: null, fileName: "", mimeType: "" };
-    
-    const label = document.getElementById('upload-status-label');
-    if (label) {
-        label.innerText = "Drag & drop or click to upload PNG, SVG, or PDF";
-        label.className = "block text-[10px] text-slate-500";
-    }
-    
-    const fileEl = document.getElementById('print-file-upload');
-    if (fileEl) fileEl.value = '';
-    
-    calculatePrice();
-    renderCart();
-    toggleCart(true);
-}
-
-function getServiceCode(service) {
-    const codes = {
-        'banner': 'BNR',
-        'stickers': 'STK',
-        'labels': 'LBL',
-        'dtf': 'DTF',
-        'sublimation': 'SUB',
-        'custom': 'CST'
-    };
-    return codes[service] || 'PRT';
-}
-
-function removeCartItem(index) {
-    cart.splice(index, 1);
-    renderCart();
-}
-
-function renderCart() {
-    const container = document.getElementById('cart-items-container');
-    const badge = document.getElementById('cart-badge');
-    const subtotalEl = document.getElementById('cart-subtotal');
-    if (!container) return;
-    
-    if (cart.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-16 text-slate-500 space-y-2">
-                <i class="fa-solid fa-cart-shopping text-3xl mb-1 block opacity-30 text-orange-500"></i>
-                <p class="text-xs font-semibold">Your print job queue is empty.</p>
-                <p class="text-[11px]">Configure your sheets and add them to the queue.</p>
-            </div>
-        `;
-        if (badge) badge.classList.add('hidden');
-        if (subtotalEl) subtotalEl.innerText = formatPrice(0);
-        return;
-    }
-    
-    let totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
-    if (badge) {
-        badge.innerText = totalQty;
-        badge.classList.remove('hidden');
-    }
-    
-    let subtotal = 0;
-    container.innerHTML = ''; // clear
-    
-    cart.forEach((item, index) => {
-        subtotal += item.price * item.qty;
-        let itemHTML = `
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-2 animate-fade-in text-xs">
-                <div class="flex justify-between items-start">
-                    <h4 class="font-bold text-white leading-tight flex-1 pr-4">${item.name}</h4>
-                    <button onclick="removeCartItem(${index})" class="text-slate-500 hover:text-red-500 transition"><i class="fa-solid fa-trash-can"></i></button>
-                </div>
-                <div class="text-[10px] text-slate-400 font-mono">File: ${item.fileName}</div>
-                <div class="flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase pt-1">
-                    <span>${item.size}</span>
-                    <span class="text-xs font-black text-orange-500">${formatPrice(item.price * item.qty)}</span>
-                </div>
-            </div>
-        `;
-        container.innerHTML += itemHTML;
-    });
-    
-    if (subtotalEl) subtotalEl.innerText = formatPrice(subtotal);
-}
-
-// ----------------------------------------------------
-// 5. Paystack Payments Processor & UNIQUE CHQ TOKEN CODE GENERATION
-// ----------------------------------------------------
-function proceedToForm() {
-    if (cart.length === 0) {
-        alert("Your print queue is empty. Please configure a custom print job first.");
-        return;
-    }
-    const form = document.getElementById('checkout-form-container');
-    const mainBtn = document.getElementById('main-cart-btn');
-    const paystackBtn = document.getElementById('paystack-btn');
-    
-    if (form) form.classList.remove('hidden');
-    if (mainBtn) mainBtn.classList.add('hidden');
-    if (paystackBtn) paystackBtn.classList.add('hidden');
-    
-    if (form && !form.classList.contains('hidden')) {
-        paystackBtn.classList.remove('hidden');
-    }
-}
-
-// Generate an ultra-professional, unique alphanumeric token receipt code (e.g., CHQ-STK-4F2A)
-function generateOrderToken(serviceCode) {
-    const chars = '0123456789ABCDEF';
-    let randCode = '';
-    for (let i = 0; i < 4; i++) {
-        randCode += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return `CHQ-${serviceCode}-${randCode}`; // Swapped VPH with CHQ!
-}
-
-function payWithPaystack() {
-    const email = document.getElementById('customer-email').value.trim();
-    const name = document.getElementById('customer-name').value.trim();
-    const phone = document.getElementById('customer-phone').value.trim();
-    const location = document.getElementById('customer-location').value.trim();
-
-    if (!email || !name || !phone || !location) {
-        alert("Please complete all shipping address and contact fields.");
-        return;
-    }
-
-    let subtotalGHS = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    let currencyCode = appSettings.currency;
-    let convertedTotal = subtotalGHS * appSettings.exchangeRate;
-    let finalSubunitAmount = Math.round(convertedTotal * 100);
-
-    const firstItem = cart[0] || {};
-    const serviceCode = firstItem.serviceCode || 'PRT';
-    const uniqueReceiptToken = generateOrderToken(serviceCode);
-
-    let handler = PaystackPop.setup({
-        key: appSettings.paystackKey,
-        email: email,
-        amount: finalSubunitAmount,
-        currency: currencyCode,
-        metadata: {
-            custom_fields: [
-                { display_name: "Order Confirmation Token", variable_name: "order_token", value: uniqueReceiptToken },
-                { display_name: "Client Name", variable_name: "customer_name", value: name },
-                { display_name: "Delivery Destination", variable_name: "delivery_address", value: location },
-                { display_name: "Phone Number", variable_name: "phone_number", value: phone },
-                { display_name: "Print Job Queue Summary", variable_name: "print_queue", value: cart.map(item => `${item.name} (${item.size}) [Drive: ${item.driveLink}]`).join(" // ") }
-            ]
-        },
-        callback: function(response){
-            let localOrders = JSON.parse(localStorage.getItem('chromique_print_orders')) || [];
-            
-            let newOrder = {
-                token: uniqueReceiptToken,
-                name: name,
-                email: email,
-                phone: phone,
-                address: location,
-                amount: formatPrice(subtotalGHS),
-                reference: response.reference,
-                itemSummary: cart.map(item => `${item.name}`).join(", "),
-                driveLink: cart[0].driveLink || "",
-                status: "cutting",
-                date: new Date().toLocaleDateString()
-            };
-            
-            localOrders.unshift(newOrder);
-            localStorage.setItem('chromique_print_orders', JSON.stringify(localOrders));
-            
-            const recToken = document.getElementById('rec-token');
-            const recEmail = document.getElementById('rec-email');
-            const recLoc = document.getElementById('rec-location');
-            const recRef = document.getElementById('rec-ref');
-            const recSummary = document.getElementById('rec-summary');
-            const modal = document.getElementById('success-modal');
-            
-            if (recToken) recToken.innerText = uniqueReceiptToken;
-            if (recEmail) recEmail.innerText = email;
-            if (recLoc) recLoc.innerText = location;
-            if (recRef) recRef.innerText = response.reference;
-            
-            if (recSummary) {
-                recSummary.innerHTML = cart.map(item => `<div class="font-bold text-slate-800 text-xs">${item.name}</div>`).join('');
-            }
-            
-            toggleCart(false);
-            if (modal) modal.classList.remove('hidden');
-            
-            cart = [];
-            renderCart();
-        },
-        onClose: function(){
-            alert('Checkout session closed. Your print jobs are preserved in your queue.');
-        }
-    });
-    handler.openIframe();
-}
-
-function copyReceiptToken() {
-    const token = document.getElementById('rec-token').innerText;
-    navigator.clipboard.writeText(token).then(() => {
-        alert(`Order Token Code Copied: ${token}\nUse this token to track your print or confirm with CHROMIQUE!`);
-    });
-}
-
-function closeSuccessModal() {
-    const modal = document.getElementById('success-modal');
-    if (modal) modal.classList.add('hidden');
-}
 
 // Save current calculator quote to sessionStorage for MoMo payment page
 function saveQuoteToSession() {
@@ -814,6 +441,14 @@ function saveQuoteToSession() {
     };
 
     sessionStorage.setItem('chromique_momo_quote', JSON.stringify(quote));
+}
+
+// Preselect a service in the calculator (used by the clickable service cards)
+function selectService(code) {
+    const type = document.getElementById('print-type');
+    if (!type) return;
+    type.value = code;
+    toggleDimensionFields();
 }
 
 // Watch inputs and toggle dimension fields based on selected service type

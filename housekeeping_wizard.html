@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHROMIQUE | Housekeeping Wizard</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Plus Jakarta Sans', sans-serif; } </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, deleteDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
+            authDomain: "chromique-print.firebaseapp.com",
+            projectId: "chromique-print",
+            storageBucket: "chromique-print.firebasestorage.app",
+            messagingSenderId: "133831518444",
+            appId: "1:133831518444:web:c41d88c924bd245d5bddc9",
+            measurementId: "G-0MFWEZ9CDV"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const $ = (id) => document.getElementById(id);
+        let ME = null;
+
+        function setStatus(id, kind, message) {
+            const el = $(id);
+            const styles = {
+                ok:   'bg-green-500/10 border-green-500/30 text-green-400',
+                err:  'bg-red-500/10 border-red-500/30 text-red-400',
+                warn: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+                info: 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+            };
+            const icons = { ok: 'fa-circle-check', err: 'fa-circle-xmark', warn: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+            el.className = `mt-3 border rounded-xl p-3 text-xs font-bold ${styles[kind]}`;
+            el.innerHTML = `<i class="fa-solid ${icons[kind]} mr-1.5"></i>${message}`;
+            el.classList.remove('hidden');
+        }
+
+        function requireLogin(statusId) {
+            if (!ME) {
+                setStatus(statusId, 'err', 'Sign in first (top of the page) — these actions need manager access.');
+                return false;
+            }
+            return true;
+        }
+
+        // ---------- STEP 0: manager sign-in ----------
+        window.hkSignIn = async function() {
+            const email = $('hk-email').value.trim();
+            const password = $('hk-password').value;
+            if (!email || !password) { setStatus('status-0', 'err', 'Enter your manager email and password.'); return; }
+            setStatus('status-0', 'info', 'Signing in...');
+            try {
+                const cred = await signInWithEmailAndPassword(auth, email, password);
+                const roleSnap = await getDoc(doc(db, 'user_roles', cred.user.uid));
+                if (!roleSnap.exists() || roleSnap.data().role !== 'manager' || roleSnap.data().active === false) {
+                    await signOut(auth);
+                    setStatus('status-0', 'err', 'This account is not an active manager.');
+                    return;
+                }
+                ME = cred.user;
+                setStatus('status-0', 'ok', `Signed in as ${roleSnap.data().displayName || email}. Now run the scans below!`);
+                $('hk-signin-box').classList.add('opacity-50');
+            } catch (error) {
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                    setStatus('status-0', 'err', 'Invalid email or password.');
+                } else {
+                    setStatus('status-0', 'err', `Sign-in failed: ${error.code || error.message}`);
+                }
+            }
+        };
+
+        // ---------- STEP 1: test orders ----------
+        let testOrderIds = [];
+        window.scanTestOrders = async function() {
+            if (!requireLogin('status-1')) return;
+            setStatus('status-1', 'info', 'Scanning for test orders...');
+            try {
+                const snap = await getDocs(query(collection(db, 'momo_orders'), where('ref', '==', 'RULES-TEST')));
+                testOrderIds = snap.docs.map(d => d.id);
+                if (testOrderIds.length === 0) {
+                    setStatus('status-1', 'ok', 'Clean! No "RULES-TEST" orders found.');
+                    $('btn-del-orders').classList.add('hidden');
+                } else {
+                    setStatus('status-1', 'warn', `Found ${testOrderIds.length} test order(s) named "RULES-TEST". Click the red button to delete them.`);
+                    $('btn-del-orders').classList.remove('hidden');
+                }
+            } catch (error) {
+                setStatus('status-1', 'err', `Scan failed: ${error.code || error.message}`);
+            }
+        };
+        window.deleteTestOrders = async function() {
+            if (!requireLogin('status-1')) return;
+            setStatus('status-1', 'info', 'Deleting...');
+            let done = 0, failed = 0;
+            for (const id of testOrderIds) {
+                try { await deleteDoc(doc(db, 'momo_orders', id)); done++; }
+                catch (e) { failed++; }
+            }
+            testOrderIds = [];
+            $('btn-del-orders').classList.add('hidden');
+            if (failed === 0) setStatus('status-1', 'ok', `Deleted ${done} test order(s). Clean! ✔`);
+            else setStatus('status-1', 'err', `Deleted ${done}, but ${failed} failed — re-scan and try again.`);
+        };
+
+        // ---------- STEP 2: legacy passcode settings ----------
+        let legacySettings = [];
+        window.scanSettings = async function() {
+            if (!requireLogin('status-2')) return;
+            setStatus('status-2', 'info', 'Checking for old passcode documents...');
+            legacySettings = [];
+            try {
+                for (const key of ['admin_passcode', 'staff_passcode']) {
+                    const snap = await getDoc(doc(db, 'settings', key));
+                    if (snap.exists()) legacySettings.push(key);
+                }
+                if (legacySettings.length === 0) {
+                    setStatus('status-2', 'ok', 'Clean! No leftover passcode documents in settings.');
+                    $('btn-del-settings').classList.add('hidden');
+                } else {
+                    setStatus('status-2', 'warn', `Found leftover: ${legacySettings.map(s => `settings/${s}`).join(' and ')}. These are no longer used — click delete.`);
+                    $('btn-del-settings').classList.remove('hidden');
+                }
+            } catch (error) {
+                setStatus('status-2', 'err', `Scan failed: ${error.code || error.message}`);
+            }
+        };
+        window.deleteSettings = async function() {
+            if (!requireLogin('status-2')) return;
+            setStatus('status-2', 'info', 'Deleting...');
+            let done = 0, failed = 0;
+            for (const key of legacySettings) {
+                try { await deleteDoc(doc(db, 'settings', key)); done++; }
+                catch (e) { failed++; }
+            }
+            legacySettings = [];
+            $('btn-del-settings').classList.add('hidden');
+            if (failed === 0) setStatus('status-2', 'ok', `Deleted ${done} old passcode document(s). Clean! ✔`);
+            else setStatus('status-2', 'err', `Deleted ${done}, but ${failed} failed — re-scan and try again.`);
+        };
+
+        // ---------- STEP 3: orphaned staff profiles (no login account) ----------
+        window.scanProfiles = async function() {
+            if (!requireLogin('status-3')) return;
+            setStatus('status-3', 'info', 'Comparing staff profiles against login accounts...');
+            const list = $('orphan-list');
+            list.innerHTML = '';
+            list.classList.add('hidden');
+            try {
+                const [profSnap, roleSnap] = await Promise.all([
+                    getDocs(collection(db, 'staff_profiles')),
+                    getDocs(collection(db, 'user_roles'))
+                ]);
+                const roleIds = new Set(roleSnap.docs.map(d => d.id));
+                const orphans = profSnap.docs.filter(d => !roleIds.has(d.id));
+
+                if (orphans.length === 0) {
+                    setStatus('status-3', 'ok', 'Clean! Every staff profile has a matching login account.');
+                    return;
+                }
+                setStatus('status-3', 'warn', `Found ${orphans.length} legacy profile(s) with NO login account (from the old passcode days). Review and delete them below — or re-create them properly in the dashboard.`);
+                orphans.forEach(d => {
+                    const data = d.data();
+                    const row = document.createElement('div');
+                    row.className = 'flex justify-between items-center bg-slate-900 border border-slate-800 rounded-xl p-3';
+                    row.innerHTML = `
+                        <div class="text-xs">
+                            <div class="font-bold text-white">${data.displayName || data.name || d.id}</div>
+                            <div class="text-[10px] text-slate-500">${data.email || 'no email'} • no login account</div>
+                        </div>
+                        <button class="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-2 rounded-lg text-[10px] font-bold transition">
+                            <i class="fa-solid fa-trash mr-1"></i>Delete
+                        </button>`;
+                    row.querySelector('button').addEventListener('click', async (e) => {
+                        const btn = e.currentTarget;
+                        btn.disabled = true;
+                        btn.innerHTML = '...';
+                        try {
+                            await deleteDoc(doc(db, 'staff_profiles', d.id));
+                            row.remove();
+                            if (!list.children.length) {
+                                list.classList.add('hidden');
+                                setStatus('status-3', 'ok', 'All legacy profiles deleted. Clean! ✔');
+                            }
+                        } catch (err) {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fa-solid fa-trash mr-1"></i>Retry';
+                        }
+                    });
+                    list.appendChild(row);
+                });
+                list.classList.remove('hidden');
+            } catch (error) {
+                setStatus('status-3', 'err', `Scan failed: ${error.code || error.message}`);
+            }
+        };
+
+        // ---------- run everything ----------
+        window.runFullScan = async function() {
+            if (!requireLogin('status-0')) return;
+            await scanTestOrders();
+            await scanSettings();
+            await scanProfiles();
+        };
+
+        // ---------- copy helper for git commands ----------
+        async function robustCopy(text) {
+            try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text; ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed'; ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select(); ta.setSelectionRange(0, text.length);
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                if (ok) return true;
+            } catch (e) {}
+            return false;
+        }
+        window.copyCmd = async function(elId, btnId) {
+            const el = $(elId);
+            const ok = await robustCopy(el.innerText);
+            const btn = $(btnId);
+            if (ok) {
+                const old = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Copied!';
+                setTimeout(() => btn.innerHTML = old, 2000);
+            } else {
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                const sel = window.getSelection();
+                sel.removeAllRanges(); sel.addRange(range);
+                btn.innerHTML = '<i class="fa-solid fa-hand-pointer mr-1"></i>Press Ctrl+C';
+            }
+        };
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+    <div class="max-w-3xl mx-auto px-6 py-12 space-y-8">
+
+        <!-- Header -->
+        <div class="text-center space-y-3">
+            <div class="w-16 h-16 bg-green-500/10 text-green-400 rounded-2xl flex items-center justify-center text-3xl mx-auto">
+                <i class="fa-solid fa-broom"></i>
+            </div>
+            <h1 class="text-2xl font-extrabold uppercase tracking-wide">Housekeeping Wizard</h1>
+            <p class="text-sm text-slate-400 max-w-lg mx-auto">Final cleanup after the Firebase Auth upgrade. Sign in once, run the scans, click the red buttons. Done in minutes.</p>
+        </div>
+
+        <!-- STEP 0: sign in -->
+        <div id="hk-signin-box" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3 transition">
+            <h2 class="font-extrabold text-sm uppercase tracking-wider"><span class="bg-green-500 text-slate-950 rounded-full w-6 h-6 inline-flex items-center justify-center mr-2 text-xs"><i class="fa-solid fa-key text-[10px]"></i></span> Sign In (manager)</h2>
+            <div class="grid md:grid-cols-3 gap-3">
+                <input id="hk-email" type="email" placeholder="Manager email" autocomplete="username" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-green-500 md:col-span-2">
+                <input id="hk-password" type="password" placeholder="Password" autocomplete="current-password" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white font-mono font-bold focus:outline-none focus:ring-1 focus:ring-green-500">
+            </div>
+            <div class="flex gap-3 flex-wrap">
+                <button onclick="hkSignIn()" class="bg-green-500 hover:bg-green-600 text-slate-950 text-xs font-black px-5 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-right-to-bracket mr-1.5"></i>Sign In</button>
+                <button onclick="runFullScan()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-5 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-radar mr-1.5"></i>Run All Scans</button>
+            </div>
+            <div id="status-0" class="hidden"></div>
+        </div>
+
+        <!-- STEP 1: test orders -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3">
+            <h2 class="font-extrabold text-sm uppercase tracking-wider"><span class="bg-green-500 text-slate-950 rounded-full w-6 h-6 inline-flex items-center justify-center mr-2 text-xs">1</span> Delete Test Orders</h2>
+            <p class="text-xs text-slate-400 leading-relaxed">The rules verification may have left a harmless test order named <code class="text-orange-400">RULES-TEST</code> in your order list. Scan and remove it.</p>
+            <div class="flex gap-3 flex-wrap">
+                <button onclick="scanTestOrders()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition"><i class="fa-solid fa-magnifying-glass mr-1.5"></i>Scan</button>
+                <button id="btn-del-orders" onclick="deleteTestOrders()" class="hidden bg-red-600 hover:bg-red-700 text-white text-xs font-black px-5 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-trash mr-1.5"></i>Delete Test Orders</button>
+            </div>
+            <div id="status-1" class="hidden"></div>
+        </div>
+
+        <!-- STEP 2: legacy passcode settings -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3">
+            <h2 class="font-extrabold text-sm uppercase tracking-wider"><span class="bg-green-500 text-slate-950 rounded-full w-6 h-6 inline-flex items-center justify-center mr-2 text-xs">2</span> Remove Old Passcode Documents</h2>
+            <p class="text-xs text-slate-400 leading-relaxed">From the shared-passcode days: <code class="text-orange-400">settings/admin_passcode</code> and <code class="text-orange-400">settings/staff_passcode</code>. Firebase Auth replaced them — they're dead weight now.</p>
+            <div class="flex gap-3 flex-wrap">
+                <button onclick="scanSettings()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition"><i class="fa-solid fa-magnifying-glass mr-1.5"></i>Scan</button>
+                <button id="btn-del-settings" onclick="deleteSettings()" class="hidden bg-red-600 hover:bg-red-700 text-white text-xs font-black px-5 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-trash mr-1.5"></i>Delete Old Passcodes</button>
+            </div>
+            <div id="status-2" class="hidden"></div>
+        </div>
+
+        <!-- STEP 3: orphaned staff profiles -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3">
+            <h2 class="font-extrabold text-sm uppercase tracking-wider"><span class="bg-green-500 text-slate-950 rounded-full w-6 h-6 inline-flex items-center justify-center mr-2 text-xs">3</span> Clean Up Legacy Staff Profiles</h2>
+            <p class="text-xs text-slate-400 leading-relaxed">Staff added before the upgrade have a profile but <strong class="text-white">no login account</strong> — they can't sign in. Delete them here, then re-create anyone who still works for you in the dashboard (<em>Manage Team Accounts</em>) so they get a real login.</p>
+            <button onclick="scanProfiles()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition"><i class="fa-solid fa-magnifying-glass mr-1.5"></i>Scan</button>
+            <div id="status-3" class="hidden"></div>
+            <div id="orphan-list" class="hidden space-y-2"></div>
+        </div>
+
+        <!-- STEP 4: remove wizard files -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3">
+            <h2 class="font-extrabold text-sm uppercase tracking-wider"><span class="bg-green-500 text-slate-950 rounded-full w-6 h-6 inline-flex items-center justify-center mr-2 text-xs">4</span> Retire the Wizard Pages</h2>
+            <p class="text-xs text-slate-400 leading-relaxed">
+                <code class="text-orange-400">setup_wizard.html</code> and <code class="text-orange-400">housekeeping_wizard.html</code> (this page) have done their job.
+                They are <strong class="text-white">not</strong> part of your deployed website (the <code class="text-slate-300">docs/</code> folder), so nothing leaks —
+                but for tidiness, delete both files from the project folder once you're finished here. If you ever need them again, they're in your git history.
+            </p>
+            <label class="flex items-center gap-2 text-xs font-bold text-slate-300 cursor-pointer">
+                <input type="checkbox" class="accent-green-500 w-4 h-4"> Understood — I'll delete them when I'm done
+            </label>
+        </div>
+
+        <!-- STEP 5: push to GitHub -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3">
+            <h2 class="font-extrabold text-sm uppercase tracking-wider"><span class="bg-green-500 text-slate-950 rounded-full w-6 h-6 inline-flex items-center justify-center mr-2 text-xs">5</span> Push Everything to GitHub</h2>
+            <p class="text-xs text-slate-400 leading-relaxed">All code changes are committed locally. From the project folder on your computer, run:</p>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center gap-2 flex-wrap">
+                <code id="cmd-push" class="text-[11px] text-green-400 font-mono flex-1 min-w-[200px]">git push origin main</code>
+                <button id="copy-cmd-1" onclick="copyCmd('cmd-push','copy-cmd-1')" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg transition shrink-0"><i class="fa-solid fa-copy mr-1"></i>Copy</button>
+            </div>
+            <p class="text-[11px] text-slate-500">If GitHub Pages serves your site from the <code class="text-slate-300">docs/</code> folder, the live site updates automatically a minute or two after the push.</p>
+        </div>
+
+        <div class="text-center bg-green-500/5 border border-green-500/20 rounded-3xl p-6 space-y-2">
+            <div class="text-3xl">🏁</div>
+            <p class="text-sm font-black text-green-400 uppercase">That's everything!</p>
+            <p class="text-xs text-slate-400">When all scans show green and you've pushed to GitHub, your print shop is fully upgraded, secured, and tidy.</p>
+        </div>
+
+        <p class="text-center text-[10px] text-slate-600 pb-8">CHROMIQUE Housekeeping Wizard — one-time use. Delete after cleanup.</p>
+    </div>
+</body>
+</html>

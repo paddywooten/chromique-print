@@ -148,3 +148,44 @@ html {
         min-height: 44px;
     }
 }
+
+/* ============================================
+   ACCESSIBILITY & POLISH ADDITIONS
+   ============================================ */
+
+/* Visible keyboard focus everywhere (mouse clicks unaffected) */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+    outline: 2px solid #f97316;
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    html { scroll-behavior: auto; }
+}
+
+/* Skeleton loading shimmer for console tables/lists */
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+.skeleton {
+    display: block;
+    height: 0.9rem;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}

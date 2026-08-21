@@ -85,10 +85,10 @@
                 <img src="chromique-logo.svg" alt="Chromique Logo" class="h-10 w-auto">
                 <div>
                     <h1 class="font-extrabold text-sm tracking-widest text-white group-hover:text-brand-500 transition uppercase">CHROMIQUE</h1>
-                    <p class="text-[9px] text-brand-500 font-mono tracking-wider font-bold">PREMIUM PRINT &amp; PRECISION CUT</p>
+                    <p class="text-[11px] text-brand-500 font-mono tracking-wider font-bold">PREMIUM PRINT &amp; PRECISION CUT</p>
                 </div>
             </a>
-            <a href="print_index.html" class="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-4 py-2 rounded-xl transition flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+            <a href="print_index.html" class="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-4 py-2 rounded-xl transition flex items-center gap-1.5 font-bold uppercase tracking-wider text-[11px]">
                 <i class="fa-solid fa-arrow-left text-brand-500"></i> Back to Calculator
             </a>
         </div>
@@ -103,26 +103,26 @@
                 <i class="fa-solid fa-mobile-screen-button"></i>
             </div>
             <h2 class="text-2xl font-black uppercase text-white">Pay via Mobile Money</h2>
-            <p class="text-xs text-slate-500">Complete your payment to confirm your print order</p>
+            <p class="text-xs text-slate-400">Complete your payment to confirm your print order</p>
         </div>
 
         <!-- Order Summary Card -->
         <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-4">
                 <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-receipt text-brand-500 mr-2"></i> Order Summary</h3>
-                <span class="text-[10px] bg-brand-500/10 text-brand-500 px-3 py-1 rounded-full font-bold">QUOTE</span>
+                <span class="text-[11px] bg-brand-500/10 text-brand-500 px-3 py-1 rounded-full font-bold">QUOTE</span>
             </div>
             <div class="grid grid-cols-2 gap-4 text-xs">
                 <div class="space-y-1">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Service</span>
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Service</span>
                     <p class="text-white font-bold" id="momo-service">—</p>
                 </div>
                 <div class="space-y-1">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Quantity</span>
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Quantity</span>
                     <p class="text-white font-bold" id="momo-qty">—</p>
                 </div>
                 <div class="space-y-1 col-span-2">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dimensions</span>
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Dimensions</span>
                     <p class="text-white font-bold" id="momo-dimensions">—</p>
                 </div>
             </div>
@@ -137,24 +137,30 @@
             <h3 class="font-extrabold text-sm uppercase tracking-wider text-yellow-400"><i class="fa-solid fa-circle-info mr-2"></i> Payment Instructions</h3>
             <div class="space-y-3 text-xs text-slate-300">
                 <div class="flex items-start gap-3">
-                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">1</span>
+                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[11px] font-black shrink-0">1</span>
                     <p>Dial <span class="font-black text-yellow-400">*170#</span> on your phone (MTN) or use your MoMo app</p>
                 </div>
                 <div class="flex items-start gap-3">
-                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">2</span>
+                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[11px] font-black shrink-0">2</span>
                     <p>Select <span class="font-bold text-white">Transfer Money</span></p>
                 </div>
                 <div class="flex items-start gap-3">
-                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">3</span>
-                    <p>Send to MoMo number: <span class="font-black text-yellow-400 font-mono text-sm">024 537 7116</span></p>
+                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[11px] font-black shrink-0">3</span>
+                    <p class="flex items-center gap-2 flex-wrap">Send to MoMo number:
+                        <span class="font-black text-yellow-400 font-mono text-sm">024 537 7116</span>
+                        <button onclick="copyText('0245377116', this)" class="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 px-2.5 py-1 rounded-lg text-[11px] font-black uppercase transition" aria-label="Copy MoMo number"><i class="fa-solid fa-copy mr-1"></i>Copy</button>
+                    </p>
                 </div>
                 <div class="flex items-start gap-3">
-                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">4</span>
+                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[11px] font-black shrink-0">4</span>
                     <p>Enter the <span class="font-bold text-white">total amount</span> shown above</p>
                 </div>
                 <div class="flex items-start gap-3">
-                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">5</span>
-                    <p>Use reference: <span class="font-black text-brand-500 font-mono" id="momo-reference">—</span></p>
+                    <span class="w-6 h-6 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-[11px] font-black shrink-0">5</span>
+                    <p class="flex items-center gap-2 flex-wrap">Use reference:
+                        <span class="font-black text-brand-500 font-mono" id="momo-reference">—</span>
+                        <button onclick="copyText(document.getElementById('momo-reference').innerText, this)" class="bg-brand-500/20 hover:bg-brand-500/30 text-brand-500 px-2.5 py-1 rounded-lg text-[11px] font-black uppercase transition" aria-label="Copy order reference"><i class="fa-solid fa-copy mr-1"></i>Copy</button>
+                    </p>
                 </div>
             </div>
         </div>
@@ -164,16 +170,20 @@
             <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-user text-brand-500 mr-2"></i> Your Details</h3>
             <div class="space-y-3">
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Full Name *</label>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Full Name *</label>
                     <input type="text" id="momo-name" placeholder="e.g. Kofi Boateng" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number (MoMo) *</label>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Phone Number (MoMo) *</label>
                     <input type="tel" id="momo-phone" placeholder="e.g. 024 123 4567" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email Address (Optional)</label>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Email Address (Optional)</label>
                     <input type="email" id="momo-email" placeholder="e.g. kofi@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Order Notes (Optional)</label>
+                    <textarea id="momo-notes" rows="3" placeholder="e.g. Special instructions, colours, finishing preferences..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold resize-none"></textarea>
                 </div>
             </div>
         </div>
@@ -191,7 +201,7 @@
                             </div>
                             <div class="flex-1">
                                 <div class="font-bold text-white text-sm">🏪 Pickup at Office</div>
-                                <div class="text-[11px] text-slate-500 mt-1">Collect your order from our Accra office</div>
+                                <div class="text-[11px] text-slate-400 mt-1">Collect your order from our Accra office</div>
                             </div>
                         </div>
                     </div>
@@ -206,14 +216,14 @@
                             </div>
                             <div class="flex-1">
                                 <div class="font-bold text-white text-sm">📦 Delivery</div>
-                                <div class="text-[11px] text-slate-500 mt-1">We'll deliver to your location in Accra/Tema</div>
+                                <div class="text-[11px] text-slate-400 mt-1">We'll deliver to your location in Accra/Tema</div>
                             </div>
                         </div>
                     </div>
                 </label>
             </div>
             <div id="delivery-address-section" class="hidden mt-4 space-y-1.5">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Delivery Address *</label>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Delivery Address *</label>
                 <input type="text" id="momo-delivery-address" placeholder="e.g. East Legon, Accra" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
             </div>
         </div>
@@ -221,7 +231,7 @@
         <!-- Artwork Submission Section -->
         <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
             <h3 class="font-extrabold text-sm uppercase tracking-wider text-white"><i class="fa-solid fa-image text-brand-500 mr-2"></i> Submit Your Artwork</h3>
-            <p class="text-[11px] text-slate-500">Choose how you'd like to send your print design file</p>
+            <p class="text-[11px] text-slate-400">Choose how you'd like to send your print design file</p>
             
             <div class="space-y-3">
                 <!-- Option 1: WhatsApp -->
@@ -234,13 +244,16 @@
                             </div>
                             <div class="flex-1">
                                 <div class="font-bold text-white text-sm">Send via WhatsApp</div>
-                                <div class="text-[11px] text-slate-500 mt-1">Send your artwork file to our WhatsApp after payment</div>
+                                <div class="text-[11px] text-slate-400 mt-1">Send your artwork file to our WhatsApp after payment</div>
                             </div>
                         </div>
                         <div id="whatsapp-section" class="mt-3 bg-slate-950 rounded-xl p-3 space-y-2">
                             <p class="text-[11px] text-slate-400">Send your file to:</p>
                             <p class="text-sm font-bold text-green-400 font-mono">📱 024 537 7116</p>
-                            <p class="text-[10px] text-slate-500">Include your order reference: <span class="text-brand-500 font-mono font-bold" id="whatsapp-ref">—</span></p>
+                            <p class="text-[11px] text-slate-400">Include your order reference: <span class="text-brand-500 font-mono font-bold" id="whatsapp-ref">—</span></p>
+                            <a id="whatsapp-deeplink" href="https://wa.me/233245377116" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-slate-950 text-[11px] font-black px-4 py-2.5 rounded-xl transition uppercase tracking-wider mt-1">
+                                <i class="fa-brands fa-whatsapp text-base"></i> Open WhatsApp Now
+                            </a>
                         </div>
                     </div>
                 </label>
@@ -255,13 +268,13 @@
                             </div>
                             <div class="flex-1">
                                 <div class="font-bold text-white text-sm">Send via Email</div>
-                                <div class="text-[11px] text-slate-500 mt-1">Email your artwork file after payment</div>
+                                <div class="text-[11px] text-slate-400 mt-1">Email your artwork file after payment</div>
                             </div>
                         </div>
                         <div id="email-section" class="hidden mt-3 bg-slate-950 rounded-xl p-3 space-y-2">
                             <p class="text-[11px] text-slate-400">Email your file to:</p>
-                            <p class="text-sm font-bold text-blue-400 font-mono">📧 orders@chromique.com</p>
-                            <p class="text-[10px] text-slate-500">Subject: <span class="text-brand-500 font-mono font-bold" id="email-ref">—</span></p>
+                            <p class="text-sm font-bold text-blue-400 font-mono">📧 chromique.print@gmail.com</p>
+                            <p class="text-[11px] text-slate-400">Subject: <span class="text-brand-500 font-mono font-bold" id="email-ref">—</span></p>
                         </div>
                     </div>
                 </label>
@@ -282,7 +295,7 @@
             <div class="space-y-2">
                 <h3 class="font-extrabold text-lg text-white uppercase tracking-wide">Order Submitted!</h3>
                 <div class="my-4 bg-slate-950 p-4 rounded-2xl border border-slate-850 flex flex-col items-center justify-center space-y-1">
-                    <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest block">Your Order Reference</span>
+                    <span class="text-[11px] uppercase font-bold text-slate-400 tracking-widest block">Your Order Reference</span>
                     <span id="momo-confirm-ref" class="text-lg font-black text-brand-500 tracking-wider font-mono">—</span>
                 </div>
                 <p class="text-[11px] text-slate-400 leading-relaxed">
@@ -290,15 +303,25 @@
                 </p>
             </div>
             <div class="border-t border-slate-800 pt-4 text-left space-y-1 text-xs">
-                <div class="flex justify-between font-bold text-slate-500"><span>Name:</span> <span id="momo-confirm-name" class="text-slate-300"></span></div>
-                <div class="flex justify-between font-bold text-slate-500"><span>Phone:</span> <span id="momo-confirm-phone" class="text-slate-300"></span></div>
-                <div class="flex justify-between font-bold text-slate-500"><span>Total:</span> <span id="momo-confirm-total" class="text-brand-500 font-mono font-bold"></span></div>
+                <div class="flex justify-between font-bold text-slate-400"><span>Name:</span> <span id="momo-confirm-name" class="text-slate-300"></span></div>
+                <div class="flex justify-between font-bold text-slate-400"><span>Phone:</span> <span id="momo-confirm-phone" class="text-slate-300"></span></div>
+                <div class="flex justify-between font-bold text-slate-400"><span>Total:</span> <span id="momo-confirm-total" class="text-brand-500 font-mono font-bold"></span></div>
             </div>
-            <a href="print_index.html" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs py-3.5 rounded-xl transition uppercase tracking-wider inline-block">
+            <a id="modal-whatsapp-link" href="https://wa.me/233245377116" target="_blank" rel="noopener" class="w-full bg-green-500 hover:bg-green-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider inline-flex items-center justify-center gap-2">
+                <i class="fa-brands fa-whatsapp text-base"></i> Send Artwork on WhatsApp
+            </a>
+            <a href="print_index.html" class="w-full bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-bold text-xs py-3.5 rounded-xl transition uppercase tracking-wider inline-block">
                 Back to Home
             </a>
         </div>
     </div>
+
+    <!-- Floating WhatsApp button -->
+    <a href="https://wa.me/233245377116?text=Hello%20CHROMIQUE!%20I%20have%20a%20question%20about%20my%20order."
+       target="_blank" rel="noopener" aria-label="Chat with CHROMIQUE on WhatsApp"
+       class="fixed bottom-8 left-8 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 text-slate-950 rounded-full flex items-center justify-center text-2xl shadow-lg shadow-green-500/25 transition hover:scale-110">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
 
     <script>
         // Load quote from sessionStorage
@@ -324,6 +347,14 @@
             // Update WhatsApp and Email references
             document.getElementById('whatsapp-ref').innerText = ref;
             document.getElementById('email-ref').innerText = ref;
+
+            // Point the WhatsApp deep links at this order's reference
+            const waText = encodeURIComponent(`Hello CHROMIQUE! My order reference is ${ref}. Here is my artwork file:`);
+            const waUrl = `https://wa.me/233245377116?text=${waText}`;
+            const dl = document.getElementById('whatsapp-deeplink');
+            const ml = document.getElementById('modal-whatsapp-link');
+            if (dl) dl.href = waUrl;
+            if (ml) ml.href = waUrl;
         }
 
         // Handle artwork method selection
@@ -370,7 +401,8 @@
             const email = document.getElementById('momo-email').value.trim();
             const deliveryMethod = document.querySelector('input[name="delivery-method"]:checked').value;
             const deliveryAddress = document.getElementById('momo-delivery-address').value.trim();
-            const notes = document.getElementById('momo-notes').value.trim();
+            const notesEl = document.getElementById('momo-notes');
+            const notes = notesEl ? notesEl.value.trim() : '';
             const artworkMethod = document.querySelector('input[name="artwork-method"]:checked').value;
             
             // Validate name
@@ -496,6 +528,33 @@
             setupDeliveryMethods();
         });
         
+        // Tap-to-copy with fallback
+        async function copyText(text, btn) {
+            let ok = false;
+            try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+            if (!ok) {
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = text; ta.setAttribute('readonly', '');
+                    ta.style.position = 'fixed'; ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select(); ta.setSelectionRange(0, text.length);
+                    ok = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                } catch (e) {}
+            }
+            if (ok) {
+                showToast(`Copied: ${text}`, 'success');
+                if (btn) {
+                    const old = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Copied';
+                    setTimeout(() => btn.innerHTML = old, 2000);
+                }
+            } else {
+                showToast('Could not copy — long-press the text to copy manually', 'warning');
+            }
+        }
+
         // Toast notification function
         function showToast(message, type = 'success') {
             const existingToasts = document.querySelectorAll('.toast-notification');

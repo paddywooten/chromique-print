@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHROMIQUE | Firebase Auth Setup Wizard</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Plus Jakarta Sans', sans-serif; } </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, deleteDoc, collection, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
+            authDomain: "chromique-print.firebaseapp.com",
+            projectId: "chromique-print",
+            storageBucket: "chromique-print.firebasestorage.app",
+            messagingSenderId: "133831518444",
+            appId: "1:133831518444:web:c41d88c924bd245d5bddc9",
+            measurementId: "G-0MFWEZ9CDV"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const $ = (id) => document.getElementById(id);
+
+        function setStatus(id, kind, message) {
+            const el = $(id);
+            const styles = {
+                ok:   'bg-green-500/10 border-green-500/30 text-green-400',
+                err:  'bg-red-500/10 border-red-500/30 text-red-400',
+                warn: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+                info: 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+            };
+            const icons = { ok: 'fa-circle-check', err: 'fa-circle-xmark', warn: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+            el.className = `mt-3 border rounded-xl p-3 text-xs font-bold ${styles[kind]}`;
+            el.innerHTML = `<i class="fa-solid ${icons[kind]} mr-1.5"></i>${message}`;
+            el.classList.remove('hidden');
+        }
+
+        // =====================================================
+        // THE ONE MERGED RULESET (personalized with your email)
+        // =====================================================
+        function buildRules(directorEmail) {
+            return `rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function roleDoc() { return get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data; }
+    function isManager() { return isSignedIn() && roleDoc().role == 'manager' && roleDoc().get('active', true) == true; }
+    function isStaffOrManager() { return isSignedIn() && roleDoc().role in ['manager', 'staff'] && roleDoc().get('active', true) == true; }
+
+    match /momo_orders/{orderId} {
+      allow create: if request.resource.data.ref is string
+                    && request.resource.data.ref.size() > 0
+                    && request.resource.data.ref.size() <= 40
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 120
+                    && request.resource.data.phone is string
+                    && request.resource.data.phone.size() >= 9
+                    && request.resource.data.phone.size() <= 20
+                    && request.resource.data.notes is string
+                    && request.resource.data.notes.size() <= 1000
+                    && (
+                         (request.resource.data.paymentMethod == 'MoMo'
+                           && request.resource.data.status == 'Pending MoMo Verification')
+                         ||
+                         (isStaffOrManager()
+                           && request.resource.data.paymentMethod == 'Manual Entry'
+                           && request.resource.data.status == 'MoMo Verified')
+                       );
+      allow read: if isStaffOrManager();
+      allow update: if isStaffOrManager()
+                    && request.resource.data.status is string
+                    && request.resource.data.status in ['Pending MoMo Verification', 'MoMo Verified', 'MoMo Rejected']
+                    && request.resource.data.ref == resource.data.ref
+                    && request.resource.data.name == resource.data.name
+                    && request.resource.data.phone == resource.data.phone;
+      allow delete: if isManager()
+                    && resource.data.ref is string
+                    && resource.data.ref.size() > 0;
+    }
+
+    match /activity_log/{logId} {
+      allow read: if isStaffOrManager();
+      allow create: if isStaffOrManager();
+      allow update, delete: if false;
+    }
+
+    match /settings/{settingId} {
+      allow read: if isStaffOrManager();
+      allow write: if isManager();
+    }
+
+    match /staff_profiles/{staffId} {
+      allow read: if isStaffOrManager();
+      allow create, update, delete: if isManager();
+    }
+
+    match /user_roles/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isManager());
+
+      // Managers can add team members (staff or managers) from the dashboard.
+      // FOUNDER CLAUSE: the director's email below may create their own
+      // manager role once — this is how the very first manager is bootstrapped.
+      allow create: if (isManager() && request.resource.data.role in ['staff', 'manager'])
+                    || (isSignedIn()
+                        && request.auth.uid == userId
+                        && request.auth.token.email == '${directorEmail}'
+                        && request.resource.data.role == 'manager');
+
+      // Managers may manage other team members' roles, never their own
+      allow update, delete: if isManager()
+                            && userId != request.auth.uid;
+    }
+  }
+}`;
+        }
+
+        window.generateRules = function() {
+            const email = $('director-email').value.trim().toLowerCase();
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                setStatus('status-2', 'err', 'Enter a valid email address first — this becomes the founder account in your rules.');
+                return;
+            }
+            $('merged-rules').value = buildRules(email);
+            for (const bid of ['copy-btn-rules', 'dl-btn-rules']) {
+                $(bid).disabled = false;
+                $(bid).classList.remove('opacity-40', 'cursor-not-allowed');
+            }
+            // Pre-fill the same email everywhere else for convenience
+            if (!$('m1-email').value) $('m1-email').value = email;
+            if (!$('check-email').value) $('check-email').value = email;
+            if (!$('verify-email').value) $('verify-email').value = email;
+            if (!$('vr-email').value) $('vr-email').value = email;
+            setStatus('status-2', 'ok', `Rules generated for <u>${email}</u>. Now click Copy Rules, paste them over everything on the rules page, and press Publish.`);
+        };
+
+        // ---------- STEP 2b: verify the PUBLISHED rules behave correctly ----------
+        // We can't read the rules text remotely, so we PROBE Firestore and check
+        // that each action is allowed/denied exactly as the correct rules require.
+        async function probe(fn) {
+            try {
+                const result = await fn();
+                return { outcome: 'allowed', result };
+            } catch (e) {
+                if (e.code === 'permission-denied') return { outcome: 'denied' };
+                return { outcome: 'error', code: e.code || String(e) };
+            }
+        }
+
+        window.verifyRules = async function() {
+            const report = $('rules-report');
+            const lines = [];
+            const line = (pass, text) => lines.push(
+                `<div class="${pass ? 'text-green-400' : 'text-red-400'} py-0.5"><i class="fa-solid ${pass ? 'fa-circle-check' : 'fa-circle-xmark'} mr-1.5"></i>${text}</div>`
+            );
+            const render = () => { report.innerHTML = lines.join(''); report.classList.remove('hidden'); };
+
+            setStatus('status-rules', 'info', 'Probing Firestore against the expected rule behavior... (takes a few seconds)');
+            report.classList.add('hidden');
+            let allPass = true;
+            let testOrderId = null;
+
+            // Make sure we're anonymous for the public-side checks
+            await signOut(auth).catch(() => {});
+
+            // 1. Anonymous read of orders must be DENIED (customer data protected)
+            const anonRead = await probe(() => getDocs(query(collection(db, 'momo_orders'), limit(1))));
+            if (anonRead.outcome === 'denied') {
+                line(true, 'Customer order data is protected from the public');
+            } else if (anonRead.outcome === 'allowed') {
+                line(false, 'PUBLIC CAN READ ORDERS — the old rules are still active. Copy the Step 2 rules and Publish them!');
+                allPass = false;
+            } else {
+                line(false, `Read probe failed unexpectedly (${anonRead.code}) — check your internet connection`);
+                allPass = false;
+            }
+
+            // 2. Junk order write must be DENIED (validation active)
+            const junkCreate = await probe(() => addDoc(collection(db, 'momo_orders'), { junk: true }));
+            if (junkCreate.outcome === 'denied') {
+                line(true, 'Junk/invalid order writes are blocked (validation active)');
+            } else if (junkCreate.outcome === 'allowed') {
+                line(false, 'JUNK WRITES ALLOWED — old rules still active. Publish the Step 2 rules!');
+                allPass = false;
+            } else {
+                line(false, `Junk-write probe failed unexpectedly (${junkCreate.code})`);
+                allPass = false;
+            }
+
+            // 3. A VALID customer order must be ALLOWED (checkout must keep working)
+            const validCreate = await probe(() => addDoc(collection(db, 'momo_orders'), {
+                ref: 'RULES-TEST',
+                name: 'RULES VERIFICATION TEST — IGNORE',
+                phone: '0240000000',
+                email: '',
+                deliveryMethod: 'pickup',
+                deliveryAddress: '',
+                notes: 'Automatic test order created by the setup wizard. Safe to ignore.',
+                quote: { service: 'Test', qty: 1, totalPrice: 'GH¢0.00', areaSummary: 'N/A' },
+                paymentMethod: 'MoMo',
+                artworkMethod: 'whatsapp',
+                status: 'Pending MoMo Verification',
+                timestamp: new Date().toISOString(),
+                createdAt: new Date().toISOString()
+            }));
+            if (validCreate.outcome === 'allowed') {
+                line(true, 'Customer checkout still works (valid orders accepted)');
+                testOrderId = validCreate.result.id;
+            } else if (validCreate.outcome === 'denied') {
+                line(false, 'VALID ORDERS ARE BLOCKED — your paste may be broken or incomplete. Re-copy the Step 2 rules, replace EVERYTHING on the rules page, and Publish again.');
+                allPass = false;
+            } else {
+                line(false, `Order-create probe failed unexpectedly (${validCreate.code})`);
+                allPass = false;
+            }
+
+            // 4. Optional: manager-side checks + cleanup of the test order
+            const email = $('vr-email').value.trim();
+            const password = $('vr-password').value;
+            if (email && password) {
+                try {
+                    const cred = await signInWithEmailAndPassword(auth, email, password);
+                    const roleSnap = await getDoc(doc(db, 'user_roles', cred.user.uid));
+                    if (roleSnap.exists() && roleSnap.data().role === 'manager' && roleSnap.data().active !== false) {
+                        line(true, 'Manager role document is readable and active');
+                    } else {
+                        line(false, 'Signed in, but no active manager role found — finish Step 3 first');
+                        allPass = false;
+                    }
+
+                    const mgrRead = await probe(() => getDocs(query(collection(db, 'momo_orders'), limit(1))));
+                    if (mgrRead.outcome === 'allowed') {
+                        line(true, 'Manager can read order data');
+                    } else {
+                        line(false, 'Manager CANNOT read orders — rules may be mis-pasted, or the role doc is missing');
+                        allPass = false;
+                    }
+
+                    if (testOrderId) {
+                        const cleanup = await probe(() => deleteDoc(doc(db, 'momo_orders', testOrderId)));
+                        if (cleanup.outcome === 'allowed') {
+                            line(true, 'Manager delete works — test order cleaned up automatically');
+                            testOrderId = null;
+                        } else {
+                            line(false, `Could not clean up the test order (${cleanup.outcome}) — delete "RULES-TEST" from the dashboard`);
+                        }
+                    }
+                    await signOut(auth);
+                } catch (e) {
+                    await signOut(auth).catch(() => {});
+                    if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
+                        line(false, 'Manager sign-in failed (wrong email/password) — skipped the manager-side checks');
+                    } else {
+                        line(false, `Manager-side checks failed (${e.code || e.message})`);
+                    }
+                    allPass = false;
+                }
+            } else {
+                lines.push('<div class="text-slate-500 py-0.5"><i class="fa-solid fa-circle-minus mr-1.5"></i>Manager-side checks skipped (no email/password entered above)</div>');
+                if (testOrderId) {
+                    lines.push('<div class="text-amber-400 py-0.5"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>A harmless test order named "RULES-TEST" was left behind — reject/delete it from the dashboard later</div>');
+                }
+            }
+
+            render();
+            if (allPass) {
+                setStatus('status-rules', 'ok', 'ALL CHECKS PASSED — the published rules behave exactly as intended! 🎉');
+            } else {
+                setStatus('status-rules', 'err', 'Some checks failed — see the list below. Tip: rules can take up to a minute to take effect after Publish; wait and re-verify.');
+            }
+        };
+
+        // ---------- STEP 1: provider check ----------
+        window.checkProvider = async function() {
+            setStatus('status-1', 'info', 'Checking...');
+            try {
+                await signInWithEmailAndPassword(auth, 'provider-check@chromique-test.com', 'wrong-password-123');
+                setStatus('status-1', 'ok', 'Email/Password sign-in is ENABLED. Continue to Step 2!');
+            } catch (error) {
+                if (error.code === 'auth/operation-not-allowed') {
+                    setStatus('status-1', 'err', 'NOT enabled yet. Click the blue button above, enable Email/Password, save, then re-test.');
+                } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    setStatus('status-1', 'ok', 'Email/Password sign-in is ENABLED. Continue to Step 2!');
+                } else if (error.code === 'auth/network-request-failed') {
+                    setStatus('status-1', 'err', 'Network error — check your internet connection and try again.');
+                } else {
+                    setStatus('status-1', 'warn', `Unexpected response (${error.code}). It may still be fine — try Step 3.`);
+                }
+            }
+        };
+
+        // ---------- STEP 3a: CHECK existing account ----------
+        window.checkAccount = async function() {
+            const email = $('check-email').value.trim().toLowerCase();
+            const password = $('check-password').value;
+            if (!email) { setStatus('status-check', 'err', 'Enter the email to check.'); return; }
+            if (!password) { setStatus('status-check', 'err', 'Enter the password you used (needed to check the role).'); return; }
+
+            setStatus('status-check', 'info', 'Checking account...');
+            try {
+                const cred = await signInWithEmailAndPassword(auth, email, password);
+                // Account exists and password is right — now check the role doc
+                let roleReport;
+                try {
+                    const roleSnap = await getDoc(doc(db, 'user_roles', cred.user.uid));
+                    if (roleSnap.exists() && roleSnap.data().role === 'manager' && roleSnap.data().active !== false) {
+                        roleReport = 'ok';
+                    } else if (roleSnap.exists()) {
+                        roleReport = 'wrongrole';
+                    } else {
+                        roleReport = 'missing';
+                    }
+                } catch (e) {
+                    roleReport = 'blocked';
+                }
+                await signOut(auth);
+
+                if (roleReport === 'ok') {
+                    setStatus('status-check', 'ok', `✅ FULLY SET UP! The account <u>${email}</u> exists, the password works, and it has an active MANAGER role. Skip to Step 4 to run the final verification.`);
+                } else if (roleReport === 'missing') {
+                    setStatus('status-check', 'warn', `Account <u>${email}</u> exists and the password works, but the MANAGER ROLE is missing. Fix: make sure the rules from Step 2 (generated with THIS email) are published, then fill the "Create Manager" form below with the same email/password and click Create — it will finish the job.`);
+                } else if (roleReport === 'wrongrole') {
+                    setStatus('status-check', 'err', `Account exists but its role document is wrong (not an active manager). Open Firebase Console → Firestore → user_roles and fix or delete the document, then re-run Create Manager below.`);
+                } else {
+                    setStatus('status-check', 'warn', `Account <u>${email}</u> exists and the password works, but Firestore blocked the role check — the Step 2 rules are probably not published yet. Publish them, then check again.`);
+                }
+            } catch (error) {
+                if (error.code === 'auth/user-not-found') {
+                    setStatus('status-check', 'warn', `No account exists for <u>${email}</u> yet. Use the "Create Manager" form below to create it.`);
+                } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    setStatus('status-check', 'warn', `An account for <u>${email}</u> EXISTS, but this password doesn't match it. If you forgot the password: open the admin dashboard login page and use "Forgot password?" to reset it, then come back.`);
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    setStatus('status-check', 'err', 'Email/Password sign-in is not enabled — go back to Step 1.');
+                } else if (error.code === 'auth/too-many-requests') {
+                    setStatus('status-check', 'err', 'Too many attempts — wait a few minutes, or reset the password from the dashboard login page.');
+                } else {
+                    setStatus('status-check', 'err', `Check failed: ${error.code || error.message}`);
+                }
+            }
+        };
+
+        // ---------- STEP 3b: create manager (safe to re-run) ----------
+        async function createOneManager(email, password, displayName, statusId) {
+            email = email.trim().toLowerCase();
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                setStatus(statusId, 'err', 'Enter a valid email address.'); return false;
+            }
+            if (!password || password.length < 6) {
+                setStatus(statusId, 'err', 'Password must be at least 6 characters.'); return false;
+            }
+            if (!displayName.trim()) {
+                setStatus(statusId, 'err', 'Enter a display name (e.g. PATRICK (DIRECTOR)).'); return false;
+            }
+
+            setStatus(statusId, 'info', 'Working...');
+            let uid = null;
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                uid = cred.user.uid;
+                setStatus(statusId, 'info', 'Account created. Granting manager role...');
+            } catch (error) {
+                if (error.code === 'auth/email-already-in-use') {
+                    try {
+                        const cred = await signInWithEmailAndPassword(auth, email, password);
+                        uid = cred.user.uid;
+                        setStatus(statusId, 'info', 'Account already existed — signed in. Granting manager role...');
+                    } catch (e2) {
+                        setStatus(statusId, 'err', 'Account exists but this password does not match it. Reset the password from the dashboard login page ("Forgot password?"), then retry.');
+                        return false;
+                    }
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    setStatus(statusId, 'err', 'Email/Password sign-in is not enabled — go back to Step 1.');
+                    return false;
+                } else {
+                    setStatus(statusId, 'err', `Could not create account: ${error.code || error.message}`);
+                    return false;
+                }
+            }
+
+            try {
+                const roleRef = doc(db, 'user_roles', uid);
+                const existing = await getDoc(roleRef);
+                if (existing.exists() && existing.data().role === 'manager') {
+                    setStatus(statusId, 'ok', `${displayName} is already a manager. Nothing to do!`);
+                } else if (existing.exists()) {
+                    setStatus(statusId, 'err', 'A non-manager role doc already exists for this account. Fix it in Firebase Console → Firestore → user_roles.');
+                    await signOut(auth);
+                    return false;
+                } else {
+                    await setDoc(roleRef, {
+                        role: 'manager',
+                        active: true,
+                        displayName: displayName.trim().toUpperCase(),
+                        email: email,
+                        createdBy: 'setup-wizard',
+                        createdAt: new Date().toISOString()
+                    });
+                    setStatus(statusId, 'ok', `${displayName} is now a MANAGER ✔`);
+                }
+                await signOut(auth);
+                return true;
+            } catch (error) {
+                await signOut(auth).catch(()=>{});
+                if (error.code === 'permission-denied') {
+                    setStatus(statusId, 'err', 'Firestore blocked the role write. Two common causes: (1) the Step 2 rules are not published yet, or (2) the rules were generated with a DIFFERENT email than this one. Re-generate the rules in Step 2 with this exact email, publish, and retry.');
+                } else {
+                    setStatus(statusId, 'err', `Could not write role: ${error.code || error.message}`);
+                }
+                return false;
+            }
+        }
+
+        window.createManager1 = () => createOneManager($('m1-email').value, $('m1-password').value, $('m1-name').value, 'status-m1');
+
+        // ---------- STEP 4: final verification ----------
+        window.verifySetup = async function() {
+            const email = $('verify-email').value.trim();
+            const password = $('verify-password').value;
+            if (!email || !password) { setStatus('status-4', 'err', 'Enter a manager email and password.'); return; }
+
+            setStatus('status-4', 'info', 'Verifying...');
+            try {
+                const cred = await signInWithEmailAndPassword(auth, email, password);
+                const roleSnap = await getDoc(doc(db, 'user_roles', cred.user.uid));
+
+                if (!roleSnap.exists() || roleSnap.data().role !== 'manager') {
+                    setStatus('status-4', 'err', 'Signed in, but no manager role found. Re-run Step 3 for this account.');
+                    await signOut(auth); return;
+                }
+
+                await getDocs(query(collection(db, 'momo_orders'), limit(1)));
+
+                await signOut(auth);
+                setStatus('status-4', 'ok', 'PERFECT! Manager login works and order data is accessible. Your setup is complete — open the admin dashboard and sign in! 🎉');
+                $('final-success').classList.remove('hidden');
+            } catch (error) {
+                await signOut(auth).catch(()=>{});
+                if (error.code === 'permission-denied') {
+                    setStatus('status-4', 'err', 'Login OK but orders are blocked — make sure the Step 2 rules were published.');
+                } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                    setStatus('status-4', 'err', 'Invalid email or password.');
+                } else {
+                    setStatus('status-4', 'err', `Verification failed: ${error.code || error.message}`);
+                }
+            }
+        };
+
+        // ---------- clipboard helpers (with fallbacks for blocked clipboards) ----------
+        async function robustCopy(text) {
+            // Attempt 1: modern Clipboard API
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (e) { /* blocked — try fallback */ }
+            // Attempt 2: legacy execCommand via hidden textarea
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                ta.setSelectionRange(0, text.length);
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                if (ok) return true;
+            } catch (e) { /* blocked too */ }
+            return false;
+        }
+
+        function flashCopied(btnId) {
+            const btn = $(btnId);
+            const old = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Copied!';
+            setTimeout(() => btn.innerHTML = old, 2000);
+        }
+
+        function selectElementText(el) {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+
+        window.copyRules = async function(taId, btnId) {
+            const ta = $(taId);
+            const text = ta.value;
+            const copied = await robustCopy(text);
+
+            // ALWAYS open + select the text as a guaranteed manual backup —
+            // some embedded browsers claim success but never fill the real clipboard.
+            const det = $('rules-details');
+            if (det) det.open = true;
+            ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => { ta.focus(); ta.select(); }, 400);
+
+            if (copied) {
+                flashCopied(btnId);
+                setStatus('status-2', 'ok', 'Copied to clipboard! Backup: the rules are also SELECTED below — if pasting gives you nothing, just press Ctrl+C (Cmd+C on Mac) right now, then paste on the Firebase rules page.');
+            } else {
+                setStatus('status-2', 'warn', 'Your browser blocked automatic copying. No problem — the rules are SELECTED below: press Ctrl+C (Cmd+C on Mac) now, then paste on the Firebase rules page.');
+            }
+        };
+
+        window.downloadRules = function() {
+            const text = $('merged-rules').value;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'firestore.rules';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+            setStatus('status-2', 'info', 'Downloaded firestore.rules — open it in Notepad, select all (Ctrl+A), copy (Ctrl+C), then paste on the Firebase rules page.');
+        };
+
+        window.copyLink = async function(url, btnId) {
+            if (await robustCopy(url)) {
+                flashCopied(btnId);
+                return;
+            }
+            // Final fallback: prompt dialog lets the user copy manually
+            window.prompt('Automatic copy was blocked. Select the link and press Ctrl+C:', url);
+        };
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+    <div class="max-w-3xl mx-auto px-6 py-12 space-y-8">
+
+        <!-- Header -->
+        <div class="text-center space-y-3">
+            <div class="w-16 h-16 bg-orange-500/10 text-orange-500 rounded-2xl flex items-center justify-center text-3xl mx-auto">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <h1 class="text-2xl font-extrabold uppercase tracking-wide">Firebase Auth Setup Wizard</h1>
+            <p class="text-sm text-slate-400 max-w-lg mx-auto">4 steps, top to bottom. One single rules paste. Green means go.</p>
+            <p class="text-[11px] text-amber-400 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Run this once, on your own computer. Don't publish this page to your live website.</p>
+        </div>
+
+        <!-- STEP 1 -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3">
+            <h2 class="font-extrabold text-sm uppercase tracking-wider"><span class="bg-orange-500 text-slate-950 rounded-full w-6 h-6 inline-flex items-center justify-center mr-2 text-xs">1</span> Enable Email/Password Sign-In</h2>
+            <p class="text-xs text-slate-400 leading-relaxed">Open the page below, click <strong class="text-white">Email/Password</strong>, flip the first toggle to <strong class="text-white">Enable</strong>, and press <strong class="text-white">Save</strong>.</p>
+            <a href="https://console.firebase.google.com/project/chromique-print/authentication/providers" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Sign-In Providers Page
+            </a>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] text-slate-500 font-bold uppercase shrink-0">If the button doesn't open:</span>
+                <code class="text-[10px] text-slate-300 break-all flex-1 min-w-[200px]">https://console.firebase.google.com/project/chromique-print/authentication/providers</code>
+                <button id="copy-link-1" onclick="copyLink('https://console.firebase.google.com/project/chromique-print/authentication/providers','copy-link-1')" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg transition shrink-0"><i class="fa-solid fa-link mr-1"></i>Copy Link</button>
+            </div>
+            <div>
+                <button onclick="checkProvider()" class="mt-1 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition">
+                    <i class="fa-solid fa-stethoscope mr-1.5"></i> Test: Is It Enabled?
+                </button>
+            </div>
+            <div id="status-1" class="hidden"></div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3">
+            <h2 class="font-extrabold text-sm uppercase tracking-wider"><span class="bg-orange-500 text-slate-950 rounded-full w-6 h-6 inline-flex items-center justify-center mr-2 text-xs">2</span> Publish the Security Rules (one paste, done forever)</h2>
+            <p class="text-xs text-slate-400 leading-relaxed">Type <strong class="text-white">your email</strong> (the director's) and click Generate. Your email is written into the rules as the <em>founder account</em> — the only one allowed to set itself up as the first manager. Then copy, paste over everything on the rules page, and <strong class="text-white">Publish</strong>. That's the only rules paste you'll ever do.</p>
+            <div class="flex gap-3 flex-wrap items-center">
+                <input id="director-email" type="email" placeholder="Your email — e.g. patrick@chromique.com" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-orange-500 flex-1 min-w-[220px]">
+                <button onclick="generateRules()" class="bg-green-500 hover:bg-green-600 text-slate-950 text-xs font-black px-5 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-gears mr-1.5"></i>Generate My Rules</button>
+            </div>
+            <div class="flex gap-3 flex-wrap">
+                <button id="copy-btn-rules" onclick="copyRules('merged-rules','copy-btn-rules')" disabled class="bg-orange-500 hover:bg-orange-600 text-slate-950 text-xs font-black px-5 py-3 rounded-xl transition uppercase opacity-40 cursor-not-allowed"><i class="fa-solid fa-copy mr-1.5"></i>Copy Rules</button>
+                <button id="dl-btn-rules" onclick="downloadRules()" disabled class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-black px-5 py-3 rounded-xl transition uppercase opacity-40 cursor-not-allowed"><i class="fa-solid fa-download mr-1.5"></i>Download .rules File</button>
+                <a href="https://console.firebase.google.com/project/chromique-print/firestore/rules" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Firestore Rules Page
+                </a>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] text-slate-500 font-bold uppercase shrink-0">If the button doesn't open:</span>
+                <code class="text-[10px] text-slate-300 break-all flex-1 min-w-[200px]">https://console.firebase.google.com/project/chromique-print/firestore/rules</code>
+                <button id="copy-link-2" onclick="copyLink('https://console.firebase.google.com/project/chromique-print/firestore/rules','copy-link-2')" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg transition shrink-0"><i class="fa-solid fa-link mr-1"></i>Copy Link</button>
+            </div>
+            <div id="status-2" class="hidden"></div>
+            <details id="rules-details" class="text-xs">
+                <summary class="cursor-pointer text-slate-500 font-bold">Show the rules (click inside the box to select everything)</summary>
+                <textarea id="merged-rules" readonly rows="16" spellcheck="false" onclick="this.focus();this.select();" class="mt-2 w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-[10px] leading-relaxed text-slate-300 font-mono focus:outline-none focus:ring-1 focus:ring-orange-500 resize-y">Enter your email above and click "Generate My Rules" first.</textarea>
+                <p class="mt-1 text-[10px] text-slate-500">Tip: click anywhere inside the box — the whole text gets selected — then press <strong class="text-slate-300">Ctrl+C</strong> (Cmd+C on Mac).</p>
+            </details>
+
+            <!-- Verify published rules -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3 mt-2">
+                <h3 class="text-xs font-black uppercase text-blue-400"><i class="fa-solid fa-shield-halved mr-1.5"></i>After publishing: verify the rules</h3>
+                <p class="text-[11px] text-slate-500">The wizard probes your live database and confirms every rule behaves correctly — public blocked from reading orders, junk writes rejected, customer checkout still working. Add your manager login (optional) to also test manager access and auto-clean the test order.</p>
+                <div class="grid md:grid-cols-3 gap-3">
+                    <input id="vr-email" type="email" placeholder="Manager email (optional)" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 md:col-span-2">
+                    <input id="vr-password" type="password" placeholder="Password (optional)" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-mono font-bold focus:outline-none focus:ring-1 focus:ring-blue-500">
+                </div>
+                <button onclick="verifyRules()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-5 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-list-check mr-1.5"></i>Verify Published Rules</button>
+                <div id="status-rules" class="hidden"></div>
+                <div id="rules-report" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-4 text-[11px] font-bold space-y-1"></div>
+            </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+            <h2 class="font-extrabold text-sm uppercase tracking-wider"><span class="bg-orange-500 text-slate-950 rounded-full w-6 h-6 inline-flex items-center justify-center mr-2 text-xs">3</span> Your Manager Account</h2>
+
+            <!-- 3a: CHECK -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3">
+                <h3 class="text-xs font-black uppercase text-blue-400"><i class="fa-solid fa-magnifying-glass mr-1.5"></i>Already tried creating it? Check first</h3>
+                <p class="text-[11px] text-slate-500">This tells you exactly what state your account is in: does it exist, does the password work, and is the manager role attached.</p>
+                <div class="grid md:grid-cols-3 gap-3">
+                    <input id="check-email" type="email" placeholder="Email to check" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 md:col-span-2">
+                    <input id="check-password" type="password" placeholder="Password you used" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-mono font-bold focus:outline-none focus:ring-1 focus:ring-blue-500">
+                </div>
+                <button onclick="checkAccount()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-5 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-user-check mr-1.5"></i>Check My Account</button>
+                <div id="status-check" class="hidden"></div>
+            </div>
+
+            <!-- 3b: CREATE -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3">
+                <h3 class="text-xs font-black uppercase text-orange-500"><i class="fa-solid fa-user-plus mr-1.5"></i>Create Manager (you — the director)</h3>
+                <p class="text-[11px] text-slate-500">Safe to re-run: if the account already exists it just adds the missing role. Other managers (e.g. Jessica) are added later from the dashboard → <em>Manage Team Accounts</em>.</p>
+                <div class="grid md:grid-cols-3 gap-3">
+                    <input id="m1-name" type="text" placeholder="Display name — e.g. PATRICK (DIRECTOR)" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-orange-500 md:col-span-3">
+                    <input id="m1-email" type="email" placeholder="Email — same as in Step 2!" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-orange-500 md:col-span-2">
+                    <input id="m1-password" type="text" placeholder="Password (min 6)" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white font-mono font-bold focus:outline-none focus:ring-1 focus:ring-orange-500">
+                </div>
+                <button onclick="createManager1()" class="bg-green-500 hover:bg-green-600 text-slate-950 text-xs font-black px-5 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-user-plus mr-1.5"></i>Create Manager</button>
+                <div id="status-m1" class="hidden"></div>
+            </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3">
+            <h2 class="font-extrabold text-sm uppercase tracking-wider"><span class="bg-orange-500 text-slate-950 rounded-full w-6 h-6 inline-flex items-center justify-center mr-2 text-xs">4</span> Verify Everything Works</h2>
+            <p class="text-xs text-slate-400 leading-relaxed">The wizard signs in, checks your role, and confirms order data is accessible under the rules.</p>
+            <div class="grid md:grid-cols-3 gap-3">
+                <input id="verify-email" type="email" placeholder="Manager email" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-orange-500 md:col-span-2">
+                <input id="verify-password" type="password" placeholder="Password" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white font-mono font-bold focus:outline-none focus:ring-1 focus:ring-orange-500">
+            </div>
+            <button onclick="verifySetup()" class="bg-green-500 hover:bg-green-600 text-slate-950 text-xs font-black px-5 py-3 rounded-xl transition uppercase"><i class="fa-solid fa-vial-circle-check mr-1.5"></i>Run Verification</button>
+            <div id="status-4" class="hidden"></div>
+            <div id="final-success" class="hidden bg-green-500/10 border border-green-500/30 rounded-2xl p-5 text-center space-y-2">
+                <div class="text-3xl">🎉</div>
+                <p class="text-sm font-black text-green-400 uppercase">Setup Complete!</p>
+                <p class="text-xs text-slate-400">Sign in to the <strong class="text-white">Admin Dashboard</strong> and add your team (staff &amp; managers) from <strong class="text-white">Manage Team Accounts</strong>. You can close and delete this wizard page.</p>
+            </div>
+        </div>
+
+        <p class="text-center text-[10px] text-slate-600 pb-8">CHROMIQUE Setup Wizard — one-time use. Delete after setup.</p>
+    </div>
+</body>
+</html>

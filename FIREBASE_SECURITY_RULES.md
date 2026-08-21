@@ -1,5 +1,12 @@
 # Firebase Security Rules for CHROMIQUE
 
+> ## ⚠️ SUPERSEDED — Firebase Authentication is now live
+> The consoles now use real Firebase Authentication (email/password) and
+> role-based Firestore rules. **Use `firestore.rules` (repo root) as the single
+> source of truth, and follow `AUTH_SETUP_GUIDE.md` for setup.**
+> This document is kept for historical reference only — the passcode-based
+> rules below are obsolete and less secure.
+
 ## How to Set Up Firebase Security Rules
 
 ### Step 1: Go to Firebase Console
@@ -23,20 +30,44 @@ service cloud.firestore {
     // ============================================
     match /momo_orders/{orderId} {
       
-      // CREATE: Anyone can create orders (customers placing orders)
-      // This allows the MoMo payment form to save new orders
-      allow create: if true;
+      // CREATE: Anyone can create orders (customers placing orders),
+      // but the document must look like a real order:
+      //  - required fields present with correct types
+      //  - reasonable size limits to block junk/abuse writes
+      allow create: if request.resource.data.ref is string
+                    && request.resource.data.ref.size() > 0
+                    && request.resource.data.ref.size() <= 40
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 120
+                    && request.resource.data.phone is string
+                    && request.resource.data.phone.size() >= 9
+                    && request.resource.data.phone.size() <= 20
+                    && (
+                         // Customer checkout from the MoMo payment page
+                         (request.resource.data.paymentMethod == 'MoMo'
+                           && request.resource.data.status == 'Pending MoMo Verification')
+                         ||
+                         // Manual order entry from the admin dashboard
+                         (request.resource.data.paymentMethod == 'Manual Entry'
+                           && request.resource.data.status == 'MoMo Verified')
+                       )
+                    && request.resource.data.notes is string
+                    && request.resource.data.notes.size() <= 1000;
       
       // READ: Anyone can read orders
-      // This allows the admin dashboard to display orders in real-time
-      // and customers to potentially check order status in the future
+      // Required because the admin/staff dashboards do not use Firebase Auth yet.
+      // ⚠️ NOTE: this exposes customer contact details to anyone with the project ID.
+      // Upgrade to the authenticated rules below as soon as practical.
       allow read: if true;
       
-      // UPDATE: Anyone can update orders
-      // This allows admin to verify/reject orders and update status
-      // Validation ensures required fields are present
+      // UPDATE: Only status transitions and verification metadata,
+      // and only to a known status value. Core order fields cannot be rewritten.
       allow update: if request.resource.data.status is string
-                    && request.resource.data.status in ['Pending MoMo Verification', 'MoMo Verified', 'MoMo Rejected'];
+                    && request.resource.data.status in ['Pending MoMo Verification', 'MoMo Verified', 'MoMo Rejected']
+                    && request.resource.data.ref == resource.data.ref
+                    && request.resource.data.name == resource.data.name
+                    && request.resource.data.phone == resource.data.phone;
       
       // DELETE: Restrict deletes to prevent accidental data loss
       // Only allow deletes if the order has a valid reference number
@@ -61,14 +92,16 @@ service cloud.firestore {
     }
     
     // ============================================
-    // Settings Collection (For admin passcode and app settings)
+    // Settings Collection (For passcodes and app settings)
     // ============================================
     match /settings/{settingId} {
-      // Anyone can read settings (for pricing display and passcode loading)
+      // Anyone can read settings (for pricing display and passcode loading).
+      // Passcodes are now stored as SHA-256 HASHES, never plaintext,
+      // so reading this collection no longer reveals the actual passcode.
       allow read: if true;
       
       // Only allow writes if the setting has required fields
-      // This allows updating admin passcode and other settings
+      // This allows updating passcodes (as hashes) and other settings
       allow write: if request.resource.data.keys().hasAny(['value', 'updatedAt']);
     }
     
@@ -112,10 +145,22 @@ service cloud.firestore {
 
 ### 🔒 **Security Features:**
 
-1. **Status Validation** - Updates must include valid status values
-2. **Delete Protection** - Can't delete orders without valid reference
-3. **Activity Log Integrity** - Logs can't be modified or deleted
-4. **Settings Validation** - Settings must have required fields
+1. **Order Creation Validation** - New orders must contain real customer fields (ref, name, phone) with sane size limits, blocking junk/abuse writes
+2. **Status Validation** - Updates must include valid status values, and core order fields (ref, name, phone) cannot be rewritten after creation
+3. **Delete Protection** - Can't delete orders without valid reference
+4. **Activity Log Integrity** - Logs can't be modified or deleted
+5. **Settings Validation** - Settings must have required fields
+6. **Hashed Passcodes** - The app now stores passcodes as SHA-256 hashes, so a leaked `settings` read never reveals the real passcode
+
+### ⚠️ **Known Limitations (please read):**
+
+Because the admin/staff dashboards don't use Firebase Authentication yet, some rules must stay open:
+
+- **Anyone with the project ID can read orders** (customer names/phones). 
+- **Anyone can update order status or write settings/staff profiles.**
+- The passcode lockscreen is a UI gate, not true server-side security.
+
+This is acceptable for a small MVP, but the **"Future Upgrade: Add Authentication"** section below is the real fix — treat it as a priority once the business grows.
 
 ---
 

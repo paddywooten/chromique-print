@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // Role helpers (Firebase Authentication based)
+    // Roles live in the 'user_roles' collection, keyed by auth uid:
+    //   { role: 'manager' | 'staff', displayName, email, active }
+    // ============================================
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function roleDoc() {
+      return get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data;
+    }
+
+    function isManager() {
+      return isSignedIn()
+             && roleDoc().role == 'manager'
+             && roleDoc().get('active', true) == true;
+    }
+
+    function isStaffOrManager() {
+      return isSignedIn()
+             && roleDoc().role in ['manager', 'staff']
+             && roleDoc().get('active', true) == true;
+    }
+
+    // ============================================
+    // MoMo Orders Collection
+    // ============================================
+    match /momo_orders/{orderId} {
+
+      // CREATE:
+      //  - Customers (unauthenticated) may place real MoMo orders, validated.
+      //  - Managers may create manual (pre-verified) orders.
+      allow create: if request.resource.data.ref is string
+                    && request.resource.data.ref.size() > 0
+                    && request.resource.data.ref.size() <= 40
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 120
+                    && request.resource.data.phone is string
+                    && request.resource.data.phone.size() >= 9
+                    && request.resource.data.phone.size() <= 20
+                    && request.resource.data.notes is string
+                    && request.resource.data.notes.size() <= 1000
+                    && (
+                         // Public customer checkout from the MoMo payment page
+                         (request.resource.data.paymentMethod == 'MoMo'
+                           && request.resource.data.status == 'Pending MoMo Verification')
+                         ||
+                         // Manual order entry — staff and managers (walk-in orders)
+                         (isStaffOrManager()
+                           && request.resource.data.paymentMethod == 'Manual Entry'
+                           && request.resource.data.status == 'MoMo Verified')
+                       );
+
+      // READ: staff and managers only — customer data is no longer public
+      allow read: if isStaffOrManager();
+
+      // UPDATE: staff and managers; only valid status transitions,
+      // and core order fields cannot be rewritten
+      allow update: if isStaffOrManager()
+                    && request.resource.data.status is string
+                    && request.resource.data.status in ['Pending MoMo Verification', 'MoMo Verified', 'MoMo Rejected']
+                    && request.resource.data.ref == resource.data.ref
+                    && request.resource.data.name == resource.data.name
+                    && request.resource.data.phone == resource.data.phone;
+
+      // DELETE: managers only, and only orders with a valid reference
+      allow delete: if isManager()
+                    && resource.data.ref is string
+                    && resource.data.ref.size() > 0;
+    }
+
+    // ============================================
+    // Activity Log Collection (optional Firestore-backed logging)
+    // ============================================
+    match /activity_log/{logId} {
+      // Staff and managers can read and append; logs are immutable
+      allow read: if isStaffOrManager();
+      allow create: if isStaffOrManager();
+      allow update, delete: if false;
+    }
+
+    // ============================================
+    // Settings Collection (app settings)
+    // Passcodes are gone — authentication is handled by Firebase Auth now.
+    // ============================================
+    match /settings/{settingId} {
+      allow read: if isStaffOrManager();
+      allow write: if isManager();
+    }
+
+    // ============================================
+    // Staff Profiles Collection (display data, keyed by auth uid)
+    // ============================================
+    match /staff_profiles/{staffId} {
+      allow read: if isStaffOrManager();
+      allow create, update, delete: if isManager();
+    }
+
+    // ============================================
+    // User Roles Collection (authorization source of truth)
+    // ONE-PASTE BOOTSTRAP: the "founder clause" below lets the director's
+    // email create its own manager role once. Use setup_wizard.html to
+    // generate this file with your email filled in automatically, or replace
+    // the placeholder below manually before publishing.
+    // After bootstrap, managers add both staff AND managers from the dashboard.
+    // ============================================
+    match /user_roles/{userId} {
+      // A user may read their own role; managers may read all roles
+      allow read: if isSignedIn()
+                  && (request.auth.uid == userId || isManager());
+
+      // Managers may grant staff or manager roles from the dashboard.
+      // FOUNDER CLAUSE: the director's email may create its own manager
+      // role — this is how the very first manager is bootstrapped.
+      allow create: if (isManager() && request.resource.data.role in ['staff', 'manager'])
+                    || (isSignedIn()
+                        && request.auth.uid == userId
+                        && request.auth.token.email == 'REPLACE-WITH-DIRECTOR-EMAIL@chromique.com'
+                        && request.resource.data.role == 'manager');
+
+      // Managers may update/remove other team members' roles,
+      // but never their own (prevents self-demotion lockouts)
+      allow update, delete: if isManager()
+                            && userId != request.auth.uid;
+    }
+  }
+}
