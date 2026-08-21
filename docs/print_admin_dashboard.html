@@ -155,6 +155,80 @@
                 <button id="auth-signin-btn" onclick="signIn()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider shadow-lg shadow-brand-500/10">
                     Sign In
                 </button>
+                <script>
+                    // Define signIn wrapper immediately - will call the real function when available
+                    function signIn() {
+                        const btn = document.getElementById('auth-signin-btn');
+                        
+                        // Check if the real signIn function is available
+                        if (typeof window._realSignIn === 'function') {
+                            console.log('Calling real signIn function');
+                            return window._realSignIn();
+                        }
+                        
+                        console.log('Real signIn function not available yet, waiting...');
+                        
+                        // If Firebase hasn't loaded yet, show a message
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.innerText = 'Connecting...';
+                        }
+                        
+                        // Wait for Firebase to load and retry
+                        let attempts = 0;
+                        const maxAttempts = 100; // 10 seconds (100 * 100ms)
+                        const checkFirebase = setInterval(() => {
+                            attempts++;
+                            console.log(`Checking for Firebase (attempt ${attempts}/${maxAttempts})...`);
+                            
+                            if (typeof window._realSignIn === 'function') {
+                                clearInterval(checkFirebase);
+                                console.log('Firebase loaded, calling signIn');
+                                window._realSignIn();
+                            } else if (attempts >= maxAttempts) {
+                                clearInterval(checkFirebase);
+                                console.error('Firebase failed to load after 10 seconds');
+                                
+                                if (btn) {
+                                    btn.disabled = false;
+                                    btn.innerText = 'Sign In';
+                                }
+                                
+                                // Show detailed error
+                                const errorMsg = document.getElementById('auth-error-msg');
+                                const errorText = document.getElementById('auth-error-text');
+                                if (errorMsg && errorText) {
+                                    errorText.innerText = 'Unable to connect to authentication service. Please check your internet connection and refresh the page.';
+                                    errorMsg.classList.remove('hidden');
+                                }
+                            }
+                        }, 100);
+                    }
+                    
+                    // Also define forgotPassword wrapper
+                    function forgotPassword() {
+                        if (typeof window._realForgotPassword === 'function') {
+                            return window._realForgotPassword();
+                        }
+                        
+                        const errorMsg = document.getElementById('auth-error-msg');
+                        const errorText = document.getElementById('auth-error-text');
+                        if (errorMsg && errorText) {
+                            errorText.innerText = 'Authentication service is still loading. Please wait a moment and try again.';
+                            errorMsg.classList.remove('hidden');
+                        }
+                    }
+                    
+                    // Debug function to check Firebase status
+                    window.checkFirebaseStatus = function() {
+                        console.log('=== Firebase Status Check ===');
+                        console.log('window.firebaseAuth:', typeof window.firebaseAuth);
+                        console.log('window.firebaseSignIn:', typeof window.firebaseSignIn);
+                        console.log('window._realSignIn:', typeof window._realSignIn);
+                        console.log('window.firebaseDB:', typeof window.firebaseDB);
+                        console.log('============================');
+                    };
+                </script>
                 <button onclick="forgotPassword()" class="text-[11px] text-slate-500 hover:text-brand-500 font-bold transition">
                     Forgot password? Send reset email
                 </button>

@@ -146,36 +146,47 @@
                         
                         // Check if the real signIn function is available
                         if (typeof window._realSignIn === 'function') {
+                            console.log('Calling real signIn function');
                             return window._realSignIn();
                         }
+                        
+                        console.log('Real signIn function not available yet, waiting...');
                         
                         // If Firebase hasn't loaded yet, show a message
                         if (btn) {
                             btn.disabled = true;
-                            btn.innerText = 'Loading...';
-                            setTimeout(() => {
-                                btn.disabled = false;
-                                btn.innerText = 'Sign In';
-                            }, 2000);
+                            btn.innerText = 'Connecting...';
                         }
                         
                         // Wait for Firebase to load and retry
+                        let attempts = 0;
+                        const maxAttempts = 100; // 10 seconds (100 * 100ms)
                         const checkFirebase = setInterval(() => {
+                            attempts++;
+                            console.log(`Checking for Firebase (attempt ${attempts}/${maxAttempts})...`);
+                            
                             if (typeof window._realSignIn === 'function') {
                                 clearInterval(checkFirebase);
+                                console.log('Firebase loaded, calling signIn');
                                 window._realSignIn();
+                            } else if (attempts >= maxAttempts) {
+                                clearInterval(checkFirebase);
+                                console.error('Firebase failed to load after 10 seconds');
+                                
+                                if (btn) {
+                                    btn.disabled = false;
+                                    btn.innerText = 'Sign In';
+                                }
+                                
+                                // Show detailed error
+                                const errorMsg = document.getElementById('auth-error-msg');
+                                const errorText = document.getElementById('auth-error-text');
+                                if (errorMsg && errorText) {
+                                    errorText.innerText = 'Unable to connect to authentication service. Please check your internet connection and refresh the page.';
+                                    errorMsg.classList.remove('hidden');
+                                }
                             }
                         }, 100);
-                        
-                        // Timeout after 10 seconds
-                        setTimeout(() => {
-                            clearInterval(checkFirebase);
-                            if (btn) {
-                                btn.disabled = false;
-                                btn.innerText = 'Sign In';
-                            }
-                            alert('Unable to connect to authentication service. Please refresh the page and try again.');
-                        }, 10000);
                     }
                     
                     // Also define forgotPassword wrapper
@@ -183,8 +194,25 @@
                         if (typeof window._realForgotPassword === 'function') {
                             return window._realForgotPassword();
                         }
-                        alert('Authentication service is still loading. Please wait a moment and try again.');
+                        
+                        const errorMsg = document.getElementById('auth-error-msg');
+                        const errorText = document.getElementById('auth-error-text');
+                        if (errorMsg && errorText) {
+                            errorText.innerText = 'Authentication service is still loading. Please wait a moment and try again.';
+                            errorMsg.classList.remove('hidden');
+                        }
                     }
+                    
+                    // Debug function to check Firebase status
+                    window.checkFirebaseStatus = function() {
+                        console.log('=== Firebase Status Check ===');
+                        console.log('window.firebaseAuth:', typeof window.firebaseAuth);
+                        console.log('window.firebaseSignIn:', typeof window.firebaseSignIn);
+                        console.log('window._realSignIn:', typeof window._realSignIn);
+                        console.log('window.firebaseDB:', typeof window.firebaseDB);
+                        console.log('Firebase app initialized:', typeof window.firebaseApp !== 'undefined');
+                        console.log('============================');
+                    };
                 </script>
                 <button onclick="forgotPassword()" class="text-[11px] text-slate-500 hover:text-brand-500 font-bold transition">
                     Forgot password? Send reset email
@@ -477,21 +505,44 @@
                 CURRENT_USER = null;
                 sessionStorage.removeItem('chromique_logged_in_manager');
                 if (lockscreen) lockscreen.classList.remove('hidden');
+                console.log('No user signed in');
                 return;
             }
 
+            console.log('User signed in:', user.email, 'UID:', user.uid);
+
             try {
+                console.log('Fetching user role from Firestore...');
                 const roleSnap = await window.firebaseGetDoc(
                     window.firebaseDoc(window.firebaseDB, 'user_roles', user.uid)
                 );
 
-                const roleData = roleSnap.exists() ? roleSnap.data() : null;
+                console.log('Role snapshot exists:', roleSnap.exists());
+                
+                if (!roleSnap.exists()) {
+                    console.error('No user_roles document found for UID:', user.uid);
+                    showAuthError('Your account does not have a role assigned. Please contact an administrator.');
+                    await window.firebaseSignOut();
+                    return;
+                }
+
+                const roleData = roleSnap.data();
+                console.log('Role data:', roleData);
+                
                 const hasAccess = roleData
                     && (roleData.role === 'staff' || roleData.role === 'manager')
                     && roleData.active !== false;
 
+                console.log('Has access:', hasAccess, 'Role:', roleData.role, 'Active:', roleData.active);
+
                 if (!hasAccess) {
-                    showAuthError('This account does not have staff access.');
+                    if (roleData.active === false) {
+                        showAuthError('Your account has been deactivated. Please contact an administrator.');
+                    } else if (roleData.role !== 'staff' && roleData.role !== 'manager') {
+                        showAuthError(`Your account role "${roleData.role}" does not have access to the staff console.`);
+                    } else {
+                        showAuthError('This account does not have staff access.');
+                    }
                     await window.firebaseSignOut();
                     return;
                 }
@@ -506,13 +557,23 @@
                 const welcomeEl = document.getElementById('welcome-manager');
                 if (welcomeEl) welcomeEl.innerText = displayName;
 
+                console.log('Login successful, loading data...');
                 logActivity('LOGIN', `${displayName} logged into the console`);
                 loadMomoOrders();
                 loadActivityLog();
 
             } catch (error) {
                 console.error('Error verifying staff role:', error);
-                showAuthError('Could not verify your access. Please try again.');
+                console.error('Error code:', error.code);
+                console.error('Error message:', error.message);
+                
+                if (error.code === 'permission-denied') {
+                    showAuthError('Permission denied. Check that Firestore security rules are published and your account has the correct role.');
+                } else if (error.code === 'not-found') {
+                    showAuthError('Your user role was not found. Please contact an administrator to set up your account.');
+                } else {
+                    showAuthError(`Could not verify your access: ${error.message}. Please try again.`);
+                }
                 await window.firebaseSignOut();
             }
         }
