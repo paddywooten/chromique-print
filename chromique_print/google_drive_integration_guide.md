@@ -97,7 +97,7 @@ For your website to communicate with your Google script, you must publish it:
 Now, paste your Google Web App URL into your **Developer Setup Drawer** (or edit the variable in your code) and your entire system is completely automated!
 
 1. Open your print shop homepage (`print_index.html`) locally.
-2. Click the floating **Setup Paystack & Pricing Matrix** button in the bottom-left corner.
+2. Click the floating **Setup Pricing Matrix** button in the bottom-left corner.
 3. You will see a new input field: **`Google Apps Script Web App URL`**.
 4. Paste your copied Google Web App URL, and click **Save Configuration**.
 

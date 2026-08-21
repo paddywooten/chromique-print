@@ -19,7 +19,6 @@ let appSettings = {
     sublimationA4Cost: 15.0,     // Default GHS cost for Sublimation A4
     sublimationA3Cost: 25.0,     // Default GHS cost for Sublimation A3
     googleDriveScriptUrl: '',    // Custom Google Apps Script webhook URL
-    paystackKey: 'pk_test_a0d8ea9c81523cbf729119632832810cd8ea3120' // Default test key
 };
 
 let calculator = {
@@ -65,14 +64,6 @@ function showToast(message, type = 'success') {
 // 1. Initializations & Configurations
 // ----------------------------------------------------
 function initPrintStore() {
-    // Load Paystack Key
-    const savedKey = localStorage.getItem('paystack_pub_key_print');
-    if (savedKey) {
-        appSettings.paystackKey = savedKey;
-        const keyInput = document.getElementById('paystack-pub-key-input');
-        if (keyInput) keyInput.value = savedKey;
-    }
-    
     // Load Google Drive Script Webhook URL
     const savedScriptUrl = localStorage.getItem('google_drive_script_url_print');
     if (savedScriptUrl) {
@@ -180,7 +171,6 @@ function initPrintStore() {
 }
 
 function saveDevSettings() {
-    const keyVal = document.getElementById('paystack-pub-key-input').value.trim();
     const currVal = document.getElementById('currency-select').value;
     const scriptUrlInput = document.getElementById('google-script-url-input');
     const scriptUrlVal = scriptUrlInput ? scriptUrlInput.value.trim() : '';
@@ -196,10 +186,6 @@ function saveDevSettings() {
     const subA4Val = document.getElementById('sub-a4-cost-input').value.trim();
     const subA3Val = document.getElementById('sub-a3-cost-input').value.trim();
     
-    if (keyVal) {
-        localStorage.setItem('paystack_pub_key_print', keyVal);
-        appSettings.paystackKey = keyVal;
-    }
     if (scriptUrlVal) {
         localStorage.setItem('google_drive_script_url_print', scriptUrlVal);
         appSettings.googleDriveScriptUrl = scriptUrlVal;

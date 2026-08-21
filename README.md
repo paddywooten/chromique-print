@@ -6,7 +6,7 @@ High-speed commercial printing website built with HTML, CSS, and JavaScript.
 
 - **Landing Page** — Modern, responsive design with Tailwind CSS and Plus Jakarta Sans / Playfair Display typography
 - **Admin Dashboard** — Order management and administration panel
-- **Paystack Integration** — Online payment processing for print orders
+- **Mobile Money Integration** — Mobile Money payment processing for print orders
 - **Google Drive Integration** — File upload/storage for print assets
 - **Brand Designs** — Showcase of branded merchandise mockups (hoodies, apparel)
 
