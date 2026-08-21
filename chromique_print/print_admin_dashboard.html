@@ -140,29 +140,29 @@
     </div>
 
     <!-- Top Navbar -->
-    <nav class="bg-slate-900 border-b border-slate-800 h-20 px-6 flex justify-between items-center sticky top-0 z-40">
+    <nav class="bg-slate-900 border-b border-slate-800 h-auto min-h-[5rem] px-4 md:px-6 py-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sticky top-0 z-40">
         <!-- Logo redirects back to print_index.html storefront -->
-        <a href="print_index.html" class="flex items-center gap-3 group hover:opacity-90 transition">
-            <img src="chromique-logo.svg" alt="Chromique Logo" class="h-10 w-auto">
+        <a href="print_index.html" class="flex items-center gap-2 md:gap-3 group hover:opacity-90 transition">
+            <img src="chromique-logo.svg" alt="Chromique Logo" class="h-8 md:h-10 w-auto">
             <div>
-                <h1 class="font-extrabold text-sm tracking-widest text-white uppercase group-hover:text-brand-500 transition">CHROMIQUE</h1>
-                <p class="text-[9px] text-brand-500 font-mono tracking-wider font-bold">PRODUCTION &amp; PAYSTACK CONSOLE</p>
+                <h1 class="font-extrabold text-xs md:text-sm tracking-widest text-white uppercase group-hover:text-brand-500 transition">CHROMIQUE</h1>
+                <p class="text-[8px] md:text-[9px] text-brand-500 font-mono tracking-wider font-bold">PRODUCTION &amp; PAYSTACK CONSOLE</p>
             </div>
         </a>
 
-        <div class="flex items-center gap-4 text-xs font-bold text-slate-400">
-            <a href="print_index.html" class="bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl transition flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
-                <i class="fa-solid fa-house text-brand-500"></i> View Print Shop
+        <div class="flex items-center gap-2 md:gap-4 text-[10px] md:text-xs font-bold text-slate-400 w-full md:w-auto justify-end flex-wrap">
+            <a href="print_index.html" class="bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 px-3 md:px-4 py-1.5 md:py-2 rounded-xl transition flex items-center gap-1 md:gap-1.5 font-bold uppercase tracking-wider text-[9px] md:text-[10px]">
+                <i class="fa-solid fa-house text-brand-500"></i> <span class="hidden sm:inline">View Print Shop</span><span class="sm:hidden">Shop</span>
             </a>
-            <a href="operations_console.html" class="bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl transition flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
-                <i class="fa-solid fa-table-list text-brand-500"></i> Operations
+            <a href="operations_console.html" class="bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 px-3 md:px-4 py-1.5 md:py-2 rounded-xl transition flex items-center gap-1 md:gap-1.5 font-bold uppercase tracking-wider text-[9px] md:text-[10px]">
+                <i class="fa-solid fa-table-list text-brand-500"></i> <span class="hidden sm:inline">Operations</span><span class="sm:hidden">Ops</span>
             </a>
-            <span class="text-slate-800">|</span>
-            <span class="bg-brand-500/10 text-brand-500 border border-brand-500/20 px-3 py-1.5 rounded-full font-mono font-bold hidden md:inline-block"><i class="fa-solid fa-circle text-[8px] mr-1.5 animate-pulse"></i> SYSTEM ONLINE</span>
-            <span class="text-slate-800 hidden md:inline-block">|</span>
-            <span id="welcome-manager" class="text-brand-500 font-bold">—</span>
-            <button onclick="logoutUser()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl transition flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            <span class="text-slate-800 hidden md:inline">|</span>
+            <span class="bg-brand-500/10 text-brand-500 border border-brand-500/20 px-2 md:px-3 py-1 md:py-1.5 rounded-full font-mono font-bold hidden lg:inline-block text-[9px] md:text-[10px]"><i class="fa-solid fa-circle text-[6px] md:text-[8px] mr-1 md:mr-1.5 animate-pulse"></i> SYSTEM ONLINE</span>
+            <span class="text-slate-800 hidden md:inline">|</span>
+            <span id="welcome-manager" class="text-brand-500 font-bold text-[10px] md:text-xs truncate max-w-[120px] md:max-w-none">—</span>
+            <button onclick="logoutUser()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 md:px-4 py-1.5 md:py-2 rounded-xl transition flex items-center gap-1 md:gap-1.5 font-bold uppercase tracking-wider text-[9px] md:text-[10px]">
+                <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Logout</span><span class="sm:hidden">Exit</span>
             </button>
         </div>
     </nav>
@@ -374,28 +374,28 @@
         </div>
 
         <!-- MoMo Payment Orders -->
-        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 p-4 md:p-6 space-y-4">
+            <div class="flex flex-col gap-3">
                 <h3 class="font-extrabold text-sm uppercase tracking-wider text-white">
                     <i class="fa-solid fa-mobile-screen-button text-yellow-400 mr-2"></i> MoMo Payment Orders
                 </h3>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <input type="text" id="momo-search" placeholder="Search orders..." class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 w-40">
-                    <select id="momo-status-filter" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500">
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="momo-search" placeholder="Search orders..." class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 flex-1 min-w-0">
+                    <select id="momo-status-filter" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 sm:w-auto">
                         <option value="all">All Status</option>
                         <option value="Pending MoMo Verification">Pending</option>
                         <option value="MoMo Verified">Verified</option>
                         <option value="MoMo Rejected">Rejected</option>
                     </select>
-                    <button onclick="exportOrdersToCSV()" class="bg-green-500/10 text-green-400 px-3 py-2 rounded-lg text-xs font-bold hover:bg-green-500/20 transition">
+                    <button onclick="exportOrdersToCSV()" class="bg-green-500/10 text-green-400 px-3 py-2 rounded-lg text-xs font-bold hover:bg-green-500/20 transition whitespace-nowrap">
                         <i class="fa-solid fa-download mr-1"></i> Export
                     </button>
-                    <span class="text-[10px] bg-yellow-500/10 text-yellow-400 px-3 py-1 rounded-full font-bold" id="momo-order-count">0 Orders</span>
+                    <span class="text-[10px] bg-yellow-500/10 text-yellow-400 px-3 py-1 rounded-full font-bold whitespace-nowrap" id="momo-order-count">0 Orders</span>
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-300">
+            <div class="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+                <table class="w-full text-left text-xs text-slate-300 min-w-[800px]">
                     <thead class="bg-slate-950 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
                         <tr>
                             <th class="p-3 rounded-l-xl">Reference</th>
