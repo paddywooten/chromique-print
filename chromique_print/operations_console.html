@@ -392,6 +392,17 @@
         function orderDate(o) { return o.createdAt || o.timestamp || ''; }
         function fmtDate(iso) {
             if (!iso) return '—';
+            let d;
+            // Handle Firestore Timestamp objects
+            if (iso && typeof iso === 'object' && iso.seconds !== undefined) {
+                d = new Date(iso.seconds * 1000);
+            } else {
+                d = new Date(iso);
+            }
+            return isNaN(d) ? String(iso) : d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        }
+        function fmtDate_OLD(iso) {
+            if (!iso) return '—';
             const d = new Date(iso);
             return isNaN(d) ? String(iso) : d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
         }
