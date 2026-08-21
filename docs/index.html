@@ -2,11 +2,385 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=print_index.html">
-    <title>CHROMIQUE | Redirecting...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <title>CHROMIQUE | Premium Commercial Printing in Accra, Ghana</title>
+    <meta name="description" content="CHROMIQUE - Premium commercial printing and precision cutting services in Accra, Ghana. Banners, stickers, labels, DTF, sublimation, and custom prints. Fast turnaround, competitive pricing.">
+    <meta name="keywords" content="printing, banners, stickers, labels, DTF, sublimation, print and cut, Accra, Ghana, commercial printing, large format printing">
+    <meta name="author" content="CHROMIQUE">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://chromiqueprint.com/">
+    <meta property="og:title" content="CHROMIQUE | Premium Print & Precision Cut">
+    <meta property="og:description" content="High-speed commercial printing and precision cutting services in Accra, Ghana. Banners, stickers, labels, DTF, sublimation.">
+    <meta property="og:image" content="https://chromiqueprint.com/chromique-logo.svg">
+    <meta property="og:site_name" content="CHROMIQUE">
+    <meta property="og:locale" content="en_GH">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://chromiqueprint.com/">
+    <meta property="twitter:title" content="CHROMIQUE | Premium Print & Precision Cut">
+    <meta property="twitter:description" content="High-speed commercial printing and precision cutting services in Accra, Ghana.">
+    <meta property="twitter:image" content="https://chromiqueprint.com/chromique-logo.svg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="chromique-logo.svg">
+    <link rel="apple-touch-icon" href="chromique-logo.svg">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://chromiqueprint.com/">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Link to external modular assets -->
+    <link rel="stylesheet" href="print_style.css">
+    <script src="print_app.js" defer></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            505: '#f97316', /* Safety Orange */
+                            500: '#f97316',
+                            600: '#ea580c',
+                            950: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-    <script>window.location.href = "print_index.html";</script>
-    <p>Redirecting to <a href="print_index.html">Chromique Print Hub</a>...</p>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen overflow-x-hidden selection:bg-brand-500 selection:text-slate-950">
+
+    <!-- Navigation Header -->
+    <nav class="sticky top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-900 z-40">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <!-- Brand Logo (Renamed to CHROMIQUE) -->
+            <a href="index.html" class="flex items-center gap-3 group">
+                <img src="chromique-logo.svg" alt="Chromique Logo" class="h-10 w-auto">
+                <div>
+                    <h1 class="font-extrabold text-sm tracking-widest text-white group-hover:text-brand-500 transition uppercase">CHROMIQUE</h1>
+                    <p class="text-[11px] text-brand-500 font-mono tracking-wider font-bold">PREMIUM PRINT &amp; PRECISION CUT</p>
+                </div>
+            </a>
+
+            <!-- Desktop Menu links -->
+            <div class="hidden md:flex items-center gap-8 text-xs font-bold tracking-widest text-slate-400 uppercase">
+                <a href="#services" class="hover:text-brand-500 transition">What We Do</a>
+                <a href="#work" class="hover:text-brand-500 transition">Recent Work</a>
+                <a href="#calculator" class="hover:text-brand-500 transition">Book Your Order</a>
+                <a href="tel:+233245377116" class="bg-brand-500/10 text-brand-500 border border-brand-500/20 px-4 py-2 rounded-xl hover:bg-brand-500/20 transition normal-case tracking-normal font-mono"><i class="fa-solid fa-phone mr-1.5"></i>024 537 7116</a>
+            </div>
+
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-btn" class="md:hidden text-white w-11 h-11 flex items-center justify-center" aria-label="Open navigation menu">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 right-0 bg-slate-950 border-b border-slate-900 p-6 shadow-lg">
+            <a href="#services" class="block py-3 text-slate-400 hover:text-brand-500 font-bold text-sm uppercase tracking-wider transition">What We Do</a>
+            <a href="#work" class="block py-3 text-slate-400 hover:text-brand-500 font-bold text-sm uppercase tracking-wider transition">Recent Work</a>
+            <a href="#calculator" class="block py-3 text-slate-400 hover:text-brand-500 font-bold text-sm uppercase tracking-wider transition">Book Your Order</a>
+            <a href="tel:+233245377116" class="block py-3 text-brand-500 font-bold text-sm tracking-wider transition font-mono"><i class="fa-solid fa-phone mr-1.5"></i>024 537 7116</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative bg-slate-950 text-white py-16 lg:py-24 overflow-hidden flex items-center border-b border-slate-900">
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b22_1px,transparent_1px),linear-gradient(to_bottom,#1e293b22_1px,transparent_1px)] bg-[size:40px_40px] opacity-25"></div>
+        <div class="absolute w-[500px] h-[500px] bg-brand-500/5 rounded-full blur-[110px] -top-20 -left-20 pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div class="space-y-6 lg:col-span-7">
+                <span class="inline-block bg-brand-500/10 text-brand-500 border border-brand-500/20 text-xs font-bold px-4 py-1.5 rounded-full tracking-wider uppercase"><i class="fa-solid fa-circle text-[8px] mr-1.5 animate-pulse"></i> HIGH-SPEED PRODUCTION ACTIVE</span>
+                <h2 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-none uppercase font-sans">
+                    Commercial Scale.<br><span class="bg-gradient-to-r from-brand-500 to-amber-500 bg-clip-text text-transparent">Micron Precision</span>.
+                </h2>
+                
+                <!-- Rewritten Hero Copy Paragraph -->
+                <p class="text-slate-400 text-sm md:text-base leading-relaxed max-w-xl">
+                    <strong class="text-white text-base md:text-lg block mb-2">Turning bold ideas into tangible, high-impact reality.</strong>
+                    <em class="text-brand-500 font-medium">Crafted with precision, Printed to perfection.</em>
+                </p>
+                
+                <div class="flex gap-4 pt-2">
+                    <a href="#calculator" class="bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs px-8 py-4 rounded-xl tracking-wider uppercase transition shadow-lg shadow-brand-500/10">Configure Custom Print</a>
+                    <a href="#services" class="border border-slate-800 hover:border-slate-700 text-white font-bold text-xs px-8 py-4 rounded-xl tracking-wider uppercase transition">Our Catalog</a>
+                </div>
+            </div>
+            
+            <!-- Landscape frame displaying the 6-foot wide printer — visible on ALL screens -->
+            <div class="lg:col-span-5 relative animate-fade-in">
+                <div class="w-full aspect-[4/3] border border-slate-800 rounded-3xl p-3 relative bg-slate-900 overflow-hidden shadow-2xl">
+                    <picture>
+                        <source srcset="large_format_printer_landscape.webp" type="image/webp">
+                        <img src="large_format_printer_landscape.jpg" alt="Commercial 6-foot large-format printer in production" width="1376" height="768" loading="lazy" class="w-full h-full object-cover rounded-2xl">
+                    </picture>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Services Grid Section -->
+    <section id="services" class="py-20 max-w-7xl mx-auto px-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4 border-b border-slate-900 pb-8">
+            <div>
+                <span class="text-xs font-bold text-brand-500 uppercase tracking-widest">PRODUCTION CATALOG</span>
+                <h3 class="text-2xl font-black tracking-tight uppercase text-white mt-1">Industrial-Grade Print &amp; Cut Services</h3>
+            </div>
+            <p class="text-xs text-slate-400 max-w-xs leading-relaxed">
+                We handle design scaling, printing, and automated cutting of vinyl and canvas.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Service 1 -->
+            <a href="#calculator" onclick="selectService('banner')" class="group block bg-slate-900/60 p-6 rounded-2xl border border-slate-850 hover:border-brand-500/40 hover:bg-slate-900 transition space-y-4 cursor-pointer focus-visible:outline-brand-500">
+                <div class="w-10 h-10 bg-brand-500/10 text-brand-500 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-scroll"></i></div>
+                <h4 class="font-bold text-sm uppercase text-white">Banners</h4>
+                <p class="text-[11px] text-slate-400 leading-relaxed">Heavy-duty event banners and backdrops. Calculated dynamically by square footage based on your specific width and height.</p>
+                <div class="text-xs font-bold text-brand-500 uppercase">From <span id="price-s1">GH¢15.00 / sq ft</span></div>
+                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider pt-1 group-hover:text-brand-500 transition">Configure <i class="fa-solid fa-arrow-right ml-1"></i></div>
+            </a>
+            <!-- Service 2 -->
+            <a href="#calculator" onclick="selectService('stickers')" class="group block bg-slate-900/60 p-6 rounded-2xl border border-slate-850 hover:border-brand-500/40 hover:bg-slate-900 transition space-y-4 cursor-pointer focus-visible:outline-brand-500">
+                <div class="w-10 h-10 bg-blue-500/10 text-blue-400 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-tags"></i></div>
+                <h4 class="font-bold text-sm uppercase text-white">Stickers</h4>
+                <p class="text-[11px] text-slate-400 leading-relaxed">Waterproof glossy, matte, or holographic stickers. Calculated by precise square footage for custom sizing.</p>
+                <div class="text-xs font-bold text-brand-500 uppercase">From <span id="price-s2">GH¢2.50 / sq ft</span></div>
+                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider pt-1 group-hover:text-brand-500 transition">Configure <i class="fa-solid fa-arrow-right ml-1"></i></div>
+            </a>
+            <!-- Service 3 -->
+            <a href="#calculator" onclick="selectService('labels')" class="group block bg-slate-900/60 p-6 rounded-2xl border border-slate-850 hover:border-brand-500/40 hover:bg-slate-900 transition space-y-4 cursor-pointer focus-visible:outline-brand-500">
+                <div class="w-10 h-10 bg-amber-500/10 text-amber-400 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-border-none"></i></div>
+                <h4 class="font-bold text-sm uppercase text-white">Branding Labels</h4>
+                <p class="text-[11px] text-slate-400 leading-relaxed">Pre-cut sheet-labels designed for packaging jars, boxes, and product bottles. Flat rate per sheet.</p>
+                <div class="text-xs font-bold text-brand-500 uppercase">From <span id="price-s3">GH¢15.00 / sheet</span></div>
+                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider pt-1 group-hover:text-brand-500 transition">Configure <i class="fa-solid fa-arrow-right ml-1"></i></div>
+            </a>
+            <!-- Service 4 -->
+            <a href="#calculator" onclick="selectService('dtf')" class="group block bg-slate-900/60 p-6 rounded-2xl border border-slate-850 hover:border-brand-500/40 hover:bg-slate-900 transition space-y-4 cursor-pointer focus-visible:outline-brand-500">
+                <div class="w-10 h-10 bg-purple-500/10 text-purple-400 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-print"></i></div>
+                <h4 class="font-bold text-sm uppercase text-white">DTF &amp; Sublimation</h4>
+                <p class="text-[11px] text-slate-400 leading-relaxed">High-definition full-color DTF apparel sheets and ink-infused polyester sublimation transfers.</p>
+                <div class="text-xs font-bold text-brand-500 uppercase">From <span id="price-s4">GH¢15.00 / A4 sheet</span></div>
+                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider pt-1 group-hover:text-brand-500 transition">Configure <i class="fa-solid fa-arrow-right ml-1"></i></div>
+            </a>
+            <!-- Service 5: Print and Cut -->
+            <a href="#calculator" onclick="selectService('print_and_cut')" class="group block bg-slate-900/60 p-6 rounded-2xl border border-slate-850 hover:border-brand-500/40 hover:bg-slate-900 transition space-y-4 cursor-pointer focus-visible:outline-brand-500">
+                <div class="w-10 h-10 bg-green-500/10 text-green-400 rounded-lg flex items-center justify-center text-lg"><i class="fa-solid fa-scissors"></i></div>
+                <h4 class="font-bold text-sm uppercase text-white">Print &amp; Cut</h4>
+                <p class="text-[11px] text-slate-400 leading-relaxed">Full-color printed vinyl or sticker sheets with precision contour cutting. Calculated by square footage for custom sizing.</p>
+                <div class="text-xs font-bold text-brand-500 uppercase">From <span id="price-s5">GH¢5.00 / sq ft</span></div>
+                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider pt-1 group-hover:text-brand-500 transition">Configure <i class="fa-solid fa-arrow-right ml-1"></i></div>
+            </a>
+        </div>
+    </section>
+
+
+    <!-- SECTION: RECENT WORK GALLERY -->
+    <section id="work" class="py-20 bg-slate-950 border-t border-slate-900">
+        <div class="max-w-7xl mx-auto px-6 space-y-10">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-900 pb-8">
+                <div>
+                    <span class="text-xs font-bold text-brand-500 uppercase tracking-widest">PROOF OF WORK</span>
+                    <h3 class="text-2xl font-black tracking-tight uppercase text-white mt-1">Recent Production Runs</h3>
+                </div>
+                <p class="text-xs text-slate-400 max-w-xs leading-relaxed">Real output from our floor — apparel prints, large-format banners, and precision-cut branding.</p>
+            </div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <figure class="rounded-2xl overflow-hidden border border-slate-850 bg-slate-900 group">
+                    <picture>
+                        <source srcset="work_hoodie_slate.webp" type="image/webp">
+                        <img src="work_hoodie_slate.jpg" alt="Chromique branded hoodie print — slate colorway" width="1408" height="768" loading="lazy" class="w-full aspect-[4/3] object-cover group-hover:scale-105 transition duration-500">
+                    </picture>
+                    <figcaption class="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">DTF Apparel — Hoodie</figcaption>
+                </figure>
+                <figure class="rounded-2xl overflow-hidden border border-slate-850 bg-slate-900 group">
+                    <picture>
+                        <source srcset="work_hoodie_cream.webp" type="image/webp">
+                        <img src="work_hoodie_cream.jpg" alt="Chromique branded hoodie print — cream colorway" width="1408" height="768" loading="lazy" class="w-full aspect-[4/3] object-cover group-hover:scale-105 transition duration-500">
+                    </picture>
+                    <figcaption class="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">DTF Apparel — Hoodie</figcaption>
+                </figure>
+                <figure class="rounded-2xl overflow-hidden border border-slate-850 bg-slate-900 group">
+                    <picture>
+                        <source srcset="large_format_printer.webp" type="image/webp">
+                        <img src="large_format_printer.jpg" alt="Large-format printer producing a full-color banner" width="1408" height="768" loading="lazy" class="w-full aspect-[4/3] object-cover group-hover:scale-105 transition duration-500">
+                    </picture>
+                    <figcaption class="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Large-Format Banner</figcaption>
+                </figure>
+                <figure class="rounded-2xl overflow-hidden border border-slate-850 bg-slate-900 group">
+                    <picture>
+                        <source srcset="large_format_printer_landscape.webp" type="image/webp">
+                        <img src="large_format_printer_landscape.jpg" alt="Six-foot commercial printer mid-production" width="1376" height="768" loading="lazy" class="w-full aspect-[4/3] object-cover group-hover:scale-105 transition duration-500">
+                    </picture>
+                    <figcaption class="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Production Floor</figcaption>
+                </figure>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: INTERACTIVE PRICING CALCULATOR -->
+    <section id="calculator" class="py-20 bg-slate-900 border-y border-slate-850">
+        <div class="max-w-4xl mx-auto px-6 space-y-8">
+            <div class="text-center space-y-1.5">
+                <span class="text-xs font-bold text-brand-500 uppercase tracking-widest">ON-DEMAND PRICING</span>
+                <h3 class="text-2xl font-black uppercase text-white">Instant Dimensional Calculator</h3>
+                <p class="text-xs text-slate-400">Custom dimensional and sheet-based pricing. Exact calculations, no rounding-up!</p>
+            </div>
+
+            <div class="bg-slate-950 p-8 rounded-3xl border border-slate-850 grid grid-cols-1 md:grid-cols-12 gap-8 items-center shadow-2xl">
+                <!-- Inputs (Left) -->
+                <div class="md:col-span-7 space-y-4 text-xs font-bold text-slate-400">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5 col-span-2">
+                            <label class="uppercase text-[11px] tracking-widest text-slate-400">Service Type</label>
+                            <select id="print-type" onchange="calculatePrice()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:ring-1 focus:ring-brand-500">
+                                <option value="banner" selected>Banner</option>
+                                <option value="stickers">Sticker</option>
+                                <option value="print_and_cut">Print &amp; Cut</option>
+                                <option value="labels">Labels</option>
+                                <option value="dtf">DTF</option>
+                                <option value="sublimation">Sublimation</option>
+                                <option value="custom">Other Custom Prints</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Custom Description Input -->
+                    <div id="custom-description-box" class="space-y-1.5 border-t border-slate-900 pt-4 hidden">
+                        <label class="uppercase text-[11px] tracking-widest text-slate-400">Describe What You Want Printed</label>
+                        <input type="text" id="custom-print-description" placeholder="e.g. 5 custom car stencils, custom adhesive vinyl wall words..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:ring-1 focus:ring-brand-500">
+                    </div>
+
+                    <!-- Dimensional Sizing Box (Feet/Inches/Cm) -->
+                    <div id="dimension-fields-box" class="space-y-4 border-t border-slate-900 pt-4">
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="space-y-1.5 col-span-1">
+                                <label class="uppercase text-[11px] tracking-widest text-slate-400">Unit</label>
+                                <select id="print-unit" onchange="calculatePrice()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:ring-1 focus:ring-brand-500">
+                                    <option value="feet" selected>Feet (ft)</option>
+                                    <option value="inches">Inches (in)</option>
+                                    <option value="cm">Centimeters (cm)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5 col-span-1">
+                                <label class="uppercase text-[11px] tracking-widest text-slate-400">Width</label>
+                                <input type="number" step="0.1" id="print-width" value="3" oninput="calculatePrice()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white font-bold outline-none focus:ring-1 focus:ring-brand-500">
+                            </div>
+                            <div class="space-y-1.5 col-span-1">
+                                <label class="uppercase text-[11px] tracking-widest text-slate-400">Height</label>
+                                <input type="number" step="0.1" id="print-height" value="4" oninput="calculatePrice()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white font-bold outline-none focus:ring-1 focus:ring-brand-500">
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-brand-500 italic font-bold tracking-wide" id="area-summary">Size: 3.00ft x 4.00ft (12.0000 sq ft total) @ GH¢15.00/sq ft</div>
+                    </div>
+
+                    <!-- Sheet Size Selector Box (DTF & Sublimation) -->
+                    <div id="sheet-size-box" class="space-y-1.5 border-t border-slate-900 pt-4 hidden">
+                        <label class="uppercase text-[11px] tracking-widest text-slate-400">Select Sheet Size</label>
+                        <select id="print-sheet-size" onchange="calculatePrice()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold">
+                            <option value="a4" id="opt-dtf-a4" selected>A4 Sheet Sizing (GH¢15.00)</option>
+                            <option value="a3" id="opt-dtf-a3">A3 Sheet Sizing (GH¢25.00)</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- Price display (Right) -->
+                <div class="md:col-span-5 bg-slate-900 p-6 rounded-2xl border border-slate-850 text-center space-y-6">
+                    <div class="space-y-1">
+                        <span class="text-[11px] uppercase font-bold text-slate-400 tracking-widest block">Calculated Total</span>
+                        <div class="text-3xl font-black text-brand-500 tracking-tight" id="calculated-print-price">GH¢180.00</div>
+                        <span class="text-[11px] text-slate-400 block">Price estimate based on your dimensions</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-center gap-3">
+                            <span class="text-[11px] uppercase font-bold text-slate-400">Quantity / Prints:</span>
+                            <input type="number" id="print-qty" value="1" min="1" oninput="calculatePrice()" class="w-16 bg-slate-950 border border-slate-800 text-white rounded-lg p-2 text-center font-bold outline-none focus:ring-1 focus:ring-brand-500">
+                        </div>
+                        <a href="momo_payment.html" onclick="saveQuoteToSession()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/10">
+                            <i class="fa-solid fa-mobile-screen-button"></i> Pay via MoMo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comprehensive Brand Footer (Fully Connected with Private Admin link!) -->
+    <footer class="bg-slate-900 text-slate-400 py-16 border-t border-slate-900">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
+            <!-- Brand Info -->
+            <div class="space-y-4 col-span-1">
+                <a href="index.html" class="flex items-center gap-2">
+                    <img src="chromique-logo.svg" alt="Chromique Logo" class="h-8 w-auto">
+                    <span class="font-bold text-white tracking-widest text-xs uppercase">CHROMIQUE</span>
+                </a>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Sleek horizontal large-format printing and automated cricut vector cutting for clients across Accra, Tema, and beyond.
+                </p>
+            </div>
+            <!-- Quick Links -->
+            <div class="space-y-3 col-span-1">
+                <h4 class="text-[11px] font-bold text-white uppercase tracking-widest">Navigation</h4>
+                <div class="flex flex-col gap-2 text-xs">
+                    <a href="#services" class="hover:text-brand-500 transition">What We Do</a>
+                    <a href="#work" class="hover:text-brand-500 transition">Recent Work</a>
+                    <a href="#calculator" class="hover:text-brand-500 transition">Book Your Order</a>
+                </div>
+            </div>
+            <!-- Contact -->
+            <div class="space-y-3 col-span-1">
+                <h4 class="text-[11px] font-bold text-white uppercase tracking-widest">Get In Touch</h4>
+                <div class="flex flex-col gap-2.5 text-xs">
+                    <a href="tel:+233245377116" class="hover:text-brand-500 transition flex items-center gap-2"><i class="fa-solid fa-phone text-brand-500 w-4"></i><span class="font-mono font-bold">024 537 7116</span></a>
+                    <a href="https://wa.me/233245377116?text=Hello%20CHROMIQUE!%20I%27d%20like%20a%20print%20quote." target="_blank" rel="noopener" class="hover:text-green-400 transition flex items-center gap-2"><i class="fa-brands fa-whatsapp text-green-400 w-4"></i><span class="font-bold">Chat on WhatsApp</span></a>
+                    <a href="mailto:chromique.print@gmail.com" class="hover:text-brand-500 transition flex items-center gap-2"><i class="fa-solid fa-envelope text-brand-500 w-4"></i><span class="font-bold">chromique.print@gmail.com</span></a>
+                    <span class="flex items-center gap-2 text-slate-400"><i class="fa-solid fa-location-dot text-brand-500 w-4"></i>Accra, Ghana</span>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 border-t border-slate-800 mt-12 pt-6 text-center text-xs text-slate-600">
+            <span>© 2026 CHROMIQUE. All Rights Reserved. Accra, Ghana.</span>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp button -->
+    <a href="https://wa.me/233245377116?text=Hello%20CHROMIQUE!%20I%27d%20like%20a%20print%20quote."
+       target="_blank" rel="noopener" aria-label="Chat with CHROMIQUE on WhatsApp"
+       class="fixed bottom-8 left-8 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 text-slate-950 rounded-full flex items-center justify-center text-2xl shadow-lg shadow-green-500/25 transition hover:scale-110">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- Scroll to top button -->
+    <button id="scroll-top-btn" aria-label="Scroll to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- Skip to main content (accessibility) -->
+    <a href="#calculator" class="skip-link">Skip to main content</a>
+
 </body>
 </html>

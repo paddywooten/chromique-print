@@ -7,7 +7,7 @@
 Your passcode is no longer stored as readable text — it is stored as a **SHA-256 hash** (a scrambled fingerprint), so nobody who views the code or the database can read your actual passcode.
 
 ### ✅ Recommended: Use the Dashboard (No Coding Needed!)
-1. Log into your **Admin Dashboard** (`print_admin_dashboard.html`).
+1. Log into your **Admin Dashboard** (`admin_console.html`).
 2. Click the **"Change Manager Passcode"** button at the bottom.
 3. Follow the steps: select your name → receive the OTP code by email → enter it → set your new passcode.
 4. The new passcode is saved (as a secure hash) to Firebase automatically, and works everywhere immediately.
@@ -16,7 +16,7 @@ Your passcode is no longer stored as readable text — it is stored as a **SHA-2
 
 ### 🛠️ Advanced: Change the Default Fallback in the Code
 The default passcode (used only when Firebase has no saved passcode) is **`2026`**. To change this fallback:
-1. Open **`print_admin_dashboard.html`** in a text editor and find this line near the bottom `<script>` section:
+1. Open **`admin_console.html`** in a text editor and find this line near the bottom `<script>` section:
    ```javascript
    let ADMIN_PASSCODE_HASH = "158a323a7ba44870f23d96f1516dd70aa48e9a72db4ebb026b0a89e212a208ab";
    ```
@@ -26,7 +26,7 @@ The default passcode (used only when Firebase has no saved passcode) is **`2026`
    ```
    (Run this on the admin dashboard page — the helper function is built in.)
 3. Copy the 64-character result and paste it between the quotes, replacing the old hash.
-4. Do the same for `STAFF_PASSCODE_HASH` in **`print_admin_dashboard.html`** and **`staff_console.html`** if you want to change the staff default too.
+4. Do the same for `STAFF_PASSCODE_HASH` in **`admin_console.html`** and **`staff_console.html`** if you want to change the staff default too.
 5. Save the file(s).
 
 ---

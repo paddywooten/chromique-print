@@ -77,7 +77,7 @@ This is the only manual database step. For **each manager** created in Step 2:
 
 ## Step 5: Test
 
-1. Open `print_admin_dashboard.html` → sign in with a manager email/password → dashboard unlocks ✅
+1. Open `admin_console.html` → sign in with a manager email/password → dashboard unlocks ✅
 2. Try a wrong password → "Invalid email or password" ✅
 3. Place a test order from the MoMo payment page (no login needed) → appears in dashboard ✅
 4. Verify/reject the test order ✅

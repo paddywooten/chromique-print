@@ -12,7 +12,7 @@ This service is **100% free**, hosted directly by Google inside your Google acco
 2. On checkout, the site sends this file along with the order details (Name, Email, Size, Reference) to your private Google Apps Script.
 3. Google Apps Script securely creates a folder named **"Chromique Print Orders"** in your Google Drive, saves the file inside, and names it (e.g., `Kofi_Boateng_labels_artwork.pdf`).
 4. Google returns a secure **Google Drive View/Download Link** of that file back to your website.
-5. This link is saved so when you log into your **Admin Dashboard (`print_admin_dashboard.html`)**, the order row automatically displays an active, clickable link to open and download the file directly from your Google Drive!
+5. This link is saved so when you log into your **Admin Dashboard (`admin_console.html`)**, the order row automatically displays an active, clickable link to open and download the file directly from your Google Drive!
 
 ---
 
@@ -96,7 +96,7 @@ For your website to communicate with your Google script, you must publish it:
 ### Step 3: Connect It to Your Storefront
 Now, paste your Google Web App URL into your **Developer Setup Drawer** (or edit the variable in your code) and your entire system is completely automated!
 
-1. Open your print shop homepage (`print_index.html`) locally.
+1. Open your print shop homepage (`index.html`) locally.
 2. Click the floating **Setup Pricing Matrix** button in the bottom-left corner.
 3. You will see a new input field: **`Google Apps Script Web App URL`**.
 4. Paste your copied Google Web App URL, and click **Save Configuration**.

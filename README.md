@@ -15,8 +15,8 @@ High-speed commercial printing website built with HTML, CSS, and JavaScript.
 ```
 chromique-print/
 ├── chromique_print/              # Core website files
-│   ├── print_index.html          # Main landing page
-│   ├── print_admin_dashboard.html  # Admin dashboard
+│   ├── index.html          # Main landing page
+│   ├── admin_console.html  # Admin dashboard
 │   ├── print_style.css           # Custom styles
 │   ├── print_app.js              # JavaScript application logic
 │   ├── developer_edit_guide.md   # Developer documentation
@@ -43,7 +43,7 @@ chromique-print/
 ## 🚀 Getting Started
 
 1. Clone this repository
-2. Open `chromique_print/print_index.html` in your browser
+2. Open `chromique_print/index.html` in your browser
 3. For local development, use any static file server (e.g. `python -m http.server`)
 
 ## 📝 License
