@@ -602,8 +602,8 @@
 
         console.log('handleAuthStateChange exposed');
 
-        console.log('Defining signIn function...');
-        async function signIn() {
+        console.log('Defining signIn implementation...');
+        async function _signInImpl() {
             const email = document.getElementById('auth-email-input').value.trim();
             const password = document.getElementById('auth-password-input').value;
             const btn = document.getElementById('auth-signin-btn');
@@ -634,10 +634,10 @@
                 if (btn) { btn.disabled = false; btn.innerText = 'Sign In'; }
             }
         }
-        console.log('signIn function defined');
+        console.log('signIn implementation defined');
         
         // Expose as _realSignIn so the inline wrapper can call it
-        window._realSignIn = signIn;
+        window._realSignIn = _signInImpl;
         console.log('signIn exposed as window._realSignIn');
 
         async function forgotPassword() {
