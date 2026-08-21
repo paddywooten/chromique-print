@@ -24,9 +24,13 @@
     
     <!-- Firebase SDK -->
     <script type="module">
+        console.log('Firebase module script starting...');
+        
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        console.log('Firebase imports loaded successfully');
 
         const firebaseConfig = {
             apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
@@ -38,9 +42,17 @@
             measurementId: "G-0MFWEZ9CDV"
         };
 
+        console.log('Initializing Firebase app...');
         const app = initializeApp(firebaseConfig);
+        console.log('Firebase app initialized');
+        
+        console.log('Initializing Firestore...');
         const db = getFirestore(app);
+        console.log('Firestore initialized');
+        
+        console.log('Initializing Auth...');
         const auth = getAuth(app);
+        console.log('Auth initialized');
         
         // Expose to global scope
         window.firebaseDB = db;
@@ -59,10 +71,15 @@
         window.firebaseSignOut = () => signOut(auth);
         window.firebaseSendReset = (email) => sendPasswordResetEmail(auth, email);
         
+        console.log('Firebase helpers exposed to global scope');
+        
         // React to login/logout (classic body script defines the handler before modules run)
         onAuthStateChanged(auth, (user) => {
+            console.log('Auth state changed, user:', user ? user.email : 'null');
             if (window.handleAuthStateChange) window.handleAuthStateChange(user);
         });
+        
+        console.log('Firebase module script completed');
     </script>
     
     <!-- Link to external modular assets for synchronized state -->
