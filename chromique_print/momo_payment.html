@@ -56,6 +56,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="print_style.css">
+    <script src="print_app.js" defer></script>
     <script>
         tailwind.config = {
             theme: {
@@ -550,31 +551,6 @@
             } else {
                 showToast('Could not copy — long-press the text to copy manually', 'warning');
             }
-        }
-
-        // Toast notification function
-        function showToast(message, type = 'success') {
-            const existingToasts = document.querySelectorAll('.toast-notification');
-            existingToasts.forEach(toast => toast.remove());
-            
-            const toast = document.createElement('div');
-            toast.className = `toast-notification fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-bold text-sm transition-all duration-300 ${
-                type === 'success' ? 'bg-green-500' : 
-                type === 'error' ? 'bg-red-500' : 
-                type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
-            }`;
-            
-            const icon = type === 'success' ? 'fa-check-circle' : 
-                         type === 'error' ? 'fa-exclamation-circle' : 
-                         type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
-            
-            toast.innerHTML = `<i class="fa-solid ${icon} mr-2"></i>${message}`;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
         }
     </script>
 </body>

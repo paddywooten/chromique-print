@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="print_style.css">
+    <script src="print_app.js" defer></script>
 
     <!-- jsPDF + AutoTable for PDF exports -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -376,23 +377,13 @@
         // ============================================
         // SHARED HELPERS
         // ============================================
-        function esc(s) {
-            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-        function showToast(message, type = 'success') {
-            document.querySelectorAll('.toast-notification').forEach(t => t.remove());
-            const toast = document.createElement('div');
-            toast.className = `toast-notification fixed top-4 right-4 z-[60] px-6 py-3 rounded-xl shadow-lg text-white font-bold text-sm transition-all duration-300 ${
-                type === 'success' ? 'bg-green-500' :
-                type === 'error' ? 'bg-red-500' :
-                type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
-            }`;
-            const icon = type === 'success' ? 'fa-check-circle' :
-                         type === 'error' ? 'fa-exclamation-circle' :
-                         type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
-            toast.innerHTML = `<i class="fa-solid ${icon} mr-2"></i>${message}`;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        // Using escapeHtml() and showToast() from print_app.js
+        
+        // Wrapper for parseTimestamp to format dates
+        function fmtDate(iso) {
+            const d = parseTimestamp(iso);
+            if (!d) return '—';
+            return isNaN(d) ? String(iso) : d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
         }
         function csvCell(v) {
             const s = String(v == null ? '' : v);
@@ -546,11 +537,11 @@
             tbody.innerHTML = rows.map(o => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/30 transition">
                     <td class="p-3 whitespace-nowrap text-slate-400">${fmtDate(orderDate(o))}</td>
-                    <td class="p-3 font-mono font-bold text-brand-500 whitespace-nowrap">${esc(o.ref)}</td>
-                    <td class="p-3 font-bold text-white">${esc(o.name)}</td>
-                    <td class="p-3 font-mono text-slate-400 whitespace-nowrap">${esc(o.phone)}</td>
-                    <td class="p-3 text-slate-300">${esc(o.quote && o.quote.service || '—')}</td>
-                    <td class="p-3 font-bold text-white whitespace-nowrap">${esc(o.quote && o.quote.totalPrice || '—')}</td>
+                    <td class="p-3 font-mono font-bold text-brand-500 whitespace-nowrap">${escapeHtml(o.ref)}</td>
+                    <td class="p-3 font-bold text-white">${escapeHtml(o.name)}</td>
+                    <td class="p-3 font-mono text-slate-400 whitespace-nowrap">${escapeHtml(o.phone)}</td>
+                    <td class="p-3 text-slate-300">${escapeHtml(o.quote && o.quote.service || '—')}</td>
+                    <td class="p-3 font-bold text-white whitespace-nowrap">${escapeHtml(o.quote && o.quote.totalPrice || '—')}</td>
                     <td class="p-3">${statusBadge(o.status)}</td>
                     <td class="p-3 text-right whitespace-nowrap">
                         <button onclick="viewOrder('${o.id}')" title="Details" aria-label="View order details" class="bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition"><i class="fa-solid fa-eye"></i></button>
@@ -587,7 +578,7 @@
             document.getElementById('order-modal-body').innerHTML = rows.map(([k, v]) => `
                 <div class="flex justify-between gap-4 border-b border-slate-800/60 pb-2">
                     <span class="text-slate-500 font-bold uppercase text-[10px] tracking-widest shrink-0">${k}</span>
-                    <span class="text-white font-bold text-right break-words">${esc(v == null || v === '' ? '—' : v)}</span>
+                    <span class="text-white font-bold text-right break-words">${escapeHtml(v == null || v === '' ? '—' : v)}</span>
                 </div>`).join('');
             const m = document.getElementById('order-modal');
             m.classList.remove('hidden'); m.style.display = 'flex';
@@ -659,7 +650,7 @@
             const sel = document.getElementById('log-action');
             const current = sel.value;
             const actions = [...new Set(allLogs.map(l => l.action))].sort();
-            sel.innerHTML = '<option value="">All</option>' + actions.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+            sel.innerHTML = '<option value="">All</option>' + actions.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
             sel.value = actions.includes(current) ? current : '';
             renderLogs();
         }
@@ -697,9 +688,9 @@
             tbody.innerHTML = rows.map(l => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/30 transition">
                     <td class="p-3 whitespace-nowrap text-slate-400">${fmtDate(l.timestamp)}</td>
-                    <td class="p-3 font-bold text-brand-500 whitespace-nowrap">${esc(l.manager)}</td>
-                    <td class="p-3"><span class="bg-slate-800 text-slate-300 px-2 py-1 rounded-lg text-[9px] font-black uppercase whitespace-nowrap">${esc(l.action)}</span></td>
-                    <td class="p-3 text-slate-300">${esc(l.description)}</td>
+                    <td class="p-3 font-bold text-brand-500 whitespace-nowrap">${escapeHtml(l.manager)}</td>
+                    <td class="p-3"><span class="bg-slate-800 text-slate-300 px-2 py-1 rounded-lg text-[9px] font-black uppercase whitespace-nowrap">${escapeHtml(l.action)}</span></td>
+                    <td class="p-3 text-slate-300">${escapeHtml(l.description)}</td>
                 </tr>`).join('');
         }
 
@@ -788,8 +779,8 @@
             }
             tbody.innerHTML = rows.map(t => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/30 transition">
-                    <td class="p-3 font-bold text-white">${esc(t.displayName)} ${t.id === (CURRENT_USER && CURRENT_USER.uid) ? '<span class="ml-1 bg-brand-500/20 text-brand-500 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">You</span>' : ''}</td>
-                    <td class="p-3 text-slate-400">${esc(t.email)}</td>
+                    <td class="p-3 font-bold text-white">${escapeHtml(t.displayName)} ${t.id === (CURRENT_USER && CURRENT_USER.uid) ? '<span class="ml-1 bg-brand-500/20 text-brand-500 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">You</span>' : ''}</td>
+                    <td class="p-3 text-slate-400">${escapeHtml(t.email)}</td>
                     <td class="p-3">${t.role === 'manager'
                         ? '<span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full text-[9px] font-black uppercase">Manager</span>'
                         : '<span class="bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full text-[9px] font-black uppercase">Staff</span>'}</td>

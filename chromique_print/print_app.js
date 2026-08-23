@@ -21,11 +21,6 @@ let appSettings = {
     googleDriveScriptUrl: '',    // Custom Google Apps Script webhook URL
 };
 
-let calculator = {
-    qty: 1,
-    totalGHS: 0
-};
-
 // ----------------------------------------------------
 // Security: HTML Escaping to prevent XSS
 // ----------------------------------------------------
