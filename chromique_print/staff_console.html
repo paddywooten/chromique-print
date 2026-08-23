@@ -450,6 +450,14 @@
                 CURRENT_USER = null;
                 sessionStorage.removeItem('chromique_logged_in_manager');
                 if (lockscreen) lockscreen.classList.remove('hidden');
+                
+                // Hide loading screen when showing login
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => loadingScreen.remove(), 300);
+                }
+                
                 return;
             }
 
