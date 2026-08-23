@@ -503,7 +503,7 @@
         window.handleAuthStateChange = handleAuthStateChange;
 
 
-        async function _signInImpl() {
+        async function signIn() {
             const email = document.getElementById('auth-email-input').value.trim();
             const password = document.getElementById('auth-password-input').value;
             const btn = document.getElementById('auth-signin-btn');
@@ -534,9 +534,7 @@
                 if (btn) { btn.disabled = false; btn.innerText = 'Sign In'; }
             }
         }
-        
-        // Expose as _realSignIn so the inline wrapper can call it
-        window._realSignIn = _signInImpl;
+        window.signIn = signIn;
 
         async function forgotPassword() {
             const email = document.getElementById('auth-email-input').value.trim();
@@ -552,8 +550,7 @@
                 showAuthError('Could not send reset email. Check the address.');
             }
         }
-        // Expose as _realForgotPassword so the inline wrapper can call it
-        window._realForgotPassword = forgotPassword;
+        window.forgotPassword = forgotPassword;
 
         async function logoutUser() {
             const staffName = sessionStorage.getItem('chromique_logged_in_manager') || 'Unknown';
