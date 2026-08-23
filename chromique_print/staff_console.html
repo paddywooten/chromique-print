@@ -569,6 +569,7 @@
 
         // Global array to store orders with their Firebase document IDs
         let momoOrdersData = [];
+        let ordersUnsubscribe = null;
 
         function loadMomoOrders() {
             const tbody = document.getElementById('momo-orders-tbody');
@@ -578,12 +579,17 @@
 
             if (!tbody) return;
 
+            // Unsubscribe from previous listener to prevent memory leaks
+            if (ordersUnsubscribe) {
+                ordersUnsubscribe();
+            }
+
             // Show loading state
             if (loadingState) loadingState.style.display = 'table-row';
             if (emptyState) emptyState.classList.add('hidden');
 
             // Set up real-time listener for Firebase
-            window.firebaseOnSnapshot(
+            ordersUnsubscribe = window.firebaseOnSnapshot(
                 window.firebaseCollection(window.firebaseDB, 'momo_orders'),
                 (snapshot) => {
                     tbody.innerHTML = '';
@@ -605,7 +611,7 @@
                     snapshot.forEach((doc) => {
                         orders.push({ id: doc.id, ...doc.data() });
                     });
-                    orders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    orders.sort((a, b) => parseTimestamp(b.timestamp) - parseTimestamp(a.timestamp));
                     
                     momoOrdersData = orders;
                     
@@ -624,6 +630,13 @@
                 }
             );
         }
+
+        // Cleanup Firebase listeners on page unload
+        window.addEventListener('beforeunload', () => {
+            if (ordersUnsubscribe) {
+                ordersUnsubscribe();
+            }
+        });
 
         function filterOrders(orders) {
             const searchTerm = document.getElementById('momo-search')?.value.toLowerCase() || '';
@@ -666,8 +679,8 @@
             
             if (emptyState) emptyState.classList.add('hidden');
 
-            orders.forEach((order, index) => {
-                const date = new Date(order.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            const rows = orders.map((order, index) => {
+                const date = parseTimestamp(order.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
                 
                 // Status styling
                 let statusColor = 'text-yellow-400';
@@ -688,35 +701,35 @@
                     // Staff cannot verify/reject - only managers can
                     actionButtons = `<span class="text-[10px] text-yellow-400 font-bold">⏳ Pending Manager Review</span>`;
                 } else if (order.status === 'MoMo Verified') {
-                    actionButtons = `<span class="text-[10px] text-green-400 font-bold">✓ ${order.verifiedBy || 'Confirmed'}</span>`;
+                    actionButtons = `<span class="text-[10px] text-green-400 font-bold">✓ ${escapeHtml(order.verifiedBy) || 'Confirmed'}</span>`;
                     receiptButton = `
                         <button onclick="viewReceipt('${order.id}')" class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold hover:bg-blue-500/30 transition">
                             <i class="fa-solid fa-receipt"></i> View
                         </button>
                     `;
                 } else if (order.status === 'MoMo Rejected') {
-                    actionButtons = `<span class="text-[10px] text-red-400 font-bold">✗ ${order.rejectedBy || 'Rejected'}</span>`;
+                    actionButtons = `<span class="text-[10px] text-red-400 font-bold">✗ ${escapeHtml(order.rejectedBy) || 'Rejected'}</span>`;
                 }
 
                 const artworkMethod = order.artworkMethod === 'whatsapp' ? '📱 WhatsApp' : 
                                      order.artworkMethod === 'email' ? '📧 Email' : '—';
 
-                const rowHTML = `
+                return `
                     <tr class="hover:bg-slate-800/50 transition">
-                        <td class="p-3 font-mono text-brand-500 font-bold">${order.ref}</td>
+                        <td class="p-3 font-mono text-brand-500 font-bold">${escapeHtml(order.ref)}</td>
                         <td class="p-3">
-                            <div class="font-bold text-white">${order.name}</div>
-                            <div class="text-[10px] text-slate-500">${order.email || 'No email'}</div>
+                            <div class="font-bold text-white">${escapeHtml(order.name)}</div>
+                            <div class="text-[10px] text-slate-500">${escapeHtml(order.email) || 'No email'}</div>
                         </td>
-                        <td class="p-3 font-mono text-slate-300">${order.phone}</td>
+                        <td class="p-3 font-mono text-slate-300">${escapeHtml(order.phone)}</td>
                         <td class="p-3">
-                            <div class="font-bold text-slate-300">${order.quote?.service || 'N/A'}</div>
-                            <div class="text-[10px] text-slate-500 mt-0.5">${order.quote?.areaSummary || 'N/A'}</div>
-                            <div class="text-[10px] text-slate-500">Qty: ${order.quote?.qty || 1} | ${order.deliveryMethod === 'delivery' ? '📦 Delivery' : '🏪 Pickup'}</div>
+                            <div class="font-bold text-slate-300">${escapeHtml(order.quote?.service) || 'N/A'}</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">${escapeHtml(order.quote?.areaSummary) || 'N/A'}</div>
+                            <div class="text-[10px] text-slate-500">Qty: ${escapeHtml(order.quote?.qty) || 1} | ${order.deliveryMethod === 'delivery' ? '📦 Delivery' : '🏪 Pickup'}</div>
                         </td>
-                        <td class="p-3 font-bold text-brand-500">${order.quote?.totalPrice || 'N/A'}</td>
+                        <td class="p-3 font-bold text-brand-500">${escapeHtml(order.quote?.totalPrice) || 'N/A'}</td>
                         <td class="p-3 text-[10px]">${artworkMethod}</td>
-                        <td class="p-3"><span class="${statusColor} ${statusBg} px-2 py-1 rounded-full text-[10px] font-bold">${order.status}</span></td>
+                        <td class="p-3"><span class="${statusColor} ${statusBg} px-2 py-1 rounded-full text-[10px] font-bold">${escapeHtml(order.status)}</span></td>
                         <td class="p-3 text-[10px] text-slate-500">${date}</td>
                         <td class="p-3">
                             <div class="space-y-1">
@@ -726,8 +739,9 @@
                         </td>
                     </tr>
                 `;
-                tbody.innerHTML += rowHTML;
             });
+            
+            tbody.innerHTML = rows.join('');
         }
 
         // Add event listeners for search and filter
@@ -830,13 +844,17 @@
 
         function generateReceipt(order) {
             const receiptWindow = window.open('', '_blank', 'width=800,height=900');
+            if (!receiptWindow) {
+                showToast('Popup blocked. Please allow popups to view receipts.', 'error');
+                return;
+            }
             const verifiedDate = order.verifiedAt ? new Date(order.verifiedAt).toLocaleString('en-GB') : new Date().toLocaleString('en-GB');
             
             receiptWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Receipt - ${order.ref}</title>
+                    <title>Receipt - ${escapeHtml(order.ref)}</title>
                     <style>
                         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; background: #fff; }
                         .header { text-align: center; border-bottom: 3px solid #f97316; padding-bottom: 20px; margin-bottom: 30px; }
@@ -880,11 +898,11 @@
                         <div class="section-title">Order Information</div>
                         <div class="row">
                             <span class="label">Reference Number:</span>
-                            <span class="value">${order.ref}</span>
+                            <span class="value">${escapeHtml(order.ref)}</span>
                         </div>
                         <div class="row">
                             <span class="label">Order Date:</span>
-                            <span class="value">${new Date(order.timestamp).toLocaleString('en-GB')}</span>
+                            <span class="value">${parseTimestamp(order.timestamp).toLocaleString('en-GB')}</span>
                         </div>
                         <div class="row">
                             <span class="label">Payment Method:</span>
@@ -900,15 +918,15 @@
                         <div class="section-title">Customer Details</div>
                         <div class="row">
                             <span class="label">Name:</span>
-                            <span class="value">${order.name}</span>
+                            <span class="value">${escapeHtml(order.name)}</span>
                         </div>
                         <div class="row">
                             <span class="label">Phone:</span>
-                            <span class="value">${order.phone}</span>
+                            <span class="value">${escapeHtml(order.phone)}</span>
                         </div>
                         <div class="row">
                             <span class="label">Email:</span>
-                            <span class="value">${order.email || 'N/A'}</span>
+                            <span class="value">${escapeHtml(order.email) || 'N/A'}</span>
                         </div>
                         <div class="row">
                             <span class="label">Delivery Method:</span>
@@ -917,7 +935,7 @@
                         ${order.deliveryMethod === 'delivery' ? `
                         <div class="row">
                             <span class="label">Delivery Address:</span>
-                            <span class="value">${order.deliveryAddress || order.address || 'N/A'}</span>
+                            <span class="value">${escapeHtml(order.deliveryAddress || order.address) || 'N/A'}</span>
                         </div>
                         ` : ''}
                     </div>
@@ -926,15 +944,15 @@
                         <div class="section-title">Print Job Details</div>
                         <div class="row">
                             <span class="label">Service:</span>
-                            <span class="value">${order.quote.service}</span>
+                            <span class="value">${escapeHtml(order.quote.service)}</span>
                         </div>
                         <div class="row">
                             <span class="label">Dimensions:</span>
-                            <span class="value">${order.quote.areaSummary || 'N/A'}</span>
+                            <span class="value">${escapeHtml(order.quote.areaSummary) || 'N/A'}</span>
                         </div>
                         <div class="row">
                             <span class="label">Quantity:</span>
-                            <span class="value">${order.quote.qty} ${order.quote.qty == 1 ? 'piece' : 'pieces'}</span>
+                            <span class="value">${escapeHtml(order.quote.qty)} ${order.quote.qty == 1 ? 'piece' : 'pieces'}</span>
                         </div>
                         <div class="row">
                             <span class="label">Artwork Submission:</span>
@@ -943,7 +961,7 @@
                         ${order.notes ? `
                         <div class="row">
                             <span class="label">Notes:</span>
-                            <span class="value">${order.notes}</span>
+                            <span class="value">${escapeHtml(order.notes)}</span>
                         </div>
                         ` : ''}
                     </div>
@@ -951,7 +969,7 @@
                     <div class="highlight">
                         <div class="row">
                             <span class="label">Total Amount Paid:</span>
-                            <span class="value">${order.quote.totalPrice}</span>
+                            <span class="value">${escapeHtml(order.quote.totalPrice)}</span>
                         </div>
                     </div>
 
@@ -959,11 +977,11 @@
                         <div class="section-title">Verification Details</div>
                         <div class="row">
                             <span class="label">Verified By:</span>
-                            <span class="value">${order.verifiedBy || 'Manager'}</span>
+                            <span class="value">${escapeHtml(order.verifiedBy) || 'Manager'}</span>
                         </div>
                         <div class="row">
                             <span class="label">Verification Date:</span>
-                            <span class="value">${verifiedDate}</span>
+                            <span class="value">${escapeHtml(verifiedDate)}</span>
                         </div>
                     </div>
 
@@ -1082,12 +1100,12 @@
             const deliveryMethod = document.getElementById('manual-delivery').value;
             const address = document.getElementById('manual-address').value.trim();
             const artworkMethod = document.getElementById('manual-artwork').value;
-            const amount = parseFloat(document.getElementById('manual-amount').value) || 0;
+            const amount = parseFloat(document.getElementById('manual-amount').value);
             const notes = document.getElementById('manual-notes').value.trim();
             
             // Validate required fields
-            if (!name || !phone || !service || !amount) {
-                showToast('Please fill in all required fields (Name, Phone, Service, Amount)', 'error');
+            if (!name || !phone || !service || isNaN(amount) || amount <= 0) {
+                showToast('Please fill in all required fields with valid values (Name, Phone, Service, Amount > 0)', 'error');
                 return;
             }
             
@@ -1106,14 +1124,17 @@
                 }
                 
                 const areaSqFt = widthFt * heightFt;
-                const ratePerSqFt = amount / (areaSqFt * qty);
-                areaSummary = `Size: ${widthFt.toFixed(2)}ft x ${heightFt.toFixed(2)}ft (${areaSqFt.toFixed(4)} sq ft total) @ GH¢${ratePerSqFt.toFixed(2)}/sq ft`;
+                if (areaSqFt > 0 && qty > 0) {
+                    const ratePerSqFt = amount / (areaSqFt * qty);
+                    areaSummary = `Size: ${widthFt.toFixed(2)}ft x ${heightFt.toFixed(2)}ft (${areaSqFt.toFixed(4)} sq ft total) @ GH¢${ratePerSqFt.toFixed(2)}/sq ft`;
+                }
             }
             
             // Generate unique reference
-            const ref = 'CHQ-' + Date.now().toString(36).toUpperCase().slice(-6);
+            const ref = generateOrderRef();
             
             // Create order object
+            // Staff manual orders require manager verification (unlike admin which auto-verifies)
             const orderData = {
                 ref: ref,
                 name: name,
@@ -1130,11 +1151,10 @@
                 },
                 paymentMethod: 'Manual Entry',
                 artworkMethod: artworkMethod,
-                status: 'MoMo Verified',
-                verifiedBy: manager,
-                verifiedAt: new Date().toISOString(),
-                timestamp: new Date().toISOString(),
-                createdAt: new Date().toISOString()
+                status: 'Pending MoMo Verification',
+                createdBy: manager,
+                createdAt: new Date().toISOString(),
+                timestamp: new Date().toISOString()
             };
             
             try {
@@ -1145,16 +1165,13 @@
                 );
                 
                 // Log activity
-                logActivity('MANUAL_ORDER', `Created manual order ${ref} for ${name} (${service}, GH¢${amount.toFixed(2)})`);
+                logActivity('MANUAL_ORDER', `Created manual order ${ref} for ${name} (${service}, GH¢${amount.toFixed(2)}) - pending verification`);
                 loadActivityLog();
-                
-                // Generate receipt
-                generateReceipt(orderData);
                 
                 // Reset form
                 document.getElementById('manual-order-form').reset();
                 
-                showToast(`Manual order ${ref} created for ${name} (GH¢${amount.toFixed(2)}) — receipt generated!`, 'success');
+                showToast(`Manual order ${ref} created for ${name} (GH¢${amount.toFixed(2)}) — awaiting manager verification`, 'success');
                 
             } catch (error) {
                 console.error('Error creating manual order:', error);

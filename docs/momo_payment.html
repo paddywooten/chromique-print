@@ -337,7 +337,7 @@
             document.getElementById('momo-total').innerText = quote.totalPrice || 'GH¢0.00';
 
             // Generate a unique reference
-            const ref = 'CHQ-' + Date.now().toString(36).toUpperCase().slice(-6);
+            const ref = generateOrderRef();
             document.getElementById('momo-reference').innerText = ref;
             document.getElementById('momo-reference').dataset.ref = ref;
             

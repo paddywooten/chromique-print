@@ -27,6 +27,36 @@ let calculator = {
 };
 
 // ----------------------------------------------------
+// Security: HTML Escaping to prevent XSS
+// ----------------------------------------------------
+function escapeHtml(text) {
+    if (text == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+// ----------------------------------------------------
+// Utility: Parse Firestore Timestamps
+// ----------------------------------------------------
+function parseTimestamp(timestamp) {
+    if (!timestamp) return null;
+    if (typeof timestamp === 'object' && timestamp.seconds !== undefined) {
+        return new Date(timestamp.seconds * 1000);
+    }
+    return new Date(timestamp);
+}
+
+// ----------------------------------------------------
+// Utility: Generate Unique Order Reference
+// ----------------------------------------------------
+function generateOrderRef() {
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 8);
+    return 'CHQ-' + (timestamp + random).toUpperCase().slice(-8);
+}
+
+// ----------------------------------------------------
 // Toast Notification System
 // ----------------------------------------------------
 function showToast(message, type = 'success') {
