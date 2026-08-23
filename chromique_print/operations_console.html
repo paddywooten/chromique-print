@@ -83,7 +83,12 @@
                 </div>
                 <div class="space-y-1.5 text-left">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password</label>
-                    <input type="password" id="auth-password-input" placeholder="Enter your password" autocomplete="current-password" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500 tracking-widest text-white font-mono">
+                    <div class="relative">
+                        <input type="password" id="auth-password-input" placeholder="Enter your password" autocomplete="current-password" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 pr-11 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-brand-500 tracking-widest text-white font-mono">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-500 transition focus:outline-none" aria-label="Toggle password visibility">
+                            <i class="fa-solid fa-eye" id="password-toggle-icon"></i>
+                        </button>
+                    </div>
                 </div>
                 <button id="auth-signin-btn" onclick="signIn()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider">Sign In</button>
                 <button onclick="forgotPassword()" class="text-[11px] text-slate-500 hover:text-brand-500 font-bold transition">Forgot password? Send reset email</button>
@@ -281,6 +286,23 @@
     </div>
 
     <script>
+        // Password visibility toggle
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('auth-password-input');
+            const toggleIcon = document.getElementById('password-toggle-icon');
+            if (passwordInput && toggleIcon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('fa-eye');
+                    toggleIcon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('fa-eye-slash');
+                    toggleIcon.classList.add('fa-eye');
+                }
+            }
+        }
+
         // ============================================
         // AUTH (managers only)
         // ============================================
@@ -401,11 +423,7 @@
             }
             return isNaN(d) ? String(iso) : d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
         }
-        function fmtDate_OLD(iso) {
-            if (!iso) return '—';
-            const d = new Date(iso);
-            return isNaN(d) ? String(iso) : d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-        }
+
         function inDateRange(iso, fromId, toId) {
             const from = document.getElementById(fromId).value;
             const to = document.getElementById(toId).value;

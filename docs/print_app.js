@@ -22,10 +22,8 @@ let appSettings = {
 };
 
 let calculator = {
-    basePrice: 0,
     qty: 1,
-    totalGHS: 0,
-    areaSqFt: 0
+    totalGHS: 0
 };
 
 // ----------------------------------------------------
@@ -253,9 +251,7 @@ function updateCurrency() {
     const ps5 = document.getElementById('price-s5');
     if (ps5) ps5.innerText = formatPrice(appSettings.printAndCutCostPerSqFt) + " / sq ft";
     
-    // Update cost per sq ft indicator on screen if exists
-    const costIndicator = document.getElementById('cost-per-sqft-indicator');
-    if (costIndicator) costIndicator.innerText = formatPrice(appSettings.costPerSqFt);
+
     
     // Update labels in option select boxes dynamically if they exist!
     const optDtfA4 = document.getElementById('opt-dtf-a4');
@@ -392,10 +388,8 @@ function calculatePrice() {
         }
     }
     
-    calculator.basePrice = totalGHS / qty;
     calculator.qty = qty;
     calculator.totalGHS = totalGHS;
-    calculator.areaSqFt = areaSqFt;
     
     displayEl.innerText = formatPrice(totalGHS);
 }

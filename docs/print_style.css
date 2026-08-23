@@ -21,22 +21,6 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Glassmorphism details */
-.glass-panel {
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Floating Drawer transition */
-.sidebar-panel {
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Satisfying glow under high-contrast elements */
-.orange-glow {
-    box-shadow: 0 4px 20px rgba(249, 115, 22, 0.15);
-}
 
 /* Fade in elements smoothly */
 @keyframes fadeInUp {
@@ -327,6 +311,15 @@ html {
         right: 1rem;
         font-size: 0.75rem;
     }
+    
+    /* Better touch targets for mobile */
+    button, 
+    a, 
+    input, 
+    select, 
+    textarea {
+        min-height: 44px;
+    }
 }
 
 /* Extra small devices */
@@ -468,16 +461,7 @@ html {
     }
 }
 
-/* Better touch targets for mobile */
-@media (max-width: 768px) {
-    button, 
-    a, 
-    input, 
-    select, 
-    textarea {
-        min-height: 44px;
-    }
-}
+
 
 /* ============================================
    ACCESSIBILITY & POLISH ADDITIONS

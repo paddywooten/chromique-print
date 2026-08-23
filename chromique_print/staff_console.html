@@ -18,19 +18,17 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Firebase SDK -->
     <script type="module">
-        console.log('Firebase module script starting...');
         
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        console.log('Firebase imports loaded successfully');
 
         const firebaseConfig = {
             apiKey: "AIzaSyBqnmM_zWMPyy5samEaohPAVU59nV2Bzlc",
@@ -42,17 +40,11 @@
             measurementId: "G-0MFWEZ9CDV"
         };
 
-        console.log('Initializing Firebase app...');
         const app = initializeApp(firebaseConfig);
-        console.log('Firebase app initialized');
         
-        console.log('Initializing Firestore...');
         const db = getFirestore(app);
-        console.log('Firestore initialized');
         
-        console.log('Initializing Auth...');
         const auth = getAuth(app);
-        console.log('Auth initialized');
         
         // Expose to global scope
         window.firebaseDB = db;
@@ -71,15 +63,12 @@
         window.firebaseSignOut = () => signOut(auth);
         window.firebaseSendReset = (email) => sendPasswordResetEmail(auth, email);
         
-        console.log('Firebase helpers exposed to global scope');
         
         // React to login/logout (classic body script defines the handler before modules run)
         onAuthStateChanged(auth, (user) => {
-            console.log('Auth state changed, user:', user ? user.email : 'null');
             if (window.handleAuthStateChange) window.handleAuthStateChange(user);
         });
         
-        console.log('Firebase module script completed');
     </script>
     
     <!-- Link to external modular assets for synchronized state -->
@@ -92,13 +81,10 @@
                 extend: {
                     fontFamily: {
                         sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'],
                     },
                     colors: {
                         brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#f97316', /* Orange */
+                            500: '#f97316',
                             600: '#ea580c',
                             950: '#0f172a'
                         }
@@ -156,81 +142,6 @@
                 <button id="auth-signin-btn" onclick="signIn()" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-950 font-black text-xs py-3.5 rounded-xl transition uppercase tracking-wider shadow-lg shadow-brand-500/10">
                     Sign In
                 </button>
-                <script>
-                    // Define signIn wrapper immediately - will call the real function when available
-                    function signIn() {
-                        const btn = document.getElementById('auth-signin-btn');
-                        
-                        // Check if the real signIn function is available
-                        if (typeof window._realSignIn === 'function') {
-                            console.log('Calling real signIn function');
-                            return window._realSignIn();
-                        }
-                        
-                        console.log('Real signIn function not available yet, waiting...');
-                        
-                        // If Firebase hasn't loaded yet, show a message
-                        if (btn) {
-                            btn.disabled = true;
-                            btn.innerText = 'Connecting...';
-                        }
-                        
-                        // Wait for Firebase to load and retry
-                        let attempts = 0;
-                        const maxAttempts = 100; // 10 seconds (100 * 100ms)
-                        const checkFirebase = setInterval(() => {
-                            attempts++;
-                            console.log(`Checking for Firebase (attempt ${attempts}/${maxAttempts})...`);
-                            
-                            if (typeof window._realSignIn === 'function') {
-                                clearInterval(checkFirebase);
-                                console.log('Firebase loaded, calling signIn');
-                                window._realSignIn();
-                            } else if (attempts >= maxAttempts) {
-                                clearInterval(checkFirebase);
-                                console.error('Firebase failed to load after 10 seconds');
-                                
-                                if (btn) {
-                                    btn.disabled = false;
-                                    btn.innerText = 'Sign In';
-                                }
-                                
-                                // Show detailed error
-                                const errorMsg = document.getElementById('auth-error-msg');
-                                const errorText = document.getElementById('auth-error-text');
-                                if (errorMsg && errorText) {
-                                    errorText.innerText = 'Unable to connect to authentication service. Please check your internet connection and refresh the page.';
-                                    errorMsg.classList.remove('hidden');
-                                }
-                            }
-                        }, 100);
-                    }
-                    
-                    // Also define forgotPassword wrapper
-                    function forgotPassword() {
-                        if (typeof window._realForgotPassword === 'function') {
-                            return window._realForgotPassword();
-                        }
-                        
-                        const errorMsg = document.getElementById('auth-error-msg');
-                        const errorText = document.getElementById('auth-error-text');
-                        if (errorMsg && errorText) {
-                            errorText.innerText = 'Authentication service is still loading. Please wait a moment and try again.';
-                            errorMsg.classList.remove('hidden');
-                        }
-                    }
-                    
-                    // Debug function to check Firebase status
-                    window.checkFirebaseStatus = function() {
-                        console.log('=== Firebase Status Check ===');
-                        console.log('window.firebaseAuth:', typeof window.firebaseAuth);
-                        console.log('window.firebaseSignIn:', typeof window.firebaseSignIn);
-                        console.log('window._realSignIn:', typeof window._realSignIn);
-                        console.log('window.firebaseDB:', typeof window.firebaseDB);
-                        console.log('Firebase app initialized:', typeof window.firebaseApp !== 'undefined');
-                        console.log('============================');
-                    };
-                </script>
                 <button onclick="forgotPassword()" class="text-[11px] text-slate-500 hover:text-brand-500 font-bold transition">
                     Forgot password? Send reset email
                 </button>
@@ -489,7 +400,6 @@
 
     <!-- Secure Password Authentication & Dynamic Orders Ingestion Script -->
     <script>
-        console.log('Main script starting...');
         
         // ============================================
         // FIREBASE AUTHENTICATION (Email/Password)
@@ -499,7 +409,6 @@
         // ============================================
         let CURRENT_USER = null;
 
-        console.log('CURRENT_USER initialized');
 
         function showAuthError(message) {
             const errorMsg = document.getElementById('auth-error-msg');
@@ -526,19 +435,15 @@
                 CURRENT_USER = null;
                 sessionStorage.removeItem('chromique_logged_in_manager');
                 if (lockscreen) lockscreen.classList.remove('hidden');
-                console.log('No user signed in');
                 return;
             }
 
-            console.log('User signed in:', user.email, 'UID:', user.uid);
 
             try {
-                console.log('Fetching user role from Firestore...');
                 const roleSnap = await window.firebaseGetDoc(
                     window.firebaseDoc(window.firebaseDB, 'user_roles', user.uid)
                 );
 
-                console.log('Role snapshot exists:', roleSnap.exists());
                 
                 if (!roleSnap.exists()) {
                     console.error('No user_roles document found for UID:', user.uid);
@@ -548,13 +453,11 @@
                 }
 
                 const roleData = roleSnap.data();
-                console.log('Role data:', roleData);
                 
                 const hasAccess = roleData
                     && (roleData.role === 'staff' || roleData.role === 'manager')
                     && roleData.active !== false;
 
-                console.log('Has access:', hasAccess, 'Role:', roleData.role, 'Active:', roleData.active);
 
                 if (!hasAccess) {
                     if (roleData.active === false) {
@@ -578,7 +481,6 @@
                 const welcomeEl = document.getElementById('welcome-manager');
                 if (welcomeEl) welcomeEl.innerText = displayName;
 
-                console.log('Login successful, loading data...');
                 logActivity('LOGIN', `${displayName} logged into the console`);
                 loadMomoOrders();
                 loadActivityLog();
@@ -600,9 +502,7 @@
         }
         window.handleAuthStateChange = handleAuthStateChange;
 
-        console.log('handleAuthStateChange exposed');
 
-        console.log('Defining signIn implementation...');
         async function _signInImpl() {
             const email = document.getElementById('auth-email-input').value.trim();
             const password = document.getElementById('auth-password-input').value;
@@ -634,11 +534,9 @@
                 if (btn) { btn.disabled = false; btn.innerText = 'Sign In'; }
             }
         }
-        console.log('signIn implementation defined');
         
         // Expose as _realSignIn so the inline wrapper can call it
         window._realSignIn = _signInImpl;
-        console.log('signIn exposed as window._realSignIn');
 
         async function forgotPassword() {
             const email = document.getElementById('auth-email-input').value.trim();
@@ -1019,7 +917,7 @@
                         ${order.deliveryMethod === 'delivery' ? `
                         <div class="row">
                             <span class="label">Delivery Address:</span>
-                            <span class="value">${order.address}</span>
+                            <span class="value">${order.deliveryAddress || order.address || 'N/A'}</span>
                         </div>
                         ` : ''}
                     </div>
@@ -1358,7 +1256,6 @@
             });
         }
 
-        window.addEventListener('DOMContentLoaded', checkSessionAuth);
     </script>
 
     <!-- Scroll to top button -->
