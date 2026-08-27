@@ -1,0 +1,2671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Learning Simulator - Master Version Control & Collaboration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            color: #f0f6fc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #f0f6fc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0d1117;
+            font-weight: bold;
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: #21262d;
+            border-color: #8b949e;
+        }
+
+        .nav-btn.active {
+            background: #1f6feb;
+            border-color: #1f6feb;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .module-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .module-card:hover {
+            border-color: #1f6feb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(31, 111, 235, 0.2);
+        }
+
+        .module-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .module-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin-bottom: 8px;
+        }
+
+        .module-desc {
+            font-size: 14px;
+            color: #8b949e;
+            margin-bottom: 12px;
+        }
+
+        .module-progress {
+            background: #21262d;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .module-progress-bar {
+            background: #1f6feb;
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .lesson-view {
+            display: none;
+        }
+
+        .lesson-view.active {
+            display: block;
+        }
+
+        .lesson-header {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .lesson-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin-bottom: 8px;
+        }
+
+        .lesson-subtitle {
+            font-size: 16px;
+            color: #8b949e;
+        }
+
+        .lesson-content {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-content {
+            color: #c9d1d9;
+            line-height: 1.8;
+        }
+
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        .code-line {
+            display: block;
+            padding: 2px 0;
+        }
+
+        .code-comment {
+            color: #8b949e;
+        }
+
+        .code-keyword {
+            color: #ff7b72;
+        }
+
+        .code-string {
+            color: #a5d6ff;
+        }
+
+        .interactive-area {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .terminal {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 16px 0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .terminal-line {
+            margin: 4px 0;
+        }
+
+        .terminal-prompt {
+            color: #0f0;
+        }
+
+        .terminal-output {
+            color: #8b949e;
+        }
+
+        .btn {
+            background: #238636;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin: 8px 8px 8px 0;
+        }
+
+        .btn:hover {
+            background: #2ea043;
+        }
+
+        .btn-secondary {
+            background: #21262d;
+            border: 1px solid #30363d;
+        }
+
+        .btn-secondary:hover {
+            background: #30363d;
+            border-color: #8b949e;
+        }
+
+        .btn-danger {
+            background: #da3633;
+        }
+
+        .btn-danger:hover {
+            background: #f85149;
+        }
+
+        .info-box {
+            background: rgba(31, 111, 235, 0.1);
+            border-left: 4px solid #1f6feb;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 4px;
+        }
+
+        .warning-box {
+            background: rgba(210, 153, 34, 0.1);
+            border-left: 4px solid #d29922;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 4px;
+        }
+
+        .success-box {
+            background: rgba(35, 134, 54, 0.1);
+            border-left: 4px solid #238636;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 4px;
+        }
+
+        .visual-diagram {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .branch-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .branch-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .commit-node {
+            width: 40px;
+            height: 40px;
+            background: #1f6feb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .commit-node.main {
+            background: #238636;
+        }
+
+        .commit-node.feature {
+            background: #a371f7;
+        }
+
+        .branch-connector {
+            width: 60px;
+            height: 2px;
+            background: #30363d;
+        }
+
+        .branch-label {
+            padding: 4px 12px;
+            background: #21262d;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .quiz-section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .quiz-question {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin-bottom: 16px;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .quiz-option {
+            background: #21262d;
+            border: 2px solid #30363d;
+            border-radius: 6px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover {
+            border-color: #1f6feb;
+            background: #161b22;
+        }
+
+        .quiz-option.selected {
+            border-color: #1f6feb;
+            background: rgba(31, 111, 235, 0.1);
+        }
+
+        .quiz-option.correct {
+            border-color: #238636;
+            background: rgba(35, 134, 54, 0.1);
+        }
+
+        .quiz-option.incorrect {
+            border-color: #da3633;
+            background: rgba(218, 54, 51, 0.1);
+        }
+
+        .progress-tracker {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: #0d1117;
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1f6feb;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #8b949e;
+            margin-top: 4px;
+        }
+
+        .file-tree {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .file-item {
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-icon {
+            color: #8b949e;
+        }
+
+        .file-name {
+            color: #c9d1d9;
+        }
+
+        .file-name.folder {
+            color: #79c0ff;
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #8b949e;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #c9d1d9;
+        }
+
+        .tab.active {
+            color: #f0f6fc;
+            border-bottom-color: #f78166;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .progress-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">G</div>
+            <span>GitHub Learning Simulator</span>
+        </div>
+        <div class="nav">
+            <button class="nav-btn active" onclick="showView('modules')">Modules</button>
+            <button class="nav-btn" onclick="showView('progress')">Progress</button>
+            <button class="nav-btn" onclick="showView('resources')">Resources</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Modules View -->
+        <div id="modules-view" class="lesson-view active">
+            <div class="lesson-header">
+                <div class="lesson-title">Master GitHub: Version Control & Collaboration</div>
+                <div class="lesson-subtitle">Learn Git fundamentals, collaboration workflows, and advanced GitHub features through interactive simulations</div>
+            </div>
+
+            <div class="progress-tracker">
+                <div class="progress-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="completed-modules">0</div>
+                        <div class="stat-label">Modules Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-modules">7</div>
+                        <div class="stat-label">Total Modules</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="progress-percent">0%</div>
+                        <div class="stat-label">Overall Progress</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="quiz-score">0/0</div>
+                        <div class="stat-label">Quiz Score</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="module-grid" id="module-grid">
+                <!-- Modules will be dynamically generated -->
+            </div>
+        </div>
+
+        <!-- Lesson View -->
+        <div id="lesson-view" class="lesson-view">
+            <button class="btn btn-secondary" onclick="showView('modules')" style="margin-bottom: 20px;">
+                ← Back to Modules
+            </button>
+            <div id="lesson-content">
+                <!-- Lesson content will be dynamically loaded -->
+            </div>
+        </div>
+
+        <!-- Progress View -->
+        <div id="progress-view" class="lesson-view">
+            <div class="lesson-header">
+                <div class="lesson-title">Your Learning Progress</div>
+                <div class="lesson-subtitle">Track your journey through GitHub mastery</div>
+            </div>
+
+            <div class="lesson-content">
+                <div class="section">
+                    <div class="section-title">📊 Detailed Progress</div>
+                    <div id="detailed-progress">
+                        <!-- Progress details will be dynamically generated -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🏆 Achievements</div>
+                    <div id="achievements">
+                        <!-- Achievements will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resources View -->
+        <div id="resources-view" class="lesson-view">
+            <div class="lesson-header">
+                <div class="lesson-title">Learning Resources</div>
+                <div class="lesson-subtitle">Additional materials to deepen your GitHub knowledge</div>
+            </div>
+
+            <div class="lesson-content">
+                <div class="section">
+                    <div class="section-title">📚 Official Documentation</div>
+                    <div class="section-content">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">
+                                <a href="https://docs.github.com" target="_blank" style="color: #58a6ff; text-decoration: none;">
+                                    📖 GitHub Docs - Official documentation
+                                </a>
+                            </li>
+                            <li style="padding: 8px 0;">
+                                <a href="https://git-scm.com/doc" target="_blank" style="color: #58a6ff; text-decoration: none;">
+                                    📖 Git Documentation - Complete Git reference
+                                </a>
+                            </li>
+                            <li style="padding: 8px 0;">
+                                <a href="https://lab.github.com" target="_blank" style="color: #58a6ff; text-decoration: none;">
+                                    🎓 GitHub Learning Lab - Interactive courses
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🎥 Video Tutorials</div>
+                    <div class="section-content">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">
+                                <a href="https://www.youtube.com/watch?v=RGOj5yH7evk" target="_blank" style="color: #58a6ff; text-decoration: none;">
+                                    🎬 Git & GitHub for Beginners - Crash Course
+                                </a>
+                            </li>
+                            <li style="padding: 8px 0;">
+                                <a href="https://www.youtube.com/watch?v=Uszj_k0DGsg" target="_blank" style="color: #58a6ff; text-decoration: none;">
+                                    🎬 GitHub Pull Requests Tutorial
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🛠️ Tools & Extensions</div>
+                    <div class="section-content">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">
+                                <strong style="color: #f0f6fc;">GitHub Desktop</strong> - GUI for Git (free)
+                            </li>
+                            <li style="padding: 8px 0;">
+                                <strong style="color: #f0f6fc;">VS Code Git Integration</strong> - Built-in Git support
+                            </li>
+                            <li style="padding: 8px 0;">
+                                <strong style="color: #f0f6fc;">GitKraken</strong> - Advanced Git GUI (paid)
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📝 Cheat Sheets</div>
+                    <div class="code-block">
+                        <span class="code-line"><span class="code-comment"># Essential Git Commands</span></span>
+                        <span class="code-line">git init                    <span class="code-comment"># Initialize repository</span></span>
+                        <span class="code-line">git clone &lt;url&gt;            <span class="code-comment"># Clone repository</span></span>
+                        <span class="code-line">git status                  <span class="code-comment"># Check status</span></span>
+                        <span class="code-line">git add &lt;file&gt;             <span class="code-comment"># Stage changes</span></span>
+                        <span class="code-line">git commit -m "message"     <span class="code-comment"># Commit changes</span></span>
+                        <span class="code-line">git push                    <span class="code-comment"># Push to remote</span></span>
+                        <span class="code-line">git pull                    <span class="code-comment"># Pull from remote</span></span>
+                        <span class="code-line">git branch                  <span class="code-comment"># List branches</span></span>
+                        <span class="code-line">git checkout &lt;branch&gt;      <span class="code-comment"># Switch branch</span></span>
+                        <span class="code-line">git merge &lt;branch&gt;         <span class="code-comment"># Merge branch</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Module definitions
+        const modules = [
+            {
+                id: 1,
+                icon: '📦',
+                title: 'Introduction to Git & GitHub',
+                desc: 'Understand version control, Git basics, and what GitHub offers',
+                content: {
+                    theory: `
+                        <div class="section">
+                            <div class="section-title">📖 What is Version Control?</div>
+                            <div class="section-content">
+                                <p><strong>Version Control System (VCS)</strong> is a tool that helps you track changes to your code over time. Think of it like a time machine for your files.</p>
+                                
+                                <div class="info-box">
+                                    <strong>💡 Why Version Control?</strong><br>
+                                    • Track every change you make<br>
+                                    • Revert to previous versions if something breaks<br>
+                                    • Collaborate with others without conflicts<br>
+                                    • Maintain a complete history of your project
+                                </div>
+
+                                <p><strong>Types of Version Control:</strong></p>
+                                <ul style="margin-left: 20px;">
+                                    <li><strong>Local VCS:</strong> Stores changes on your computer only</li>
+                                    <li><strong>Centralized VCS (CVCS):</strong> Single server stores all versions (e.g., SVN)</li>
+                                    <li><strong>Distributed VCS (DVCS):</strong> Every developer has a complete copy (e.g., Git)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🔧 What is Git?</div>
+                            <div class="section-content">
+                                <p><strong>Git</strong> is a distributed version control system created by Linus Torvalds in 2005 (the same person who created Linux).</p>
+                                
+                                <div class="success-box">
+                                    <strong>✅ Git Advantages:</strong><br>
+                                    • <strong>Distributed:</strong> Everyone has a complete copy of the repository<br>
+                                    • <strong>Fast:</strong> Most operations are local, no network needed<br>
+                                    • <strong>Branching:</strong> Create branches easily for features/experiments<br>
+                                    • <strong>Offline work:</strong> Work without internet connection<br>
+                                    • <strong>Free & Open Source:</strong> No licensing costs
+                                </div>
+
+                                <p><strong>Key Git Concepts:</strong></p>
+                                <ul style="margin-left: 20px;">
+                                    <li><strong>Repository (Repo):</strong> A folder containing your project and Git history</li>
+                                    <li><strong>Commit:</strong> A snapshot of your files at a specific point in time</li>
+                                    <li><strong>Branch:</strong> A separate line of development</li>
+                                    <li><strong>Merge:</strong> Combining changes from different branches</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🐙 What is GitHub?</div>
+                            <div class="section-content">
+                                <p><strong>GitHub</strong> is a web-based platform that hosts Git repositories online. It's like Google Drive for code, but with powerful collaboration features.</p>
+                                
+                                <div class="info-box">
+                                    <strong>💡 GitHub vs Git:</strong><br>
+                                    • <strong>Git</strong> is the version control system (the tool)<br>
+                                    • <strong>GitHub</strong> is a platform that hosts Git repositories (the service)<br>
+                                    • You can use Git without GitHub (local only)<br>
+                                    • GitHub makes Git collaboration easy
+                                </div>
+
+                                <p><strong>GitHub Features:</strong></p>
+                                <ul style="margin-left: 20px;">
+                                    <li><strong>Repository Hosting:</strong> Store your code online</li>
+                                    <li><strong>Collaboration:</strong> Work with others via pull requests</li>
+                                    <li><strong>Code Review:</strong> Review code before merging</li>
+                                    <li><strong>Issue Tracking:</strong> Track bugs and feature requests</li>
+                                    <li><strong>GitHub Pages:</strong> Host websites for free</li>
+                                    <li><strong>GitHub Actions:</strong> Automate workflows (CI/CD)</li>
+                                    <li><strong>Social Coding:</strong> Star, fork, and follow projects</li>
+                                </ul>
+
+                                <p><strong>GitHub Alternatives:</strong></p>
+                                <ul style="margin-left: 20px;">
+                                    <li>GitLab (self-hosted option)</li>
+                                    <li>Bitbucket (Atlassian)</li>
+                                    <li>Azure DevOps (Microsoft)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🎯 Real-World Analogy</div>
+                            <div class="section-content">
+                                <div class="visual-diagram">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 20px;">Think of Git Like a Video Game Save System</h3>
+                                    <div style="text-align: left; max-width: 600px; margin: 0 auto;">
+                                        <p><strong>🎮 Video Game:</strong></p>
+                                        <ul style="margin-left: 20px; margin-bottom: 20px;">
+                                            <li>You save your game at checkpoints</li>
+                                            <li>If you die, you reload from the last save</li>
+                                            <li>You can have multiple save files</li>
+                                        </ul>
+
+                                        <p><strong>💻 Git:</strong></p>
+                                        <ul style="margin-left: 20px;">
+                                            <li>You commit your code at checkpoints</li>
+                                            <li>If you break something, you revert to the last commit</li>
+                                            <li>You can have multiple branches (like alternate timelines)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    practice: `
+                        <div class="section">
+                            <div class="section-title">🔬 Interactive Exercise: Your First Repository</div>
+                            <div class="section-content">
+                                <p>Let's simulate creating your first Git repository and making your first commit.</p>
+                                
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 1: Initialize a Git Repository</h3>
+                                    <p>Click the button to simulate creating a new Git repository:</p>
+                                    <button class="btn" onclick="simulateGitInit()">git init</button>
+                                    <div class="terminal" id="terminal-1">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 2: Create a File</h3>
+                                    <p>Now let's create a README file:</p>
+                                    <button class="btn" onclick="simulateCreateFile()">Create README.md</button>
+                                    <div class="file-tree" id="file-tree-1">
+                                        <div class="file-item">
+                                            <span class="file-icon">📁</span>
+                                            <span class="file-name folder">my-first-project/</span>
+                                        </div>
+                                        <div class="file-item" style="margin-left: 20px;">
+                                            <span class="file-icon">📄</span>
+                                            <span class="file-name">.git/</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 3: Check Git Status</h3>
+                                    <p>See what Git says about your files:</p>
+                                    <button class="btn" onclick="simulateGitStatus()">git status</button>
+                                    <div class="terminal" id="terminal-2">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    quiz: {
+                        question: 'What is the main difference between Git and GitHub?',
+                        options: [
+                            'Git is for Windows, GitHub is for Mac',
+                            'Git is a version control system, GitHub is a hosting platform for Git repositories',
+                            'They are the same thing',
+                            'GitHub is older than Git'
+                        ],
+                        correct: 1,
+                        explanation: 'Git is the version control system (the tool that tracks changes), while GitHub is a web platform that hosts Git repositories online and provides collaboration features.'
+                    }
+                }
+            },
+            {
+                id: 2,
+                icon: '🔄',
+                title: 'Git Workflow: Add, Commit, Push',
+                desc: 'Master the fundamental Git workflow for saving and sharing changes',
+                content: {
+                    theory: `
+                        <div class="section">
+                            <div class="section-title">📖 The Three States of Git</div>
+                            <div class="section-content">
+                                <p>Understanding Git's three states is crucial for mastering Git workflow:</p>
+                                
+                                <div class="visual-diagram">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 20px;">Git's Three Working Areas</h3>
+                                    <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 20px;">
+                                        <div style="background: #21262d; padding: 20px; border-radius: 8px; min-width: 200px;">
+                                            <h4 style="color: #f0f6fc;">1️⃣ Working Directory</h4>
+                                            <p style="font-size: 14px; color: #8b949e;">Where you edit files</p>
+                                        </div>
+                                        <div style="font-size: 24px;">→</div>
+                                        <div style="background: #21262d; padding: 20px; border-radius: 8px; min-width: 200px;">
+                                            <h4 style="color: #f0f6fc;">2️⃣ Staging Area</h4>
+                                            <p style="font-size: 14px; color: #8b949e;">Preparing changes for commit</p>
+                                        </div>
+                                        <div style="font-size: 24px;">→</div>
+                                        <div style="background: #21262d; padding: 20px; border-radius: 8px; min-width: 200px;">
+                                            <h4 style="color: #f0f6fc;">3️⃣ Repository</h4>
+                                            <p style="font-size: 14px; color: #8b949e;">Permanent snapshot (commit)</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="info-box">
+                                    <strong>💡 Why Three States?</strong><br>
+                                    • <strong>Working Directory:</strong> Your actual files where you make changes<br>
+                                    • <strong>Staging Area:</strong> A preparation area where you select which changes to include in the next commit<br>
+                                    • <strong>Repository:</strong> The permanent history of your project with all commits
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🔧 The Basic Git Workflow</div>
+                            <div class="section-content">
+                                <p>Here's the fundamental workflow you'll use every day:</p>
+                                
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># Step 1: Make changes in your working directory</span></span>
+                                    <span class="code-line"><span class="code-comment"># (Edit files, create new files, delete files)</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Step 2: Check what changed</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> status</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Step 3: Stage the changes you want to commit</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> add &lt;file&gt;        <span class="code-comment"># Stage specific file</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> add .             <span class="code-comment"># Stage all changes</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Step 4: Commit the staged changes</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> commit -m <span class="code-string">"Descriptive message"</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Step 5: Push to remote repository (GitHub)</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> push</span>
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Detailed Breakdown:</h3>
+                                
+                                <h4 style="color: #58a6ff; margin-top: 16px;">1. git status</h4>
+                                <p>Shows the current state of your working directory and staging area:</p>
+                                <ul style="margin-left: 20px;">
+                                    <li>Which files have been modified</li>
+                                    <li>Which files are staged (ready to commit)</li>
+                                    <li>Which files are untracked (new files)</li>
+                                </ul>
+
+                                <h4 style="color: #58a6ff; margin-top: 16px;">2. git add</h4>
+                                <p>Moves changes from working directory to staging area:</p>
+                                <ul style="margin-left: 20px;">
+                                    <li><code>git add filename.txt</code> - Stage one file</li>
+                                    <li><code>git add *.txt</code> - Stage all .txt files</li>
+                                    <li><code>git add .</code> - Stage all changes</li>
+                                    <li><code>git add -A</code> - Stage all changes including deletions</li>
+                                </ul>
+
+                                <h4 style="color: #58a6ff; margin-top: 16px;">3. git commit</h4>
+                                <p>Creates a permanent snapshot of staged changes:</p>
+                                <ul style="margin-left: 20px;">
+                                    <li>Each commit has a unique ID (hash)</li>
+                                    <li>Commits include author, timestamp, and message</li>
+                                    <li>Commit messages should be descriptive</li>
+                                </ul>
+
+                                <div class="warning-box">
+                                    <strong>⚠️ Good Commit Messages:</strong><br>
+                                    ✅ "Add user authentication feature"<br>
+                                    ✅ "Fix bug in payment calculation"<br>
+                                    ✅ "Update README with installation instructions"<br><br>
+                                    ❌ "updates"<br>
+                                    ❌ "fixed stuff"<br>
+                                    ❌ "changes"
+                                </div>
+
+                                <h4 style="color: #58a6ff; margin-top: 16px;">4. git push</h4>
+                                <p>Uploads your local commits to the remote repository (GitHub):</p>
+                                <ul style="margin-left: 20px;">
+                                    <li>Requires internet connection</li>
+                                    <li>Shares your changes with collaborators</li>
+                                    <li>Backs up your work online</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🎯 Real-World Example</div>
+                            <div class="section-content">
+                                <p>Let's walk through a realistic scenario:</p>
+                                
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># You're working on a website project</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 1. You edit index.html to add a new section</span></span>
+                                    <span class="code-line"><span class="code-comment"># 2. You create a new file: styles.css</span></span>
+                                    <span class="code-line"><span class="code-comment"># 3. You check what changed</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> status</span>
+                                    <span class="code-line"><span class="code-comment"># Output: modified: index.html, untracked: styles.css</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 4. Stage both files</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> add index.html styles.css</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 5. Commit with a good message</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> commit -m <span class="code-string">"Add about section and create stylesheet"</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 6. Push to GitHub</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> push</span>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    practice: `
+                        <div class="section">
+                            <div class="section-title">🔬 Interactive Exercise: Complete Git Workflow</div>
+                            <div class="section-content">
+                                <p>Let's practice the complete add → commit → push workflow:</p>
+                                
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 1: Check Status</h3>
+                                    <p>See what files have changed:</p>
+                                    <button class="btn" onclick="simulateGitStatus2()">git status</button>
+                                    <div class="terminal" id="terminal-status">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 2: Stage Changes</h3>
+                                    <p>Add files to staging area:</p>
+                                    <button class="btn" onclick="simulateGitAdd()">git add .</button>
+                                    <div class="terminal" id="terminal-add">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 3: Commit Changes</h3>
+                                    <p>Create a commit with your staged changes:</p>
+                                    <input type="text" id="commit-message" placeholder="Enter commit message..." style="width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; margin-bottom: 12px;">
+                                    <button class="btn" onclick="simulateGitCommit()">git commit</button>
+                                    <div class="terminal" id="terminal-commit">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 4: Push to GitHub</h3>
+                                    <p>Upload your commits to the remote repository:</p>
+                                    <button class="btn" onclick="simulateGitPush()">git push</button>
+                                    <div class="terminal" id="terminal-push">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    quiz: {
+                        question: 'What is the correct order of the basic Git workflow?',
+                        options: [
+                            'commit → add → push',
+                            'add → push → commit',
+                            'add → commit → push',
+                            'push → add → commit'
+                        ],
+                        correct: 2,
+                        explanation: 'The correct workflow is: 1) Stage changes with "git add", 2) Create a snapshot with "git commit", 3) Upload to remote with "git push".'
+                    }
+                }
+            },
+            {
+                id: 3,
+                icon: '🌿',
+                title: 'Branching: Parallel Development',
+                desc: 'Learn to use branches for features, experiments, and collaboration',
+                content: {
+                    theory: `
+                        <div class="section">
+                            <div class="section-title">📖 What Are Branches?</div>
+                            <div class="section-content">
+                                <p><strong>Branches</strong> are one of Git's most powerful features. They allow you to diverge from the main line of development and work on different features or experiments in isolation.</p>
+                                
+                                <div class="info-box">
+                                    <strong>💡 Why Use Branches?</strong><br>
+                                    • Work on new features without affecting the main code<br>
+                                    • Experiment safely (if it fails, just delete the branch)<br>
+                                    • Collaborate with others without conflicts<br>
+                                    • Keep the main branch stable and production-ready<br>
+                                    • Enable parallel development by multiple team members
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Visual Understanding</h3>
+                                <div class="visual-diagram">
+                                    <div class="branch-diagram">
+                                        <div class="branch-line">
+                                            <span class="branch-label" style="background: #238636; color: #fff;">main</span>
+                                            <div class="commit-node main">C1</div>
+                                            <div class="branch-connector"></div>
+                                            <div class="commit-node main">C2</div>
+                                            <div class="branch-connector"></div>
+                                            <div class="commit-node main">C5</div>
+                                        </div>
+                                        <div class="branch-line" style="margin-left: 180px;">
+                                            <span class="branch-label" style="background: #a371f7; color: #fff;">feature</span>
+                                            <div class="commit-node feature">C3</div>
+                                            <div class="branch-connector"></div>
+                                            <div class="commit-node feature">C4</div>
+                                        </div>
+                                    </div>
+                                    <p style="margin-top: 20px; color: #8b949e; font-size: 14px;">
+                                        The feature branch diverges from main at C2, has its own commits (C3, C4), then merges back at C5
+                                    </p>
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Key Branch Concepts</h3>
+                                <ul style="margin-left: 20px; line-height: 2;">
+                                    <li><strong>Main Branch:</strong> The primary branch (usually called <code>main</code> or <code>master</code>) - contains production-ready code</li>
+                                    <li><strong>Feature Branch:</strong> Created for developing new features (e.g., <code>feature/user-authentication</code>)</li>
+                                    <li><strong>Bugfix Branch:</strong> For fixing bugs (e.g., <code>bugfix/login-error</code>)</li>
+                                    <li><strong>Hotfix Branch:</strong> For urgent production fixes (e.g., <code>hotfix/security-patch</code>)</li>
+                                    <li><strong>HEAD:</strong> A pointer to your current branch/commit</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🔧 Branch Commands</div>
+                            <div class="section-content">
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># List all branches (current branch marked with *)</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> branch</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Create a new branch</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> branch &lt;branch-name&gt;</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Switch to a branch</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> checkout &lt;branch-name&gt;</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Create AND switch to a new branch (shortcut)</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> checkout -b &lt;branch-name&gt;</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Delete a branch (after merging)</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> branch -d &lt;branch-name&gt;</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Force delete a branch (even if not merged)</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> branch -D &lt;branch-name&gt;</span>
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Typical Branch Workflow</h3>
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># 1. Make sure you're on main and it's up to date</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> checkout main</span>
+                                    <span class="code-line"><span class="code-keyword">git</span> pull</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 2. Create a new feature branch</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> checkout -b feature/shopping-cart</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 3. Work on your feature (make commits)</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> add .</span>
+                                    <span class="code-line"><span class="code-keyword">git</span> commit -m <span class="code-string">"Add shopping cart functionality"</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 4. Push branch to GitHub</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> push -u origin feature/shopping-cart</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 5. Create Pull Request on GitHub (web interface)</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 6. After PR is approved and merged, delete branch</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> checkout main</span>
+                                    <span class="code-line"><span class="code-keyword">git</span> pull</span>
+                                    <span class="code-line"><span class="code-keyword">git</span> branch -d feature/shopping-cart</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🔄 Merging Branches</div>
+                            <div class="section-content">
+                                <p><strong>Merging</strong> combines the changes from one branch into another.</p>
+
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># Switch to the branch you want to merge INTO</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> checkout main</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Merge the feature branch into main</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> merge feature/shopping-cart</span>
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Types of Merges</h3>
+                                <ul style="margin-left: 20px; line-height: 2;">
+                                    <li><strong>Fast-forward merge:</strong> When main hasn't changed since you branched - Git just moves the pointer forward</li>
+                                    <li><strong>Three-way merge:</strong> When both branches have new commits - Git creates a merge commit</li>
+                                    <li><strong>Merge conflict:</strong> When the same lines were changed in both branches - requires manual resolution</li>
+                                </ul>
+
+                                <div class="warning-box">
+                                    <strong>⚠️ Merge Conflicts</strong><br>
+                                    Conflicts happen when Git can't automatically merge changes. You'll need to:<br>
+                                    1. Open the conflicted files<br>
+                                    2. Look for conflict markers: <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code><br>
+                                    3. Manually edit to keep the changes you want<br>
+                                    4. Stage and commit the resolution
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🎯 Branch Naming Conventions</div>
+                            <div class="section-content">
+                                <p>Good branch names are descriptive and follow a consistent pattern:</p>
+                                
+                                <div class="success-box">
+                                    <strong>✅ Good Branch Names:</strong><br>
+                                    • <code>feature/user-authentication</code><br>
+                                    • <code>feature/shopping-cart</code><br>
+                                    • <code>bugfix/login-redirect-issue</code><br>
+                                    • <code>hotfix/critical-security-patch</code><br>
+                                    • <code>refactor/payment-module</code><br>
+                                    • <code>docs/update-api-documentation</code>
+                                </div>
+
+                                <div class="warning-box">
+                                    <strong>❌ Bad Branch Names:</strong><br>
+                                    • <code>test</code> (too vague)<br>
+                                    • <code>my-branch</code> (not descriptive)<br>
+                                    • <code>fix</code> (what are you fixing?)<br>
+                                    • <code>feature123</code> (use descriptive names, not numbers)
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    practice: `
+                        <div class="section">
+                            <div class="section-title">🔬 Interactive Exercise: Branching Workflow</div>
+                            <div class="section-content">
+                                <p>Let's practice creating branches, making commits, and merging:</p>
+                                
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 1: Create a Feature Branch</h3>
+                                    <p>Create and switch to a new branch:</p>
+                                    <button class="btn" onclick="simulateCreateBranch()">git checkout -b feature/new-header</button>
+                                    <div class="terminal" id="terminal-branch">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 2: Make Changes and Commit</h3>
+                                    <p>Work on your feature:</p>
+                                    <button class="btn" onclick="simulateBranchCommit()">git add . && git commit</button>
+                                    <div class="terminal" id="terminal-branch-commit">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 3: Switch Back to Main</h3>
+                                    <p>Return to the main branch:</p>
+                                    <button class="btn" onclick="simulateCheckoutMain()">git checkout main</button>
+                                    <div class="terminal" id="terminal-checkout-main">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 4: Merge the Feature Branch</h3>
+                                    <p>Merge your feature into main:</p>
+                                    <button class="btn" onclick="simulateMerge()">git merge feature/new-header</button>
+                                    <div class="terminal" id="terminal-merge">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 5: Delete the Feature Branch</h3>
+                                    <p>Clean up by deleting the merged branch:</p>
+                                    <button class="btn" onclick="simulateDeleteBranch()">git branch -d feature/new-header</button>
+                                    <div class="terminal" id="terminal-delete-branch">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    quiz: {
+                        question: 'What command creates a new branch AND switches to it?',
+                        options: [
+                            'git branch new-feature',
+                            'git checkout new-feature',
+                            'git checkout -b new-feature',
+                            'git merge new-feature'
+                        ],
+                        correct: 2,
+                        explanation: '"git checkout -b" is a shortcut that creates a new branch (-b flag) and switches to it in one command.'
+                    }
+                }
+            },
+            {
+                id: 4,
+                icon: '🤝',
+                title: 'Pull Requests & Collaboration',
+                desc: 'Master GitHub pull requests for code review and team collaboration',
+                content: {
+                    theory: `
+                        <div class="section">
+                            <div class="section-title">📖 What Are Pull Requests?</div>
+                            <div class="section-content">
+                                <p><strong>Pull Requests (PRs)</strong> are GitHub's way of proposing changes to a repository. They're the heart of collaboration on GitHub.</p>
+                                
+                                <div class="info-box">
+                                    <strong>💡 Why Use Pull Requests?</strong><br>
+                                    • <strong>Code Review:</strong> Team members review your code before merging<br>
+                                    • <strong>Discussion:</strong> Discuss implementation details and improvements<br>
+                                    • <strong>Testing:</strong> Automated tests run on your changes<br>
+                                    • <strong>Documentation:</strong> Explain what you changed and why<br>
+                                    • <strong>Quality Control:</strong> Catch bugs before they reach production
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Pull Request Workflow</h3>
+                                <div class="visual-diagram">
+                                    <div style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
+                                        <div style="background: #21262d; padding: 16px; border-radius: 8px; width: 100%; max-width: 600px;">
+                                            <strong style="color: #58a6ff;">1. Create Feature Branch</strong>
+                                            <p style="color: #8b949e; font-size: 14px; margin-top: 8px;">Branch off main to work on your feature</p>
+                                        </div>
+                                        <div style="font-size: 24px;">↓</div>
+                                        <div style="background: #21262d; padding: 16px; border-radius: 8px; width: 100%; max-width: 600px;">
+                                            <strong style="color: #58a6ff;">2. Make Commits</strong>
+                                            <p style="color: #8b949e; font-size: 14px; margin-top: 8px;">Work on your feature with regular commits</p>
+                                        </div>
+                                        <div style="font-size: 24px;">↓</div>
+                                        <div style="background: #21262d; padding: 16px; border-radius: 8px; width: 100%; max-width: 600px;">
+                                            <strong style="color: #58a6ff;">3. Push to GitHub</strong>
+                                            <p style="color: #8b949e; font-size: 14px; margin-top: 8px;">Push your branch to the remote repository</p>
+                                        </div>
+                                        <div style="font-size: 24px;">↓</div>
+                                        <div style="background: #21262d; padding: 16px; border-radius: 8px; width: 100%; max-width: 600px;">
+                                            <strong style="color: #58a6ff;">4. Open Pull Request</strong>
+                                            <p style="color: #8b949e; font-size: 14px; margin-top: 8px;">Create a PR on GitHub with description</p>
+                                        </div>
+                                        <div style="font-size: 24px;">↓</div>
+                                        <div style="background: #21262d; padding: 16px; border-radius: 8px; width: 100%; max-width: 600px;">
+                                            <strong style="color: #58a6ff;">5. Code Review</strong>
+                                            <p style="color: #8b949e; font-size: 14px; margin-top: 8px;">Team reviews, discusses, and requests changes</p>
+                                        </div>
+                                        <div style="font-size: 24px;">↓</div>
+                                        <div style="background: #21262d; padding: 16px; border-radius: 8px; width: 100%; max-width: 600px;">
+                                            <strong style="color: #58a6ff;">6. Merge</strong>
+                                            <p style="color: #8b949e; font-size: 14px; margin-top: 8px;">Once approved, merge the PR into main</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🔧 Creating a Pull Request</div>
+                            <div class="section-content">
+                                <h3 style="color: #f0f6fc;">Step 1: Push Your Branch</h3>
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># Push your feature branch to GitHub</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> push -u origin feature/user-authentication</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Output will include a link to create a PR:</span></span>
+                                    <span class="code-line"><span class="code-comment"># remote: Create a pull request for 'feature/user-authentication' on GitHub by visiting:</span></span>
+                                    <span class="code-line"><span class="code-comment"># remote:      https://github.com/username/repo/pull/new/feature/user-authentication</span></span>
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Step 2: Open Pull Request on GitHub</h3>
+                                <p>Go to your repository on GitHub and:</p>
+                                <ol style="margin-left: 20px; line-height: 2;">
+                                    <li>Click the "Pull requests" tab</li>
+                                    <li>Click "New pull request"</li>
+                                    <li>Select your feature branch as the "compare" branch</li>
+                                    <li>Select <code>main</code> as the "base" branch</li>
+                                    <li>Click "Create pull request"</li>
+                                </ol>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Step 3: Write a Good PR Description</h3>
+                                <div class="success-box">
+                                    <strong>✅ Good PR Description Template:</strong>
+                                    <pre style="background: #0d1117; padding: 12px; border-radius: 6px; margin-top: 8px; overflow-x: auto;">
+## What does this PR do?
+Adds user authentication with email/password login
+
+## Why is this change needed?
+Users need to create accounts to save their preferences
+
+## How to test?
+1. Go to /login page
+2. Click "Sign Up"
+3. Fill in email and password
+4. Verify account is created
+5. Try logging in with new credentials
+
+## Screenshots
+[Add screenshots if applicable]
+
+## Related Issues
+Closes #42
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">👀 Code Review Process</div>
+                            <div class="section-content">
+                                <h3 style="color: #f0f6fc;">For PR Authors:</h3>
+                                <ul style="margin-left: 20px; line-height: 2;">
+                                    <li>Write clear, descriptive PR titles</li>
+                                    <li>Explain what you changed and why</li>
+                                    <li>Link to related issues</li>
+                                    <li>Respond to review comments promptly</li>
+                                    <li>Make requested changes in new commits</li>
+                                    <li>Ask for clarification if feedback is unclear</li>
+                                </ul>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">For Reviewers:</h3>
+                                <ul style="margin-left: 20px; line-height: 2;">
+                                    <li>Review code for correctness, not style preferences</li>
+                                    <li>Be constructive and respectful</li>
+                                    <li>Ask questions instead of making demands</li>
+                                    <li>Approve when satisfied, request changes when not</li>
+                                    <li>Test the code locally if possible</li>
+                                    <li>Check that tests pass</li>
+                                </ul>
+
+                                <div class="info-box">
+                                    <strong>💡 Review Comment Types:</strong><br>
+                                    • <strong>Comment:</strong> General feedback, no action required<br>
+                                    • <strong>Approve:</strong> Code looks good, ready to merge<br>
+                                    • <strong>Request Changes:</strong> Issues must be addressed before merging
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🔄 Updating a Pull Request</div>
+                            <div class="section-content">
+                                <p>When reviewers request changes, update your branch:</p>
+                                
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># Make the requested changes</span></span>
+                                    <span class="code-line"><span class="code-comment"># (edit files in your feature branch)</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Commit the changes</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> add .</span>
+                                    <span class="code-line"><span class="code-keyword">git</span> commit -m <span class="code-string">"Address review feedback: fix login validation"</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Push to update the PR</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> push</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># The PR automatically updates with your new commits!</span></span>
+                                </div>
+
+                                <div class="warning-box">
+                                    <strong>⚠️ Important:</strong><br>
+                                    Don't create a new PR for changes! Just push new commits to the same branch, and the existing PR will update automatically.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">✅ Merging Pull Requests</div>
+                            <div class="section-content">
+                                <p>Once a PR is approved, you can merge it using different strategies:</p>
+
+                                <h3 style="color: #58a6ff; margin-top: 16px;">1. Merge Commit (Default)</h3>
+                                <p>Creates a merge commit that combines both branches:</p>
+                                <ul style="margin-left: 20px;">
+                                    <li>Preserves complete history</li>
+                                    <li>Shows when features were merged</li>
+                                    <li>Creates a merge commit</li>
+                                </ul>
+
+                                <h3 style="color: #58a6ff; margin-top: 16px;">2. Squash and Merge</h3>
+                                <p>Combines all commits into a single commit:</p>
+                                <ul style="margin-left: 20px;">
+                                    <li>Cleaner history (one commit per feature)</li>
+                                    <li>Hides intermediate "work in progress" commits</li>
+                                    <li>Good for small features</li>
+                                </ul>
+
+                                <h3 style="color: #58a6ff; margin-top: 16px;">3. Rebase and Merge</h3>
+                                <p>Replays your commits on top of main:</p>
+                                <ul style="margin-left: 20px;">
+                                    <li>Linear history (no merge commits)</li>
+                                    <li>Cleaner git log</li>
+                                    <li>Advanced technique</li>
+                                </ul>
+
+                                <div class="info-box">
+                                    <strong>💡 Which to Choose?</strong><br>
+                                    • <strong>Merge Commit:</strong> Default, good for most cases<br>
+                                    • <strong>Squash:</strong> When you have many small "fix typo" commits<br>
+                                    • <strong>Rebase:</strong> When you want a clean, linear history
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    practice: `
+                        <div class="section">
+                            <div class="section-title">🔬 Interactive Exercise: Pull Request Workflow</div>
+                            <div class="section-content">
+                                <p>Let's simulate the complete pull request process:</p>
+                                
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 1: Push Feature Branch</h3>
+                                    <p>Push your branch to GitHub:</p>
+                                    <button class="btn" onclick="simulatePushBranch()">git push -u origin feature/login-page</button>
+                                    <div class="terminal" id="terminal-push-branch">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 2: Create Pull Request</h3>
+                                    <p>Simulate creating a PR on GitHub:</p>
+                                    <button class="btn" onclick="simulateCreatePR()">Create Pull Request</button>
+                                    <div class="terminal" id="terminal-create-pr">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for action...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 3: Address Review Feedback</h3>
+                                    <p>Make changes based on review comments:</p>
+                                    <button class="btn" onclick="simulateAddressReview()">git commit -m "Fix review feedback"</button>
+                                    <div class="terminal" id="terminal-address-review">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 4: Merge Pull Request</h3>
+                                    <p>Merge the approved PR:</p>
+                                    <button class="btn" onclick="simulateMergePR()">Merge Pull Request</button>
+                                    <div class="terminal" id="terminal-merge-pr">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for action...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    quiz: {
+                        question: 'What happens when you push new commits to a branch that has an open pull request?',
+                        options: [
+                            'You need to create a new pull request',
+                            'The existing pull request automatically updates with the new commits',
+                            'The pull request is closed',
+                            'You get an error'
+                        ],
+                        correct: 1,
+                        explanation: 'Pull requests are tied to branches, not specific commits. When you push new commits to a branch with an open PR, the PR automatically includes the new commits.'
+                    }
+                }
+            },
+                content: {
+                    theory: `
+                        <div class="section">
+                            <div class="section-title">📖 The Three States of Git</div>
+                            <div class="section-content">
+                                <p>Understanding Git's three states is crucial for mastering Git workflow:</p>
+                                
+                                <div class="visual-diagram">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 20px;">Git's Three Working Areas</h3>
+                                    <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 20px;">
+                                        <div style="background: #21262d; padding: 20px; border-radius: 8px; min-width: 200px;">
+                                            <h4 style="color: #f0f6fc;">1️⃣ Working Directory</h4>
+                                            <p style="font-size: 14px; color: #8b949e;">Where you edit files</p>
+                                        </div>
+                                        <div style="font-size: 24px;">→</div>
+                                        <div style="background: #21262d; padding: 20px; border-radius: 8px; min-width: 200px;">
+                                            <h4 style="color: #f0f6fc;">2️⃣ Staging Area</h4>
+                                            <p style="font-size: 14px; color: #8b949e;">Preparing changes for commit</p>
+                                        </div>
+                                        <div style="font-size: 24px;">→</div>
+                                        <div style="background: #21262d; padding: 20px; border-radius: 8px; min-width: 200px;">
+                                            <h4 style="color: #f0f6fc;">3️⃣ Repository</h4>
+                                            <p style="font-size: 14px; color: #8b949e;">Permanent snapshot (commit)</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="info-box">
+                                    <strong>💡 Why Three States?</strong><br>
+                                    • <strong>Working Directory:</strong> Your actual files where you make changes<br>
+                                    • <strong>Staging Area:</strong> A preparation area where you select which changes to include in the next commit<br>
+                                    • <strong>Repository:</strong> The permanent history of your project with all commits
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🔧 The Basic Git Workflow</div>
+                            <div class="section-content">
+                                <p>Here's the fundamental workflow you'll use every day:</p>
+                                
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># Step 1: Make changes in your working directory</span></span>
+                                    <span class="code-line"><span class="code-comment"># (Edit files, create new files, delete files)</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Step 2: Check what changed</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> status</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Step 3: Stage the changes you want to commit</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> add &lt;file&gt;        <span class="code-comment"># Stage specific file</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> add .             <span class="code-comment"># Stage all changes</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Step 4: Commit the staged changes</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> commit -m <span class="code-string">"Descriptive message"</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># Step 5: Push to remote repository (GitHub)</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> push</span>
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Detailed Breakdown:</h3>
+                                
+                                <h4 style="color: #58a6ff; margin-top: 16px;">1. git status</h4>
+                                <p>Shows the current state of your working directory and staging area:</p>
+                                <ul style="margin-left: 20px;">
+                                    <li>Which files have been modified</li>
+                                    <li>Which files are staged (ready to commit)</li>
+                                    <li>Which files are untracked (new files)</li>
+                                </ul>
+
+                                <h4 style="color: #58a6ff; margin-top: 16px;">2. git add</h4>
+                                <p>Moves changes from working directory to staging area:</p>
+                                <ul style="margin-left: 20px;">
+                                    <li><code>git add filename.txt</code> - Stage one file</li>
+                                    <li><code>git add *.txt</code> - Stage all .txt files</li>
+                                    <li><code>git add .</code> - Stage all changes</li>
+                                    <li><code>git add -A</code> - Stage all changes including deletions</li>
+                                </ul>
+
+                                <h4 style="color: #58a6ff; margin-top: 16px;">3. git commit</h4>
+                                <p>Creates a permanent snapshot of staged changes:</p>
+                                <ul style="margin-left: 20px;">
+                                    <li>Each commit has a unique ID (hash)</li>
+                                    <li>Commits include author, timestamp, and message</li>
+                                    <li>Commit messages should be descriptive</li>
+                                </ul>
+
+                                <div class="warning-box">
+                                    <strong>⚠️ Good Commit Messages:</strong><br>
+                                    ✅ "Add user authentication feature"<br>
+                                    ✅ "Fix bug in payment calculation"<br>
+                                    ✅ "Update README with installation instructions"<br><br>
+                                    ❌ "updates"<br>
+                                    ❌ "fixed stuff"<br>
+                                    ❌ "changes"
+                                </div>
+
+                                <h4 style="color: #58a6ff; margin-top: 16px;">4. git push</h4>
+                                <p>Uploads your local commits to the remote repository (GitHub):</p>
+                                <ul style="margin-left: 20px;">
+                                    <li>Requires internet connection</li>
+                                    <li>Shares your changes with collaborators</li>
+                                    <li>Backs up your work online</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🎯 Real-World Example</div>
+                            <div class="section-content">
+                                <p>Let's walk through a realistic scenario:</p>
+                                
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># You're working on a website project</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 1. You edit index.html to add a new section</span></span>
+                                    <span class="code-line"><span class="code-comment"># 2. You create a new file: styles.css</span></span>
+                                    <span class="code-line"><span class="code-comment"># 3. You check what changed</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> status</span>
+                                    <span class="code-line"><span class="code-comment"># Output: modified: index.html, untracked: styles.css</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 4. Stage both files</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> add index.html styles.css</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 5. Commit with a good message</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> commit -m <span class="code-string">"Add about section and create stylesheet"</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 6. Push to GitHub</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> push</span>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    practice: `
+                        <div class="section">
+                            <div class="section-title">🔬 Interactive Exercise: Complete Git Workflow</div>
+                            <div class="section-content">
+                                <p>Let's practice the complete add → commit → push workflow:</p>
+                                
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 1: Check Status</h3>
+                                    <p>See what files have changed:</p>
+                                    <button class="btn" onclick="simulateGitStatus2()">git status</button>
+                                    <div class="terminal" id="terminal-status">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 2: Stage Changes</h3>
+                                    <p>Add files to staging area:</p>
+                                    <button class="btn" onclick="simulateGitAdd()">git add .</button>
+                                    <div class="terminal" id="terminal-add">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 3: Commit Changes</h3>
+                                    <p>Create a commit with your staged changes:</p>
+                                    <input type="text" id="commit-message" placeholder="Enter commit message..." style="width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; margin-bottom: 12px;">
+                                    <button class="btn" onclick="simulateGitCommit()">git commit</button>
+                                    <div class="terminal" id="terminal-commit">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 4: Push to GitHub</h3>
+                                    <p>Upload your commits to the remote repository:</p>
+                                    <button class="btn" onclick="simulateGitPush()">git push</button>
+                                    <div class="terminal" id="terminal-push">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    quiz: {
+                        question: 'What is the correct order of the basic Git workflow?',
+                        options: [
+                            'commit → add → push',
+                            'add → push → commit',
+                            'add → commit → push',
+                            'push → add → commit'
+                        ],
+                        correct: 2,
+                        explanation: 'The correct workflow is: 1) Stage changes with "git add", 2) Create a snapshot with "git commit", 3) Upload to remote with "git push".'
+                    }
+                }
+            },
+            {
+                id: 5,
+                icon: '⚡',
+                title: 'Resolving Merge Conflicts',
+                desc: 'Learn to identify and resolve merge conflicts like a pro',
+                content: {
+                    theory: `
+                        <div class="section">
+                            <div class="section-title">📖 What Are Merge Conflicts?</div>
+                            <div class="section-content">
+                                <p><strong>Merge conflicts</strong> occur when Git cannot automatically merge changes because the same lines of code were modified in different branches.</p>
+                                
+                                <div class="info-box">
+                                    <strong>💡 When Do Conflicts Happen?</strong><br>
+                                    • Two branches modify the same line in a file<br>
+                                    • One branch deletes a file while another modifies it<br>
+                                    • Two branches add different content at the same location
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Conflict Markers</h3>
+                                <p>Git marks conflicts in your files with special markers:</p>
+                                
+                                <div class="code-block">
+                                    <span class="code-line"><span style="color: #f85149;">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span></span>
+                                    <span class="code-line"><span style="color: #3fb950;">const name = "Jane";  <span class="code-comment">// Current branch</span></span></span>
+                                    <span class="code-line"><span style="color: #f85149;">=======</span></span>
+                                    <span class="code-line"><span style="color: #a371f7;">const name = "Bob";   <span class="code-comment">// Incoming branch</span></span></span>
+                                    <span class="code-line"><span style="color: #f85149;">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/login</span></span>
+                                </div>
+
+                                <div class="warning-box">
+                                    <strong>⚠️ Understanding Conflict Markers:</strong><br>
+                                    • <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> - Start of current branch changes<br>
+                                    • <code>=======</code> - Separator between versions<br>
+                                    • <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; branch-name</code> - End of incoming branch changes
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🛠️ Resolving Conflicts</div>
+                            <div class="section-content">
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># 1. Attempt merge (conflict occurs)</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> merge feature/login</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 2. See which files have conflicts</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> status</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 3. Open conflicted file and resolve</span></span>
+                                    <span class="code-line"><span class="code-comment"># (Edit file, remove markers, keep desired code)</span></span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 4. Stage the resolved file</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> add index.html</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># 5. Complete the merge</span></span>
+                                    <span class="code-line"><span class="code-keyword">git</span> commit -m <span class="code-string">"Merge: resolve conflicts"</span></span>
+                                </div>
+
+                                <div class="info-box">
+                                    <strong>💡 Pro Tips:</strong><br>
+                                    • Use VS Code's built-in merge conflict editor<br>
+                                    • Test your code after resolving conflicts<br>
+                                    • If stuck, abort: <code>git merge --abort</code>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    practice: `
+                        <div class="section">
+                            <div class="section-title">🔬 Interactive Exercise: Resolve a Merge Conflict</div>
+                            <div class="section-content">
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 1: Attempt Merge (Conflict Occurs)</h3>
+                                    <button class="btn" onclick="simulateMergeConflict()">git merge feature/header</button>
+                                    <div class="terminal" id="terminal-conflict">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 2: View Conflicted File</h3>
+                                    <button class="btn" onclick="simulateViewConflict()">View Conflict</button>
+                                    <div class="code-block" id="conflict-view" style="display: none;">
+                                        <span class="code-line"><span style="color: #f85149;">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span></span>
+                                        <span class="code-line"><span style="color: #3fb950;">const title = "Welcome to CHROMIQUE";</span></span>
+                                        <span class="code-line"><span style="color: #f85149;">=======</span></span>
+                                        <span class="code-line"><span style="color: #a371f7;">const title = "CHROMIQUE - Premium Printing";</span></span>
+                                        <span class="code-line"><span style="color: #f85149;">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/header</span></span>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 3: Complete the Merge</h3>
+                                    <button class="btn" onclick="simulateCompleteMerge()">git add . && git commit</button>
+                                    <div class="terminal" id="terminal-complete-merge">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    quiz: {
+                        question: 'What should you do after manually resolving a merge conflict in a file?',
+                        options: [
+                            'Run git merge again',
+                            'Stage the file with git add, then commit',
+                            'Delete the file',
+                            'Create a new branch'
+                        ],
+                        correct: 1,
+                        explanation: 'After resolving conflicts, stage the resolved files with "git add" and commit to complete the merge.'
+                    }
+                }
+            },
+            {
+                id: 6,
+                icon: '📝',
+                title: 'GitHub Issues & Project Management',
+                desc: 'Track bugs, features, and tasks with GitHub Issues',
+                content: {
+                    theory: `
+                        <div class="section">
+                            <div class="section-title">📖 What Are GitHub Issues?</div>
+                            <div class="section-content">
+                                <p><strong>Issues</strong> are GitHub's built-in tracking system for bugs, feature requests, tasks, and discussions.</p>
+                                
+                                <div class="info-box">
+                                    <strong>💡 Use Issues For:</strong><br>
+                                    • Reporting bugs<br>
+                                    • Requesting new features<br>
+                                    • Tracking tasks and to-dos<br>
+                                    • Asking questions<br>
+                                    • Planning project milestones
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Creating an Issue</h3>
+                                <ol style="margin-left: 20px; line-height: 2;">
+                                    <li>Go to your repository on GitHub</li>
+                                    <li>Click the "Issues" tab</li>
+                                    <li>Click "New issue"</li>
+                                    <li>Write a clear title and description</li>
+                                    <li>Add labels, assignees, and milestones</li>
+                                    <li>Click "Submit new issue"</li>
+                                </ol>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">Writing Good Issues</h3>
+                                <div class="success-box">
+                                    <strong>✅ Good Issue Template:</strong>
+                                    <pre style="background: #0d1117; padding: 12px; border-radius: 6px; margin-top: 8px;">
+## Bug Description
+Login form doesn't validate email format
+
+## Steps to Reproduce
+1. Go to /login
+2. Enter "invalid-email"
+3. Click "Login"
+
+## Expected Behavior
+Show error: "Please enter a valid email"
+
+## Actual Behavior
+Form submits and shows generic error
+
+## Environment
+- Browser: Chrome 120
+- OS: Windows 11
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🏷️ Labels, Milestones & Assignees</div>
+                            <div class="section-content">
+                                <h3 style="color: #58a6ff;">Labels</h3>
+                                <p>Color-coded tags to categorize issues:</p>
+                                <ul style="margin-left: 20px; line-height: 2;">
+                                    <li><span style="background: #d73a4a; color: white; padding: 2px 8px; border-radius: 12px;">bug</span> - Something isn't working</li>
+                                    <li><span style="background: #0075ca; color: white; padding: 2px 8px; border-radius: 12px;">enhancement</span> - New feature request</li>
+                                    <li><span style="background: #7057ff; color: white; padding: 2px 8px; border-radius: 12px;">documentation</span> - Docs improvements</li>
+                                    <li><span style="background: #e4e669; color: black; padding: 2px 8px; border-radius: 12px;">good first issue</span> - Good for newcomers</li>
+                                </ul>
+
+                                <h3 style="color: #58a6ff; margin-top: 24px;">Milestones</h3>
+                                <p>Group issues into releases or sprints:</p>
+                                <ul style="margin-left: 20px; line-height: 2;">
+                                    <li><strong>v1.0.0</strong> - Initial release</li>
+                                    <li><strong>v1.1.0</strong> - Next feature release</li>
+                                    <li><strong>Sprint 5</strong> - Current development cycle</li>
+                                </ul>
+
+                                <h3 style="color: #58a6ff; margin-top: 24px;">Assignees</h3>
+                                <p>Assign issues to team members responsible for fixing them.</p>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🔗 Linking Issues to Pull Requests</div>
+                            <div class="section-content">
+                                <p>Automatically close issues when PRs are merged:</p>
+                                
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># In your PR description, use keywords:</span></span>
+                                    <span class="code-line">Closes #42</span>
+                                    <span class="code-line">Fixes #43</span>
+                                    <span class="code-line">Resolves #44</span>
+                                    <span class="code-line"></span>
+                                    <span class="code-line"><span class="code-comment"># When PR is merged, issues #42, #43, #44 close automatically!</span></span>
+                                </div>
+
+                                <div class="info-box">
+                                    <strong>💡 Benefits:</strong><br>
+                                    • Automatic issue tracking<br>
+                                    • Clear link between code changes and issues<br>
+                                    • Automated workflow
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    practice: `
+                        <div class="section">
+                            <div class="section-title">🔬 Interactive Exercise: Create and Manage Issues</div>
+                            <div class="section-content">
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 1: Create an Issue</h3>
+                                    <button class="btn" onclick="simulateCreateIssue()">Create New Issue</button>
+                                    <div class="terminal" id="terminal-create-issue">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for action...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 2: Add Labels and Assignee</h3>
+                                    <button class="btn" onclick="simulateAddLabels()">Add Labels & Assign</button>
+                                    <div class="terminal" id="terminal-add-labels">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for action...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 3: Link to Pull Request</h3>
+                                    <button class="btn" onclick="simulateLinkPR()">Link PR to Issue</button>
+                                    <div class="terminal" id="terminal-link-pr">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for action...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    quiz: {
+                        question: 'How do you automatically close an issue when a pull request is merged?',
+                        options: [
+                            'Manually close the issue after merging',
+                            'Use keywords like "Closes #123" in the PR description',
+                            'Delete the issue',
+                            'Add a "closed" label'
+                        ],
+                        correct: 1,
+                        explanation: 'Use keywords like "Closes #123", "Fixes #123", or "Resolves #123" in your PR description, and GitHub will automatically close the issue when the PR is merged.'
+                    }
+                }
+            },
+            {
+                id: 7,
+                icon: '🌐',
+                title: 'GitHub Pages: Free Website Hosting',
+                desc: 'Host your websites for free with GitHub Pages',
+                content: {
+                    theory: `
+                        <div class="section">
+                            <div class="section-title">📖 What is GitHub Pages?</div>
+                            <div class="section-content">
+                                <p><strong>GitHub Pages</strong> is a free static site hosting service that takes HTML, CSS, and JavaScript files from your repository and publishes them as a website.</p>
+                                
+                                <div class="info-box">
+                                    <strong>💡 GitHub Pages Features:</strong><br>
+                                    • <strong>Free hosting</strong> for public repositories<br>
+                                    • <strong>Custom domains</strong> support<br>
+                                    • <strong>HTTPS</strong> automatically enabled<br>
+                                    • <strong>Automatic deployments</strong> on push<br>
+                                    • <strong>Jekyll</strong> support for static site generation
+                                </div>
+
+                                <h3 style="color: #f0f6fc; margin-top: 24px;">What You Can Host</h3>
+                                <ul style="margin-left: 20px; line-height: 2;">
+                                    <li>Personal portfolios</li>
+                                    <li>Project documentation</li>
+                                    <li>Blog sites</li>
+                                    <li>Business landing pages</li>
+                                    <li>Demo applications</li>
+                                </ul>
+
+                                <div class="warning-box">
+                                    <strong>⚠️ Limitations:</strong><br>
+                                    • Static sites only (no server-side code like PHP, Node.js)<br>
+                                    • Public repositories get free hosting<br>
+                                    • Private repositories require GitHub Pro ($4/month)<br>
+                                    • 1 GB storage limit<br>
+                                    • 100 GB bandwidth per month
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🚀 Setting Up GitHub Pages</div>
+                            <div class="section-content">
+                                <h3 style="color: #58a6ff;">Method 1: From Root Directory</h3>
+                                <ol style="margin-left: 20px; line-height: 2;">
+                                    <li>Push your website files to the root of your repository</li>
+                                    <li>Make sure you have an <code>index.html</code> file</li>
+                                    <li>Go to repository Settings → Pages</li>
+                                    <li>Under "Source", select "Deploy from a branch"</li>
+                                    <li>Select branch: <code>main</code>, folder: <code>/ (root)</code></li>
+                                    <li>Click Save</li>
+                                    <li>Your site will be live at: <code>https://username.github.io/repo-name</code></li>
+                                </ol>
+
+                                <h3 style="color: #58a6ff; margin-top: 24px;">Method 2: From /docs Folder</h3>
+                                <ol style="margin-left: 20px; line-height: 2;">
+                                    <li>Create a <code>docs</code> folder in your repository</li>
+                                    <li>Put your website files in the <code>docs</code> folder</li>
+                                    <li>Go to repository Settings → Pages</li>
+                                    <li>Select branch: <code>main</code>, folder: <code>/docs</code></li>
+                                    <li>Click Save</li>
+                                </ol>
+
+                                <div class="code-block">
+                                    <span class="code-line"><span class="code-comment"># Example repository structure:</span></span>
+                                    <span class="code-line">my-project/</span>
+                                    <span class="code-line">├── docs/</span>
+                                    <span class="code-line">│   ├── index.html</span>
+                                    <span class="code-line">│   ├── styles.css</span>
+                                    <span class="code-line">│   └── script.js</span>
+                                    <span class="code-line">├── README.md</span>
+                                    <span class="code-line">└── .gitignore</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🌐 Custom Domains</div>
+                            <div class="section-content">
+                                <p>Use your own domain (e.g., <code>chromiqueprint.com</code>) instead of the GitHub URL:</p>
+                                
+                                <ol style="margin-left: 20px; line-height: 2;">
+                                    <li>Buy a domain from Namecheap, Google Domains, etc.</li>
+                                    <li>In your domain registrar, add DNS records:
+                                        <ul style="margin-left: 20px; margin-top: 8px;">
+                                            <li>CNAME record: <code>www</code> → <code>username.github.io</code></li>
+                                            <li>A records for root domain (GitHub provides IPs)</li>
+                                        </ul>
+                                    </li>
+                                    <li>In GitHub repo Settings → Pages, add your custom domain</li>
+                                    <li>Wait 24-48 hours for DNS propagation</li>
+                                    <li>Enable HTTPS in GitHub Pages settings</li>
+                                </ol>
+
+                                <div class="info-box">
+                                    <strong>💡 Cost Breakdown:</strong><br>
+                                    • Domain: ~$12/year<br>
+                                    • GitHub Pages hosting: FREE (for public repos)<br>
+                                    • Total: ~$1/month
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    practice: `
+                        <div class="section">
+                            <div class="section-title">🔬 Interactive Exercise: Deploy to GitHub Pages</div>
+                            <div class="section-content">
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 1: Push Website Files</h3>
+                                    <button class="btn" onclick="simulatePushForPages()">git push origin main</button>
+                                    <div class="terminal" id="terminal-push-pages">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for command...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 2: Enable GitHub Pages</h3>
+                                    <button class="btn" onclick="simulateEnablePages()">Enable GitHub Pages</button>
+                                    <div class="terminal" id="terminal-enable-pages">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for action...</div>
+                                    </div>
+                                </div>
+
+                                <div class="interactive-area">
+                                    <h3 style="color: #f0f6fc; margin-bottom: 16px;">Step 3: Visit Your Live Site</h3>
+                                    <button class="btn" onclick="simulateVisitSite()">Visit Website</button>
+                                    <div class="terminal" id="terminal-visit-site">
+                                        <div class="terminal-line"><span class="terminal-prompt">$</span> Waiting for action...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    quiz: {
+                        question: 'What type of websites can GitHub Pages host?',
+                        options: [
+                            'Any type of website including dynamic sites',
+                            'Only static websites (HTML, CSS, JavaScript)',
+                            'Only WordPress sites',
+                            'Only PHP websites'
+                        ],
+                        correct: 1,
+                        explanation: 'GitHub Pages only hosts static websites (HTML, CSS, JavaScript). It cannot run server-side code like PHP, Node.js, or databases.'
+                    }
+                }
+            },
+            // Add more modules here...
+        ];
+
+        // Progress tracking
+        let progress = JSON.parse(localStorage.getItem('github-progress')) || {
+            completedModules: [],
+            quizScores: {},
+            totalQuizzes: 0,
+            correctAnswers: 0
+        };
+
+        // Initialize the app
+        function init() {
+            renderModules();
+            updateProgress();
+        }
+
+        // Render module cards
+        function renderModules() {
+            const grid = document.getElementById('module-grid');
+            grid.innerHTML = modules.map(module => {
+                const isCompleted = progress.completedModules.includes(module.id);
+                const quizScore = progress.quizScores[module.id];
+                const progressPercent = isCompleted ? 100 : (quizScore ? 50 : 0);
+                
+                return `
+                    <div class="module-card" onclick="openModule(${module.id})">
+                        <div class="module-icon">${module.icon}</div>
+                        <div class="module-title">${module.title}</div>
+                        <div class="module-desc">${module.desc}</div>
+                        <div class="module-progress">
+                            <div class="module-progress-bar" style="width: ${progressPercent}%"></div>
+                        </div>
+                        ${isCompleted ? '<div style="color: #238636; margin-top: 8px; font-weight: 600;">✓ Completed</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Open a specific module
+        function openModule(moduleId) {
+            const module = modules.find(m => m.id === moduleId);
+            if (!module) return;
+
+            const content = module.content;
+            const lessonContent = document.getElementById('lesson-content');
+            
+            lessonContent.innerHTML = `
+                <div class="lesson-header">
+                    <div class="lesson-title">${module.icon} ${module.title}</div>
+                    <div class="lesson-subtitle">${module.desc}</div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('theory', ${moduleId})">📖 Theory</button>
+                    <button class="tab" onclick="switchTab('practice', ${moduleId})">🔬 Practice</button>
+                    <button class="tab" onclick="switchTab('quiz', ${moduleId})">❓ Quiz</button>
+                </div>
+
+                <div id="tab-theory" class="tab-content active">
+                    <div class="lesson-content">
+                        ${content.theory}
+                    </div>
+                </div>
+
+                <div id="tab-practice" class="tab-content">
+                    <div class="lesson-content">
+                        ${content.practice}
+                    </div>
+                </div>
+
+                <div id="tab-quiz" class="tab-content">
+                    <div class="quiz-section">
+                        <div class="quiz-question">${content.quiz.question}</div>
+                        <div class="quiz-options" id="quiz-options-${moduleId}">
+                            ${content.quiz.options.map((option, index) => `
+                                <div class="quiz-option" onclick="selectQuizOption(${moduleId}, ${index})">
+                                    ${option}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn" onclick="submitQuiz(${moduleId})" style="margin-top: 16px;">Submit Answer</button>
+                        <div id="quiz-feedback-${moduleId}" style="margin-top: 16px;"></div>
+                    </div>
+                </div>
+            `;
+
+            showView('lesson');
+        }
+
+        // Switch between tabs
+        function switchTab(tabName, moduleId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // Select quiz option
+        let selectedOptions = {};
+        function selectQuizOption(moduleId, optionIndex) {
+            selectedOptions[moduleId] = optionIndex;
+            const options = document.querySelectorAll(`#quiz-options-${moduleId} .quiz-option`);
+            options.forEach((option, index) => {
+                option.classList.remove('selected');
+                if (index === optionIndex) {
+                    option.classList.add('selected');
+                }
+            });
+        }
+
+        // Submit quiz answer
+        function submitQuiz(moduleId) {
+            const module = modules.find(m => m.id === moduleId);
+            const selected = selectedOptions[moduleId];
+            const correct = module.content.quiz.correct;
+            const feedback = document.getElementById(`quiz-feedback-${moduleId}`);
+            const options = document.querySelectorAll(`#quiz-options-${moduleId} .quiz-option`);
+
+            if (selected === undefined) {
+                feedback.innerHTML = '<div class="warning-box">Please select an answer first!</div>';
+                return;
+            }
+
+            progress.totalQuizzes++;
+            
+            if (selected === correct) {
+                progress.correctAnswers++;
+                progress.quizScores[moduleId] = true;
+                
+                options.forEach((option, index) => {
+                    if (index === correct) {
+                        option.classList.add('correct');
+                    } else if (index === selected) {
+                        option.classList.add('incorrect');
+                    }
+                });
+
+                feedback.innerHTML = `
+                    <div class="success-box">
+                        <strong>✅ Correct!</strong><br>
+                        ${module.content.quiz.explanation}
+                    </div>
+                `;
+
+                // Mark module as completed if quiz is passed
+                if (!progress.completedModules.includes(moduleId)) {
+                    progress.completedModules.push(moduleId);
+                }
+            } else {
+                options.forEach((option, index) => {
+                    if (index === correct) {
+                        option.classList.add('correct');
+                    } else if (index === selected) {
+                        option.classList.add('incorrect');
+                    }
+                });
+
+                feedback.innerHTML = `
+                    <div class="warning-box">
+                        <strong>❌ Incorrect</strong><br>
+                        ${module.content.quiz.explanation}
+                    </div>
+                `;
+            }
+
+            saveProgress();
+            updateProgress();
+        }
+
+        // Show different views
+        function showView(viewName) {
+            document.querySelectorAll('.lesson-view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(`${viewName}-view`).classList.add('active');
+            event.target.classList.add('active');
+
+            if (viewName === 'progress') {
+                renderDetailedProgress();
+            }
+        }
+
+        // Update progress display
+        function updateProgress() {
+            const completed = progress.completedModules.length;
+            const total = modules.length;
+            const percent = Math.round((completed / total) * 100);
+
+            document.getElementById('completed-modules').textContent = completed;
+            document.getElementById('total-modules').textContent = total;
+            document.getElementById('progress-percent').textContent = percent + '%';
+            document.getElementById('quiz-score').textContent = `${progress.correctAnswers}/${progress.totalQuizzes}`;
+
+            renderModules();
+        }
+
+        // Render detailed progress
+        function renderDetailedProgress() {
+            const detailedProgress = document.getElementById('detailed-progress');
+            detailedProgress.innerHTML = modules.map(module => {
+                const isCompleted = progress.completedModules.includes(module.id);
+                const quizScore = progress.quizScores[module.id];
+                
+                return `
+                    <div style="background: #0d1117; padding: 16px; border-radius: 6px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="color: #f0f6fc;">${module.icon} ${module.title}</strong>
+                                <div style="color: #8b949e; font-size: 14px; margin-top: 4px;">${module.desc}</div>
+                            </div>
+                            <div>
+                                ${isCompleted ? 
+                                    '<span style="color: #238636; font-weight: 600;">✓ Completed</span>' : 
+                                    quizScore ? 
+                                        '<span style="color: #d29922;">Quiz Attempted</span>' : 
+                                        '<span style="color: #8b949e;">Not Started</span>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Save progress to localStorage
+        function saveProgress() {
+            localStorage.setItem('github-progress', JSON.stringify(progress));
+        }
+
+        // Simulation functions
+        function simulateGitInit() {
+            const terminal = document.getElementById('terminal-1');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git init</div>
+                <div class="terminal-line"><span class="terminal-output">Initialized empty Git repository in /home/user/my-first-project/.git/</span></div>
+                <div class="terminal-line"><span class="terminal-output">hint: Using 'master' as the name for the initial branch.</span></div>
+            `;
+        }
+
+        function simulateCreateFile() {
+            const fileTree = document.getElementById('file-tree-1');
+            fileTree.innerHTML = `
+                <div class="file-item">
+                    <span class="file-icon">📁</span>
+                    <span class="file-name folder">my-first-project/</span>
+                </div>
+                <div class="file-item" style="margin-left: 20px;">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">.git/</span>
+                </div>
+                <div class="file-item" style="margin-left: 20px;">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name" style="color: #f85149;">README.md (untracked)</span>
+                </div>
+            `;
+        }
+
+        function simulateGitStatus() {
+            const terminal = document.getElementById('terminal-2');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git status</div>
+                <div class="terminal-line"><span class="terminal-output">On branch master</span></div>
+                <div class="terminal-line"><span class="terminal-output"></span></div>
+                <div class="terminal-line"><span class="terminal-output">No commits yet</span></div>
+                <div class="terminal-line"><span class="terminal-output"></span></div>
+                <div class="terminal-line"><span class="terminal-output">Untracked files:</span></div>
+                <div class="terminal-line"><span class="terminal-output">  (use "git add <file>..." to include in what will be committed)</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #f85149;">        README.md</span></div>
+                <div class="terminal-line"><span class="terminal-output"></span></div>
+                <div class="terminal-line"><span class="terminal-output">nothing added to commit but untracked files present (use "git add" to track)</span></div>
+            `;
+        }
+
+        function simulateGitStatus2() {
+            const terminal = document.getElementById('terminal-status');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git status</div>
+                <div class="terminal-line"><span class="terminal-output">On branch main</span></div>
+                <div class="terminal-line"><span class="terminal-output">Your branch is up to date with 'origin/main'.</span></div>
+                <div class="terminal-line"><span class="terminal-output"></span></div>
+                <div class="terminal-line"><span class="terminal-output">Changes not staged for commit:</span></div>
+                <div class="terminal-line"><span class="terminal-output">  (use "git add <file>..." to update what will be committed)</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #f85149;">        modified:   index.html</span></div>
+                <div class="terminal-line"><span class="terminal-output"></span></div>
+                <div class="terminal-line"><span class="terminal-output">Untracked files:</span></div>
+                <div class="terminal-line"><span class="terminal-output">  (use "git add <file>..." to include in what will be committed)</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #f85149;">        styles.css</span></div>
+            `;
+        }
+
+        function simulateGitAdd() {
+            const terminal = document.getElementById('terminal-add');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git add .</div>
+                <div class="terminal-line"><span class="terminal-output">Changes staged for commit:</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">        modified:   index.html</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">        new file:   styles.css</span></div>
+            `;
+        }
+
+        function simulateGitCommit() {
+            const message = document.getElementById('commit-message').value || 'Update files';
+            const terminal = document.getElementById('terminal-commit');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git commit -m "${message}"</div>
+                <div class="terminal-line"><span class="terminal-output">[main a1b2c3d] ${message}</span></div>
+                <div class="terminal-line"><span class="terminal-output"> 2 files changed, 45 insertions(+), 12 deletions(-)</span></div>
+                <div class="terminal-line"><span class="terminal-output"> create mode 100644 styles.css</span></div>
+            `;
+        }
+
+        function simulateGitPush() {
+            const terminal = document.getElementById('terminal-push');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git push</div>
+                <div class="terminal-line"><span class="terminal-output">Enumerating objects: 7, done.</span></div>
+                <div class="terminal-line"><span class="terminal-output">Counting objects: 100% (7/7), done.</span></div>
+                <div class="terminal-line"><span class="terminal-output">Delta compression using up to 8 threads</span></div>
+                <div class="terminal-line"><span class="terminal-output">Compressing objects: 100% (4/4), done.</span></div>
+                <div class="terminal-line"><span class="terminal-output">Writing objects: 100% (5/5), 1.23 KiB | 1.23 MiB/s, done.</span></div>
+                <div class="terminal-line"><span class="terminal-output">Total 5 (delta 2), reused 0 (delta 0)</span></div>
+                <div class="terminal-line"><span class="terminal-output">To https://github.com/username/repository.git</span></div>
+                <div class="terminal-line"><span class="terminal-output">   1234567..a1b2c3d  main -> main</span></div>
+            `;
+        }
+
+        function simulateCreateBranch() {
+            const terminal = document.getElementById('terminal-branch');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git checkout -b feature/new-header</div>
+                <div class="terminal-line"><span class="terminal-output">Switched to a new branch 'feature/new-header'</span></div>
+            `;
+        }
+
+        function simulateBranchCommit() {
+            const terminal = document.getElementById('terminal-branch-commit');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git add .</div>
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git commit -m "Add new header component"</div>
+                <div class="terminal-line"><span class="terminal-output">[feature/new-header e4f5g6h] Add new header component</span></div>
+                <div class="terminal-line"><span class="terminal-output"> 3 files changed, 45 insertions(+), 12 deletions(-)</span></div>
+            `;
+        }
+
+        function simulateCheckoutMain() {
+            const terminal = document.getElementById('terminal-checkout-main');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git checkout main</div>
+                <div class="terminal-line"><span class="terminal-output">Switched to branch 'main'</span></div>
+                <div class="terminal-line"><span class="terminal-output">Your branch is up to date with 'origin/main'.</span></div>
+            `;
+        }
+
+        function simulateMerge() {
+            const terminal = document.getElementById('terminal-merge');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git merge feature/new-header</div>
+                <div class="terminal-line"><span class="terminal-output">Updating a1b2c3d..e4f5g6h</span></div>
+                <div class="terminal-line"><span class="terminal-output">Fast-forward</span></div>
+                <div class="terminal-line"><span class="terminal-output"> header.js | 45 +++++++++++++++++++++++++++++++++++++++++++</span></div>
+                <div class="terminal-line"><span class="terminal-output"> styles.css | 12 ++++++++++++</span></div>
+                <div class="terminal-line"><span class="terminal-output"> 3 files changed, 57 insertions(+), 12 deletions(-)</span></div>
+            `;
+        }
+
+        function simulateDeleteBranch() {
+            const terminal = document.getElementById('terminal-delete-branch');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git branch -d feature/new-header</div>
+                <div class="terminal-line"><span class="terminal-output">Deleted branch feature/new-header (was e4f5g6h).</span></div>
+            `;
+        }
+
+        function simulatePushBranch() {
+            const terminal = document.getElementById('terminal-push-branch');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git push -u origin feature/login-page</div>
+                <div class="terminal-line"><span class="terminal-output">Enumerating objects: 9, done.</span></div>
+                <div class="terminal-line"><span class="terminal-output">Counting objects: 100% (9/9), done.</span></div>
+                <div class="terminal-line"><span class="terminal-output">Writing objects: 100% (7/7), 2.34 KiB | 2.34 MiB/s, done.</span></div>
+                <div class="terminal-line"><span class="terminal-output">To https://github.com/username/repository.git</span></div>
+                <div class="terminal-line"><span class="terminal-output"> * [new branch]      feature/login-page -> feature/login-page</span></div>
+                <div class="terminal-line"><span class="terminal-output">Branch 'feature/login-page' set up to track remote branch 'feature/login-page' from 'origin'.</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">remote: Create a pull request for 'feature/login-page' on GitHub by visiting:</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">remote:      https://github.com/username/repository/pull/new/feature/login-page</span></div>
+            `;
+        }
+
+        function simulateCreatePR() {
+            const terminal = document.getElementById('terminal-create-pr');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> Creating pull request...</div>
+                <div class="terminal-line"><span class="terminal-output">Title: Add user login page</span></div>
+                <div class="terminal-line"><span class="terminal-output">Description: Implements email/password authentication with validation</span></div>
+                <div class="terminal-line"><span class="terminal-output">Base: main ← Compare: feature/login-page</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">✓ Pull request #42 created successfully!</span></div>
+                <div class="terminal-line"><span class="terminal-output">URL: https://github.com/username/repository/pull/42</span></div>
+            `;
+        }
+
+        function simulateAddressReview() {
+            const terminal = document.getElementById('terminal-address-review');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git commit -m "Fix review feedback: add email validation"</div>
+                <div class="terminal-line"><span class="terminal-output">[feature/login-page h7i8j9k] Fix review feedback: add email validation</span></div>
+                <div class="terminal-line"><span class="terminal-output"> 2 files changed, 15 insertions(+), 3 deletions(-)</span></div>
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git push</div>
+                <div class="terminal-line"><span class="terminal-output">To https://github.com/username/repository.git</span></div>
+                <div class="terminal-line"><span class="terminal-output">   e4f5g6h..h7i8j9k  feature/login-page -> feature/login-page</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">✓ Pull request #42 automatically updated with new commits</span></div>
+            `;
+        }
+
+        function simulateMergePR() {
+            const terminal = document.getElementById('terminal-merge-pr');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> Merging pull request #42...</div>
+                <div class="terminal-line"><span class="terminal-output">Merge strategy: Merge commit</span></div>
+                <div class="terminal-line"><span class="terminal-output">Updating a1b2c3d..h7i8j9k</span></div>
+                <div class="terminal-line"><span class="terminal-output">Fast-forward</span></div>
+                <div class="terminal-line"><span class="terminal-output"> login.js | 120 ++++++++++++++++++++++++++++++++++++++++++++++++</span></div>
+                <div class="terminal-line"><span class="terminal-output"> styles.css | 45 +++++++++++++++++++</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">✓ Pull request #42 merged successfully!</span></div>
+                <div class="terminal-line"><span class="terminal-output">Branch 'feature/login-page' deleted</span></div>
+            `;
+        }
+
+        function simulateMergeConflict() {
+            const terminal = document.getElementById('terminal-conflict');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git merge feature/header</div>
+                <div class="terminal-line"><span class="terminal-output">Auto-merging index.html</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #f85149;">CONFLICT (content): Merge conflict in index.html</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #f85149;">Automatic merge failed; fix conflicts and then commit the result.</span></div>
+            `;
+        }
+
+        function simulateViewConflict() {
+            const conflictView = document.getElementById('conflict-view');
+            conflictView.style.display = 'block';
+        }
+
+        function simulateCompleteMerge() {
+            const terminal = document.getElementById('terminal-complete-merge');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git add .</div>
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git commit -m "Merge feature/header: resolve conflicts"</div>
+                <div class="terminal-line"><span class="terminal-output">[main l1m2n3o] Merge feature/header: resolve conflicts</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">✓ Merge completed successfully!</span></div>
+            `;
+        }
+
+        function simulateCreateIssue() {
+            const terminal = document.getElementById('terminal-create-issue');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> Creating issue...</div>
+                <div class="terminal-line"><span class="terminal-output">Title: Login form doesn't validate email format</span></div>
+                <div class="terminal-line"><span class="terminal-output">Description: Email field accepts invalid formats like "not-an-email"</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">✓ Issue #45 created successfully!</span></div>
+                <div class="terminal-line"><span class="terminal-output">URL: https://github.com/username/repository/issues/45</span></div>
+            `;
+        }
+
+        function simulateAddLabels() {
+            const terminal = document.getElementById('terminal-add-labels');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> Adding labels and assignee to issue #45...</div>
+                <div class="terminal-line"><span class="terminal-output">Labels: <span style="background: #d73a4a; color: white; padding: 2px 8px; border-radius: 12px;">bug</span> <span style="background: #0075ca; color: white; padding: 2px 8px; border-radius: 12px;">priority: high</span></span></div>
+                <div class="terminal-line"><span class="terminal-output">Assignee: @developer-name</span></div>
+                <div class="terminal-line"><span class="terminal-output">Milestone: v1.1.0</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">✓ Issue #45 updated successfully!</span></div>
+            `;
+        }
+
+        function simulateLinkPR() {
+            const terminal = document.getElementById('terminal-link-pr');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> Creating pull request with issue link...</div>
+                <div class="terminal-line"><span class="terminal-output">PR Description: "Fixes #45 - Add email validation to login form"</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">✓ Pull request #46 created and linked to issue #45</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #d29922;">ℹ When PR #46 is merged, issue #45 will automatically close</span></div>
+            `;
+        }
+
+        function simulatePushForPages() {
+            const terminal = document.getElementById('terminal-push-pages');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> git push origin main</div>
+                <div class="terminal-line"><span class="terminal-output">Enumerating objects: 15, done.</span></div>
+                <div class="terminal-line"><span class="terminal-output">Counting objects: 100% (15/15), done.</span></div>
+                <div class="terminal-line"><span class="terminal-output">Writing objects: 100% (12/12), 45.67 KiB | 12.34 MiB/s, done.</span></div>
+                <div class="terminal-line"><span class="terminal-output">To https://github.com/username/my-website.git</span></div>
+                <div class="terminal-line"><span class="terminal-output">   a1b2c3d..e4f5g6h  main -> main</span></div>
+            `;
+        }
+
+        function simulateEnablePages() {
+            const terminal = document.getElementById('terminal-enable-pages');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> Enabling GitHub Pages...</div>
+                <div class="terminal-line"><span class="terminal-output">Source: Deploy from a branch</span></div>
+                <div class="terminal-line"><span class="terminal-output">Branch: main</span></div>
+                <div class="terminal-line"><span class="terminal-output">Folder: / (root)</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #d29922;">⏳ Building site... (this takes 1-2 minutes)</span></div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">✓ GitHub Pages enabled successfully!</span></div>
+                <div class="terminal-line"><span class="terminal-output">Your site is live at: https://username.github.io/my-website</span></div>
+            `;
+        }
+
+        function simulateVisitSite() {
+            const terminal = document.getElementById('terminal-visit-site');
+            terminal.innerHTML = `
+                <div class="terminal-line"><span class="terminal-prompt">$</span> Opening website...</div>
+                <div class="terminal-line"><span class="terminal-output" style="color: #3fb950;">✓ Website loaded successfully!</span></div>
+                <div class="terminal-line"><span class="terminal-output">URL: https://username.github.io/my-website</span></div>
+                <div class="terminal-line"><span class="terminal-output">Status: 200 OK</span></div>
+                <div class="terminal-line"><span class="terminal-output">HTTPS: Enabled</span></div>
+                <div class="terminal-line"><span class="terminal-output">Last deployed: Just now</span></div>
+            `;
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
